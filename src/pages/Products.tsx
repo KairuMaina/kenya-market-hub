@@ -1,333 +1,351 @@
+
 import { useState } from 'react';
-import { Filter, Grid, List, Star, Heart, ShoppingCart, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Star, ShoppingCart, Filter, Search, Grid, List } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Products = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
-  const [showFilters, setShowFilters] = useState(false);
-
-  const categories = [
-    'All Categories',
-    'Electronics',
-    'Fashion',
-    'Auto Parts',
-    'Home & Kitchen',
-    'Health & Beauty',
-    'Baby & Kids',
-    'Sports & Outdoors'
-  ];
 
   const products = [
     {
       id: 1,
-      name: 'Samsung Galaxy A54 5G',
-      price: 35000,
-      originalPrice: 42000,
-      image: '/placeholder.svg',
+      name: "Samsung Galaxy A54 5G Smartphone",
+      price: "KSh 35,000",
+      originalPrice: "KSh 42,000",
+      image: "/placeholder.svg",
       rating: 4.5,
       reviews: 128,
-      discount: 17,
-      category: 'Electronics',
-      seller: 'TechHub Kenya',
-      inStock: true,
-      description: 'Latest Samsung smartphone with 5G connectivity, 128GB storage, and premium camera system.'
+      discount: "17% OFF",
+      vendor: "TechHub Kenya",
+      category: "electronics",
+      inStock: true
     },
     {
       id: 2,
-      name: 'Toyota Corolla Brake Pads',
-      price: 4500,
-      originalPrice: 6000,
-      image: '/placeholder.svg',
+      name: "Toyota Corolla Front Brake Pads Set",
+      price: "KSh 4,500",
+      originalPrice: "KSh 6,000",
+      image: "/placeholder.svg",
       rating: 4.8,
-      reviews: 89,
-      discount: 25,
-      category: 'Auto Parts',
-      seller: 'AutoSpare Kenya',
-      inStock: true,
-      description: 'High-quality brake pads compatible with Toyota Corolla 2015-2023 models.'
+      reviews: 64,
+      discount: "25% OFF",
+      vendor: "AutoSpare Kenya",
+      category: "auto-parts",
+      inStock: true
     },
     {
       id: 3,
-      name: 'Nike Air Max Sneakers',
-      price: 12000,
-      originalPrice: 15000,
-      image: '/placeholder.svg',
-      rating: 4.6,
-      reviews: 204,
-      discount: 20,
-      category: 'Fashion',
-      seller: 'StyleHub',
-      inStock: true,
-      description: 'Comfortable and stylish Nike Air Max sneakers for everyday wear.'
+      name: "Women's Elegant Evening Dress",
+      price: "KSh 2,800",
+      originalPrice: "KSh 3,500",
+      image: "/placeholder.svg",
+      rating: 4.3,
+      reviews: 89,
+      discount: "20% OFF",
+      vendor: "StyleHub",
+      category: "fashion",
+      inStock: true
     },
     {
       id: 4,
-      name: 'Philips Kitchen Blender',
-      price: 8500,
-      originalPrice: 11000,
-      image: '/placeholder.svg',
-      rating: 4.3,
-      reviews: 67,
-      discount: 23,
-      category: 'Home & Kitchen',
-      seller: 'HomeEssentials',
-      inStock: false,
-      description: 'Powerful 700W blender perfect for smoothies, soups, and food preparation.'
+      name: "Professional Kitchen Blender 1500W",
+      price: "KSh 8,900",
+      originalPrice: "KSh 12,000",
+      image: "/placeholder.svg",
+      rating: 4.6,
+      reviews: 156,
+      discount: "26% OFF",
+      vendor: "HomeEssentials",
+      category: "home-kitchen",
+      inStock: false
     },
     {
       id: 5,
-      name: 'iPhone 13 Pro Max',
-      price: 85000,
-      originalPrice: 95000,
-      image: '/placeholder.svg',
-      rating: 4.9,
-      reviews: 156,
-      discount: 11,
-      category: 'Electronics',
-      seller: 'iStore Kenya',
-      inStock: true,
-      description: 'Apple iPhone 13 Pro Max with 256GB storage, ProRAW camera, and all-day battery.'
+      name: "iPhone 13 Pro Max Case Premium",
+      price: "KSh 1,500",
+      originalPrice: "KSh 2,000",
+      image: "/placeholder.svg",
+      rating: 4.4,
+      reviews: 203,
+      discount: "25% OFF",
+      vendor: "TechHub Kenya",
+      category: "electronics",
+      inStock: true
     },
     {
       id: 6,
-      name: 'Honda Civic Oil Filter',
-      price: 1500,
-      originalPrice: 2000,
-      image: '/placeholder.svg',
+      name: "Men's Casual Leather Shoes",
+      price: "KSh 4,200",
+      originalPrice: "KSh 5,500",
+      image: "/placeholder.svg",
       rating: 4.7,
-      reviews: 43,
-      discount: 25,
-      category: 'Auto Parts',
-      seller: 'AutoSpare Kenya',
-      inStock: true,
-      description: 'OEM quality oil filter for Honda Civic 2016-2023 models.'
+      reviews: 94,
+      discount: "24% OFF",
+      vendor: "StyleHub",
+      category: "fashion",
+      inStock: true
     }
   ];
 
-  const ProductCard = ({ product }: { product: typeof products[0] }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-0">
-        <div className="relative">
-          <img 
-            src={product.image} 
-            alt={product.name}
-            className="w-full h-40 sm:h-48 object-cover rounded-t-lg"
-          />
-          {product.discount > 0 && (
-            <Badge className="absolute top-2 left-2 bg-red-500 text-xs">
-              -{product.discount}%
-            </Badge>
-          )}
-          {!product.inStock && (
-            <Badge className="absolute top-2 left-2 bg-gray-500 text-xs">
-              Out of Stock
-            </Badge>
-          )}
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white h-8 w-8"
-          >
-            <Heart className="h-3 w-3" />
-          </Button>
-        </div>
-        
-        <div className="p-3 sm:p-4">
-          <h4 className="font-semibold mb-2 line-clamp-2 text-sm sm:text-base">{product.name}</h4>
-          <p className="text-xs sm:text-sm text-gray-600 mb-2">by {product.seller}</p>
-          
-          <div className="flex items-center mb-2">
-            <div className="flex text-yellow-400 text-xs">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star 
-                  key={i} 
-                  className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-current' : ''}`} 
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500 ml-1">
-              ({product.reviews})
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <span className="text-base sm:text-lg font-bold text-green-600">
-                KSh {product.price.toLocaleString()}
-              </span>
-              {product.originalPrice > product.price && (
-                <span className="text-xs sm:text-sm text-gray-500 line-through ml-2">
-                  KSh {product.originalPrice.toLocaleString()}
-                </span>
-              )}
-            </div>
-          </div>
-          
-          <Button 
-            className="w-full text-xs sm:text-sm h-8 sm:h-10" 
-            disabled={!product.inStock}
-          >
-            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const categories = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'fashion', label: 'Fashion' },
+    { value: 'auto-parts', label: 'Auto Parts' },
+    { value: 'home-kitchen', label: 'Home & Kitchen' },
+    { value: 'health-beauty', label: 'Health & Beauty' }
+  ];
+
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(product => product.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile-optimized Header */}
-      <header className="bg-white shadow-sm border-b p-3 sm:p-4">
-        <div className="container mx-auto">
-          <h1 className="text-xl sm:text-2xl font-bold text-green-600">KenyaMarket - Products</h1>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold">SS</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Soko Smart</h1>
+            </Link>
+
+            {/* Search Bar */}
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search for products..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex items-center space-x-6">
+              <Link to="/" className="text-gray-600 hover:text-gray-900 font-medium">
+                Home
+              </Link>
+              <Link to="/admin/login" className="text-gray-600 hover:text-gray-900 font-medium">
+                Admin
+              </Link>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Cart
+              </Button>
+            </nav>
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
-          {/* Mobile Filter Toggle */}
-          <div className="lg:hidden">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="w-full mb-4"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </Button>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">All Products</h2>
+          <p className="text-gray-600">Discover amazing products from trusted vendors across Kenya</p>
+        </div>
 
-          {/* Sidebar Filters - Mobile Collapsible */}
-          <aside className={`lg:w-64 space-y-4 sm:space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <Card>
-              <CardContent className="p-3 sm:p-4">
-                <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Categories</h3>
-                <ul className="space-y-1 sm:space-y-2">
-                  {categories.map((category, index) => (
-                    <li key={index}>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-left text-xs sm:text-sm h-8 sm:h-10"
-                      >
-                        {category}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-3 sm:p-4">
-                <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Price Range</h3>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input placeholder="Min" className="h-8 sm:h-10 text-xs sm:text-sm" />
-                    <Input placeholder="Max" className="h-8 sm:h-10 text-xs sm:text-sm" />
-                  </div>
-                  <Button className="w-full h-8 sm:h-10 text-xs sm:text-sm">Apply</Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-3 sm:p-4">
-                <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Ratings</h3>
-                <div className="space-y-2">
-                  {[5, 4, 3, 2, 1].map((rating) => (
-                    <label key={rating} className="flex items-center space-x-2 cursor-pointer">
-                      <input type="checkbox" className="rounded" />
-                      <div className="flex items-center">
-                        <div className="flex text-yellow-400 text-xs">
-                          {Array.from({ length: rating }, (_, i) => (
-                            <Star key={i} className="h-3 w-3 fill-current" />
-                          ))}
-                        </div>
-                        <span className="ml-1 text-xs">& up</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1">
-            {/* Top Controls - Mobile Optimized */}
-            <div className="flex flex-col gap-4 mb-4 sm:mb-6">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold">All Products</h2>
-                <p className="text-sm sm:text-base text-gray-600">{products.length} products found</p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full sm:w-48 h-9 sm:h-10">
-                    <SelectValue placeholder="Sort by" />
+        {/* Filters and Controls */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              {/* Category Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="featured">Featured</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="rating">Customer Rating</SelectItem>
-                    <SelectItem value="newest">Newest First</SelectItem>
+                    {categories.map(category => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+              </div>
 
-                <div className="flex items-center border rounded-md w-fit">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className="h-9"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="h-9"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
+              {/* Sort Filter */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 mr-2">View:</span>
+              <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <Grid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Products Grid - Mobile Responsive */}
-            <div className={`grid gap-3 sm:gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
+        {/* Results Summary */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} 
+            {selectedCategory !== 'all' && ` in ${categories.find(c => c.value === selectedCategory)?.label}`}
+          </p>
+        </div>
+
+        {/* Products Grid/List */}
+        <div className={viewMode === 'grid' 
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+          : "space-y-6"
+        }>
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className={`hover:shadow-lg transition-shadow bg-white border-gray-200 ${
+              viewMode === 'list' ? 'flex flex-row' : ''
             }`}>
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+              <CardContent className={`p-0 ${viewMode === 'list' ? 'flex flex-row w-full' : ''}`}>
+                <div className={`relative ${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className={`object-cover ${
+                      viewMode === 'list' 
+                        ? 'w-full h-48 rounded-l-lg' 
+                        : 'w-full h-48 rounded-t-lg'
+                    }`}
+                  />
+                  <Badge className="absolute top-2 left-2 bg-red-500">
+                    {product.discount}
+                  </Badge>
+                  {!product.inStock && (
+                    <Badge className="absolute top-2 right-2 bg-gray-500">
+                      Out of Stock
+                    </Badge>
+                  )}
+                </div>
+                <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-between' : ''}`}>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h4>
+                    <p className="text-sm text-gray-600 mb-2">{product.vendor}</p>
+                    <div className="flex items-center mb-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`h-4 w-4 ${
+                              i < Math.floor(product.rating) 
+                                ? 'fill-yellow-400 text-yellow-400' 
+                                : 'text-gray-300'
+                            }`} 
+                          />
+                        ))}
+                        <span className="text-sm text-gray-600 ml-1">
+                          {product.rating} ({product.reviews})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`flex items-center ${
+                    viewMode === 'list' ? 'justify-between mt-4' : 'justify-between'
+                  }`}>
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold text-gray-900">{product.price}</span>
+                      <span className="text-sm text-gray-500 line-through">{product.originalPrice}</span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      disabled={!product.inStock}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                    >
+                      {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-            {/* Load More */}
-            <div className="text-center mt-8 sm:mt-12">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Load More Products
-              </Button>
-            </div>
-          </main>
+        {/* Load More Button */}
+        <div className="text-center mt-12">
+          <Button variant="outline" size="lg" className="px-8">
+            Load More Products
+          </Button>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 mt-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">SS</span>
+                </div>
+                <h4 className="text-xl font-bold">Soko Smart</h4>
+              </div>
+              <p className="text-gray-400">Kenya's premier e-commerce platform connecting buyers with trusted vendors nationwide.</p>
+            </div>
+            <div>
+              <h5 className="font-semibold mb-4">Quick Links</h5>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">About Us</a></li>
+                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="#" className="hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-white">Terms & Conditions</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold mb-4">Categories</h5>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">Electronics</a></li>
+                <li><a href="#" className="hover:text-white">Fashion</a></li>
+                <li><a href="#" className="hover:text-white">Auto Parts</a></li>
+                <li><a href="#" className="hover:text-white">Home & Kitchen</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold mb-4">Contact Info</h5>
+              <ul className="space-y-2 text-gray-400">
+                <li>Email: info@sokosmart.ke</li>
+                <li>Phone: +254 700 123 456</li>
+                <li>Address: Nairobi, Kenya</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Soko Smart. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
