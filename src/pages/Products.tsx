@@ -4,8 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, ShoppingCart, Filter, Search, Grid, List } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Star, Filter, Grid, List } from 'lucide-react';
+import MainLayout from '@/components/MainLayout';
 
 const Products = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -67,13 +67,13 @@ const Products = () => {
     },
     {
       id: 5,
-      name: "iPhone 13 Pro Max Case Premium",
-      price: "KSh 1,500",
-      originalPrice: "KSh 2,000",
+      name: "iPhone 15 Pro Max 256GB",
+      price: "KSh 150,000",
+      originalPrice: "KSh 165,000",
       image: "/placeholder.svg",
-      rating: 4.4,
-      reviews: 203,
-      discount: "25% OFF",
+      rating: 4.9,
+      reviews: 234,
+      discount: "9% OFF",
       vendor: "TechHub Kenya",
       category: "electronics",
       inStock: true
@@ -89,6 +89,58 @@ const Products = () => {
       discount: "24% OFF",
       vendor: "StyleHub",
       category: "fashion",
+      inStock: true
+    },
+    {
+      id: 7,
+      name: "MacBook Air M2 13-inch",
+      price: "KSh 145,000",
+      originalPrice: "KSh 160,000",
+      image: "/placeholder.svg",
+      rating: 4.8,
+      reviews: 167,
+      discount: "9% OFF",
+      vendor: "TechHub Kenya",
+      category: "electronics",
+      inStock: true
+    },
+    {
+      id: 8,
+      name: "Wireless Bluetooth Headphones",
+      price: "KSh 3,500",
+      originalPrice: "KSh 4,500",
+      image: "/placeholder.svg",
+      rating: 4.4,
+      reviews: 312,
+      discount: "22% OFF",
+      vendor: "AudioMax Kenya",
+      category: "electronics",
+      inStock: true
+    },
+    {
+      id: 9,
+      name: "Women's Handbag Designer Collection",
+      price: "KSh 6,800",
+      originalPrice: "KSh 8,500",
+      image: "/placeholder.svg",
+      rating: 4.5,
+      reviews: 78,
+      discount: "20% OFF",
+      vendor: "StyleHub",
+      category: "fashion",
+      inStock: true
+    },
+    {
+      id: 10,
+      name: "Smart Watch Series 9",
+      price: "KSh 25,000",
+      originalPrice: "KSh 30,000",
+      image: "/placeholder.svg",
+      rating: 4.6,
+      reviews: 198,
+      discount: "17% OFF",
+      vendor: "TechHub Kenya",
+      category: "electronics",
       inStock: true
     }
   ];
@@ -107,57 +159,16 @@ const Products = () => {
     : products.filter(product => product.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">SS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Soko Smart</h1>
-            </Link>
-
-            {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search for products..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex items-center space-x-6">
-              <Link to="/" className="text-gray-600 hover:text-gray-900 font-medium">
-                Home
-              </Link>
-              <Link to="/admin/login" className="text-gray-600 hover:text-gray-900 font-medium">
-                Admin
-              </Link>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Cart
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
+    <MainLayout>
+      <div className="space-y-8">
         {/* Page Header */}
-        <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">All Products</h2>
           <p className="text-gray-600">Discover amazing products from trusted vendors across Kenya</p>
         </div>
 
         {/* Filters and Controls */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               {/* Category Filter */}
@@ -214,7 +225,7 @@ const Products = () => {
         </div>
 
         {/* Results Summary */}
-        <div className="mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-gray-600">
             Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} 
             {selectedCategory !== 'all' && ` in ${categories.find(c => c.value === selectedCategory)?.label}`}
@@ -294,59 +305,13 @@ const Products = () => {
         </div>
 
         {/* Load More Button */}
-        <div className="text-center mt-12">
+        <div className="text-center bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <Button variant="outline" size="lg" className="px-8">
             Load More Products
           </Button>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">SS</span>
-                </div>
-                <h4 className="text-xl font-bold">Soko Smart</h4>
-              </div>
-              <p className="text-gray-400">Kenya's premier e-commerce platform connecting buyers with trusted vendors nationwide.</p>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Quick Links</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">About Us</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Terms & Conditions</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Categories</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Electronics</a></li>
-                <li><a href="#" className="hover:text-white">Fashion</a></li>
-                <li><a href="#" className="hover:text-white">Auto Parts</a></li>
-                <li><a href="#" className="hover:text-white">Home & Kitchen</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Contact Info</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li>Email: info@sokosmart.ke</li>
-                <li>Phone: +254 700 123 456</li>
-                <li>Address: Nairobi, Kenya</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Soko Smart. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </MainLayout>
   );
 };
 

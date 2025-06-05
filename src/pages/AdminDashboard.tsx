@@ -19,6 +19,20 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -65,6 +79,49 @@ const AdminDashboard = () => {
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const AdminSidebar = () => (
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center space-x-3 px-4 py-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">SS</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">Soko Smart</h1>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sidebarItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab(item.id)}
+                    isActive={activeTab === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
 
   const renderContent = () => {
     switch (activeTab) {
@@ -265,64 +322,36 @@ const AdminDashboard = () => {
           </Card>
         );
       default:
-        return null;
+        return (
+          <Card className="bg-white border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-gray-900">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">This section is under development.</p>
+            </CardContent>
+          </Card>
+        );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SS</span>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gray-50">
+        <AdminSidebar />
+        <main className="flex-1">
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Soko Smart</h1>
           </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="p-4">
-          <div className="space-y-2">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg transition-colors ${
-                  activeTab === item.id
-                    ? 'bg-gray-100 text-gray-900 border border-gray-200'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            ))}
+          <div className="p-6">
+            {renderContent()}
           </div>
-        </nav>
-
-        {/* Logout Button */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <Button onClick={handleLogout} variant="outline" className="w-full">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
+        </main>
       </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
-            <p className="text-gray-600">Manage your Soko Smart platform</p>
-          </div>
-          {renderContent()}
-        </div>
-      </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
