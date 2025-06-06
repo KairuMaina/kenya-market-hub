@@ -109,6 +109,14 @@ const AppSidebar = () => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="hover:bg-orange-50 hover:text-orange-700">
+                  <Link to="/products?category=cosmetics">
+                    <span className="text-base">💄</span>
+                    <span>Cosmetics</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="hover:bg-orange-50 hover:text-orange-700">
                   <Link to="/products?category=auto-parts">
                     <span className="text-base">🚗</span>
                     <span>Auto Parts</span>
@@ -120,6 +128,30 @@ const AppSidebar = () => {
                   <Link to="/products?category=home-kitchen">
                     <span className="text-base">🏠</span>
                     <span>Home & Kitchen</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="hover:bg-orange-50 hover:text-orange-700">
+                  <Link to="/products?category=health-beauty">
+                    <span className="text-base">💅</span>
+                    <span>Health & Beauty</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="hover:bg-orange-50 hover:text-orange-700">
+                  <Link to="/products?category=baby-kids">
+                    <span className="text-base">👶</span>
+                    <span>Baby & Kids</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="hover:bg-orange-50 hover:text-orange-700">
+                  <Link to="/products?category=sports">
+                    <span className="text-base">⚽</span>
+                    <span>Sports</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

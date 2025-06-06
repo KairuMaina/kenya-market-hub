@@ -12,11 +12,11 @@ const Index = () => {
 
   const brandLogos = [
     { name: "Samsung", logo: "📱", color: "bg-blue-100" },
-    { name: "Apple", logo: "🍎", color: "bg-gray-100" },
-    { name: "Sony", logo: "📺", color: "bg-red-100" },
-    { name: "Toyota", logo: "🚗", color: "bg-green-100" },
+    { name: "Tecno", logo: "📞", color: "bg-green-100" },
+    { name: "Toyota", logo: "🚗", color: "bg-red-100" },
+    { name: "Infinix", logo: "📲", color: "bg-purple-100" },
     { name: "Nike", logo: "👟", color: "bg-orange-100" },
-    { name: "Adidas", logo: "⚽", color: "bg-purple-100" }
+    { name: "Shea Moisture", logo: "💄", color: "bg-pink-100" }
   ];
 
   const categories = [
@@ -25,19 +25,19 @@ const Index = () => {
       items: [
         {
           id: 1,
-          name: "iPhone 15 Pro Max",
-          price: "KSh 150,000",
-          originalPrice: "KSh 165,000",
+          name: "Tecno Spark 10 Pro",
+          price: "KSh 18,000",
+          originalPrice: "KSh 22,000",
           image: "/placeholder.svg",
-          rating: 4.9,
+          rating: 4.5,
           reviews: 234,
           vendor: "TechHub Kenya"
         },
         {
           id: 2,
-          name: "Samsung Galaxy S24",
-          price: "KSh 95,000",
-          originalPrice: "KSh 110,000",
+          name: "Infinix Note 12",
+          price: "KSh 25,000",
+          originalPrice: "KSh 30,000",
           image: "/placeholder.svg",
           rating: 4.7,
           reviews: 189,
@@ -45,9 +45,9 @@ const Index = () => {
         },
         {
           id: 3,
-          name: "MacBook Air M3",
-          price: "KSh 145,000",
-          originalPrice: "KSh 160,000",
+          name: "Samsung Galaxy A54",
+          price: "KSh 35,000",
+          originalPrice: "KSh 40,000",
           image: "/placeholder.svg",
           rating: 4.8,
           reviews: 167,
@@ -55,9 +55,9 @@ const Index = () => {
         },
         {
           id: 4,
-          name: "AirPods Pro",
-          price: "KSh 25,000",
-          originalPrice: "KSh 30,000",
+          name: "Xiaomi Redmi Note 12",
+          price: "KSh 22,000",
+          originalPrice: "KSh 26,000",
           image: "/placeholder.svg",
           rating: 4.6,
           reviews: 298,
@@ -70,9 +70,9 @@ const Index = () => {
       items: [
         {
           id: 5,
-          name: "Men's Leather Jacket",
-          price: "KSh 8,500",
-          originalPrice: "KSh 12,000",
+          name: "African Print Dress",
+          price: "KSh 3,500",
+          originalPrice: "KSh 5,000",
           image: "/placeholder.svg",
           rating: 4.5,
           reviews: 76,
@@ -80,9 +80,9 @@ const Index = () => {
         },
         {
           id: 6,
-          name: "Women's Evening Dress",
-          price: "KSh 3,200",
-          originalPrice: "KSh 4,500",
+          name: "Kitenge Blouse",
+          price: "KSh 2,200",
+          originalPrice: "KSh 3,000",
           image: "/placeholder.svg",
           rating: 4.3,
           reviews: 89,
@@ -90,7 +90,7 @@ const Index = () => {
         },
         {
           id: 7,
-          name: "Designer Sneakers",
+          name: "Nike Air Force 1",
           price: "KSh 12,000",
           originalPrice: "KSh 15,000",
           image: "/placeholder.svg",
@@ -100,13 +100,58 @@ const Index = () => {
         },
         {
           id: 8,
-          name: "Luxury Handbag",
-          price: "KSh 18,000",
-          originalPrice: "KSh 25,000",
+          name: "Adidas Gazelle",
+          price: "KSh 10,000",
+          originalPrice: "KSh 13,000",
           image: "/placeholder.svg",
           rating: 4.8,
           reviews: 94,
-          vendor: "LuxFashion"
+          vendor: "SneakerWorld"
+        }
+      ]
+    },
+    {
+      name: "Cosmetics & Beauty",
+      items: [
+        {
+          id: 9,
+          name: "Shea Moisture Hair Mask",
+          price: "KSh 1,800",
+          originalPrice: "KSh 2,500",
+          image: "/placeholder.svg",
+          rating: 4.8,
+          reviews: 64,
+          vendor: "AfricanGlow Cosmetics"
+        },
+        {
+          id: 10,
+          name: "Black Opal Foundation",
+          price: "KSh 3,200",
+          originalPrice: "KSh 4,000",
+          image: "/placeholder.svg",
+          rating: 4.6,
+          reviews: 43,
+          vendor: "BeautyWorld"
+        },
+        {
+          id: 11,
+          name: "Cocoa Butter Lotion",
+          price: "KSh 800",
+          originalPrice: "KSh 1,200",
+          image: "/placeholder.svg",
+          rating: 4.7,
+          reviews: 87,
+          vendor: "AfricanGlow Cosmetics"
+        },
+        {
+          id: 12,
+          name: "African Pride Hair Oil",
+          price: "KSh 1,500",
+          originalPrice: "KSh 2,000",
+          image: "/placeholder.svg",
+          rating: 4.9,
+          reviews: 156,
+          vendor: "BeautyWorld"
         }
       ]
     },
@@ -114,8 +159,8 @@ const Index = () => {
       name: "Auto Parts & Accessories",
       items: [
         {
-          id: 9,
-          name: "Toyota Brake Pads",
+          id: 13,
+          name: "Toyota Corolla Brake Pads",
           price: "KSh 4,500",
           originalPrice: "KSh 6,000",
           image: "/placeholder.svg",
@@ -124,79 +169,34 @@ const Index = () => {
           vendor: "AutoSpare Kenya"
         },
         {
-          id: 10,
-          name: "Car Audio System",
-          price: "KSh 15,000",
-          originalPrice: "KSh 20,000",
+          id: 14,
+          name: "Nissan Sunny Air Filter",
+          price: "KSh 1,200",
+          originalPrice: "KSh 1,600",
           image: "/placeholder.svg",
           rating: 4.6,
           reviews: 43,
-          vendor: "CarTech"
-        },
-        {
-          id: 11,
-          name: "LED Headlights",
-          price: "KSh 8,000",
-          originalPrice: "KSh 11,000",
-          image: "/placeholder.svg",
-          rating: 4.7,
-          reviews: 87,
-          vendor: "AutoLights"
-        },
-        {
-          id: 12,
-          name: "Performance Tires",
-          price: "KSh 25,000",
-          originalPrice: "KSh 30,000",
-          image: "/placeholder.svg",
-          rating: 4.9,
-          reviews: 156,
-          vendor: "TireWorld"
-        }
-      ]
-    },
-    {
-      name: "Home & Kitchen",
-      items: [
-        {
-          id: 13,
-          name: "Smart TV 55 inch",
-          price: "KSh 45,000",
-          originalPrice: "KSh 55,000",
-          image: "/placeholder.svg",
-          rating: 4.6,
-          reviews: 234,
-          vendor: "HomeElectronics"
-        },
-        {
-          id: 14,
-          name: "Coffee Machine",
-          price: "KSh 12,000",
-          originalPrice: "KSh 16,000",
-          image: "/placeholder.svg",
-          rating: 4.4,
-          reviews: 89,
-          vendor: "KitchenPro"
+          vendor: "Mabati Motors"
         },
         {
           id: 15,
-          name: "Dining Table Set",
-          price: "KSh 35,000",
-          originalPrice: "KSh 45,000",
+          name: "Mazda Demio Spark Plugs",
+          price: "KSh 2,800",
+          originalPrice: "KSh 3,500",
           image: "/placeholder.svg",
           rating: 4.7,
-          reviews: 76,
-          vendor: "FurnitureKe"
+          reviews: 87,
+          vendor: "Car & General"
         },
         {
           id: 16,
-          name: "Microwave Oven",
-          price: "KSh 8,500",
-          originalPrice: "KSh 12,000",
+          name: "Subaru Impreza Oil Filter",
+          price: "KSh 1,800",
+          originalPrice: "KSh 2,200",
           image: "/placeholder.svg",
-          rating: 4.5,
-          reviews: 134,
-          vendor: "HomeEssentials"
+          rating: 4.9,
+          reviews: 156,
+          vendor: "AutoSpare Kenya"
         }
       ]
     }
@@ -281,7 +281,7 @@ const Index = () => {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {category.items.map((product) => (
                 <Card key={product.id} className="hover:shadow-lg transition-shadow border border-gray-200 bg-white">
                   <CardContent className="p-3">
@@ -289,7 +289,7 @@ const Index = () => {
                       <img 
                         src={product.image} 
                         alt={product.name}
-                        className="w-full h-40 object-cover rounded-lg"
+                        className="w-full h-32 object-cover rounded-lg"
                       />
                       <Badge className="absolute top-2 left-2 bg-red-500 text-xs">
                         DEAL
