@@ -12,18 +12,21 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         <main className="flex-1">
-          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
             <div className="flex items-center gap-4">
-              <SidebarTrigger />
+              <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600" />
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">SS</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-base">🛒</span>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Soko Smart</h1>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Soko Smart</h1>
+                  <p className="text-xs text-gray-600">Kenya's Marketplace</p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {children}
           </div>
         </main>
