@@ -1,6 +1,7 @@
 
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AppSidebar from './AppSidebar';
+import UserNav from './UserNav';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 </div>
               </div>
             </div>
+            <UserNav />
           </div>
           <div className="p-4 md:p-6">
             {children}

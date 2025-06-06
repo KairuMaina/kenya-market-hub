@@ -1,6 +1,7 @@
 
 import { Home, ShoppingBag, User, ShoppingCart, LogIn, Package, Star, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +16,7 @@ import {
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
 
   const navigationItems = [
     { title: 'Home', url: '/', icon: Home },
@@ -24,7 +26,8 @@ const AppSidebar = () => {
   ];
 
   const accountItems = [
-    { title: 'Admin Panel', url: '/admin/login', icon: Settings },
+    ...(user ? [] : [{ title: 'Sign In', url: '/auth', icon: LogIn }]),
+    ...(isAdmin ? [{ title: 'Admin Panel', url: '/admin', icon: Settings }] : []),
   ];
 
   return (
@@ -64,27 +67,29 @@ const AppSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-700 font-semibold">Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {accountItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={location.pathname.startsWith('/admin')}
-                    className="hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-700 data-[active=true]:font-semibold"
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {accountItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-gray-700 font-semibold">Account</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {accountItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={location.pathname.startsWith(item.url)}
+                      className="hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-700 data-[active=true]:font-semibold"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Quick Categories */}
         <SidebarGroup>
