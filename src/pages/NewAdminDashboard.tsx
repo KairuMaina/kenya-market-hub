@@ -33,7 +33,7 @@ const NewAdminDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Fetch users
+  // Fetch users with their roles
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
@@ -41,7 +41,7 @@ const NewAdminDashboard = () => {
         .from('profiles')
         .select(`
           *,
-          user_roles(role)
+          user_roles!inner(role)
         `)
         .order('created_at', { ascending: false });
       
@@ -50,7 +50,7 @@ const NewAdminDashboard = () => {
     }
   });
 
-  // Fetch orders
+  // Fetch orders with user profiles
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
@@ -58,7 +58,7 @@ const NewAdminDashboard = () => {
         .from('orders')
         .select(`
           *,
-          profiles(full_name, email),
+          profiles!orders_user_id_fkey(full_name, email),
           order_items(
             quantity,
             unit_price,
@@ -72,7 +72,7 @@ const NewAdminDashboard = () => {
     }
   });
 
-  // Fetch transactions
+  // Fetch transactions with related order and user data
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ['admin-transactions'],
     queryFn: async () => {
@@ -80,8 +80,9 @@ const NewAdminDashboard = () => {
         .from('transactions')
         .select(`
           *,
-          orders(
-            profiles(full_name, email)
+          orders!inner(
+            id,
+            profiles!orders_user_id_fkey(full_name, email)
           )
         `)
         .order('created_at', { ascending: false });
