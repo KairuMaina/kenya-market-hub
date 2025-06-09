@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight, Zap, Shield, Truck, Headphones } from "lucide-react";
 import { Link } from "react-router-dom";
 import MainLayout from "@/components/MainLayout";
 import { useState, useEffect } from "react";
@@ -19,186 +19,26 @@ const Index = () => {
     { name: "Shea Moisture", logo: "💄", color: "bg-pink-100" }
   ];
 
-  const categories = [
+  const features = [
     {
-      name: "Electronics & Tech",
-      items: [
-        {
-          id: 1,
-          name: "Tecno Spark 10 Pro",
-          price: "KSh 18,000",
-          originalPrice: "KSh 22,000",
-          image: "/placeholder.svg",
-          rating: 4.5,
-          reviews: 234,
-          vendor: "TechHub Kenya"
-        },
-        {
-          id: 2,
-          name: "Infinix Note 12",
-          price: "KSh 25,000",
-          originalPrice: "KSh 30,000",
-          image: "/placeholder.svg",
-          rating: 4.7,
-          reviews: 189,
-          vendor: "TechHub Kenya"
-        },
-        {
-          id: 3,
-          name: "Samsung Galaxy A54",
-          price: "KSh 35,000",
-          originalPrice: "KSh 40,000",
-          image: "/placeholder.svg",
-          rating: 4.8,
-          reviews: 167,
-          vendor: "TechHub Kenya"
-        },
-        {
-          id: 4,
-          name: "Xiaomi Redmi Note 12",
-          price: "KSh 22,000",
-          originalPrice: "KSh 26,000",
-          image: "/placeholder.svg",
-          rating: 4.6,
-          reviews: 298,
-          vendor: "AudioMax Kenya"
-        }
-      ]
+      icon: <Zap className="h-8 w-8 text-orange-500" />,
+      title: "Lightning Fast",
+      description: "Quick delivery across Kenya within 24-48 hours"
     },
     {
-      name: "Fashion & Apparel",
-      items: [
-        {
-          id: 5,
-          name: "African Print Dress",
-          price: "KSh 3,500",
-          originalPrice: "KSh 5,000",
-          image: "/placeholder.svg",
-          rating: 4.5,
-          reviews: 76,
-          vendor: "StyleHub"
-        },
-        {
-          id: 6,
-          name: "Kitenge Blouse",
-          price: "KSh 2,200",
-          originalPrice: "KSh 3,000",
-          image: "/placeholder.svg",
-          rating: 4.3,
-          reviews: 89,
-          vendor: "StyleHub"
-        },
-        {
-          id: 7,
-          name: "Nike Air Force 1",
-          price: "KSh 12,000",
-          originalPrice: "KSh 15,000",
-          image: "/placeholder.svg",
-          rating: 4.7,
-          reviews: 156,
-          vendor: "SneakerWorld"
-        },
-        {
-          id: 8,
-          name: "Adidas Gazelle",
-          price: "KSh 10,000",
-          originalPrice: "KSh 13,000",
-          image: "/placeholder.svg",
-          rating: 4.8,
-          reviews: 94,
-          vendor: "SneakerWorld"
-        }
-      ]
+      icon: <Shield className="h-8 w-8 text-blue-500" />,
+      title: "Secure Payments",
+      description: "Multiple payment options including M-Pesa, PayPal & Stripe"
     },
     {
-      name: "Cosmetics & Beauty",
-      items: [
-        {
-          id: 9,
-          name: "Shea Moisture Hair Mask",
-          price: "KSh 1,800",
-          originalPrice: "KSh 2,500",
-          image: "/placeholder.svg",
-          rating: 4.8,
-          reviews: 64,
-          vendor: "AfricanGlow Cosmetics"
-        },
-        {
-          id: 10,
-          name: "Black Opal Foundation",
-          price: "KSh 3,200",
-          originalPrice: "KSh 4,000",
-          image: "/placeholder.svg",
-          rating: 4.6,
-          reviews: 43,
-          vendor: "BeautyWorld"
-        },
-        {
-          id: 11,
-          name: "Cocoa Butter Lotion",
-          price: "KSh 800",
-          originalPrice: "KSh 1,200",
-          image: "/placeholder.svg",
-          rating: 4.7,
-          reviews: 87,
-          vendor: "AfricanGlow Cosmetics"
-        },
-        {
-          id: 12,
-          name: "African Pride Hair Oil",
-          price: "KSh 1,500",
-          originalPrice: "KSh 2,000",
-          image: "/placeholder.svg",
-          rating: 4.9,
-          reviews: 156,
-          vendor: "BeautyWorld"
-        }
-      ]
+      icon: <Truck className="h-8 w-8 text-green-500" />,
+      title: "Free Shipping",
+      description: "Free delivery on orders above KSH 5,000"
     },
     {
-      name: "Auto Parts & Accessories",
-      items: [
-        {
-          id: 13,
-          name: "Toyota Corolla Brake Pads",
-          price: "KSh 4,500",
-          originalPrice: "KSh 6,000",
-          image: "/placeholder.svg",
-          rating: 4.8,
-          reviews: 64,
-          vendor: "AutoSpare Kenya"
-        },
-        {
-          id: 14,
-          name: "Nissan Sunny Air Filter",
-          price: "KSh 1,200",
-          originalPrice: "KSh 1,600",
-          image: "/placeholder.svg",
-          rating: 4.6,
-          reviews: 43,
-          vendor: "Mabati Motors"
-        },
-        {
-          id: 15,
-          name: "Mazda Demio Spark Plugs",
-          price: "KSh 2,800",
-          originalPrice: "KSh 3,500",
-          image: "/placeholder.svg",
-          rating: 4.7,
-          reviews: 87,
-          vendor: "Car & General"
-        },
-        {
-          id: 16,
-          name: "Subaru Impreza Oil Filter",
-          price: "KSh 1,800",
-          originalPrice: "KSh 2,200",
-          image: "/placeholder.svg",
-          rating: 4.9,
-          reviews: 156,
-          vendor: "AutoSpare Kenya"
-        }
-      ]
+      icon: <Headphones className="h-8 w-8 text-purple-500" />,
+      title: "24/7 Support",
+      description: "Round-the-clock customer support team"
     }
   ];
 
@@ -219,141 +59,139 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        {/* Compact Hero with Brand Slideshow */}
-        <div className="bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 text-white py-8 px-6 rounded-lg relative overflow-hidden">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">
-              Shop from Trusted Brands
-            </h2>
-            <p className="text-sm md:text-base opacity-90">
-              Discover quality products from Kenya's leading marketplace
-            </p>
-          </div>
-
-          {/* Brand Slideshow */}
-          <div className="relative max-w-md mx-auto">
-            <div className="flex items-center justify-center space-x-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
-              <button onClick={prevSlide} className="p-1 hover:bg-white/20 rounded">
-                <ChevronLeft className="h-5 w-5" />
-              </button>
+      <div className="space-y-12">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 rounded-3xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 via-red-500/10 to-pink-500/10" />
+          <div className="relative px-6 py-16 md:py-24 text-center">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Kenya's Premier
+                <span className="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent"> Digital Marketplace</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Discover quality products from trusted vendors. Electronics, fashion, beauty, auto parts and more - all in one place.
+              </p>
               
-              <div className={`flex items-center space-x-3 px-4 py-2 rounded-lg text-black ${brandLogos[currentSlide].color}`}>
-                <span className="text-2xl">{brandLogos[currentSlide].logo}</span>
-                <span className="font-semibold">{brandLogos[currentSlide].name}</span>
+              {/* Brand Slideshow */}
+              <div className="relative max-w-md mx-auto mb-8">
+                <div className="flex items-center justify-center space-x-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                  <button onClick={prevSlide} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  
+                  <div className={`flex items-center space-x-3 px-6 py-3 rounded-xl text-black ${brandLogos[currentSlide].color} shadow-sm`}>
+                    <span className="text-3xl">{brandLogos[currentSlide].logo}</span>
+                    <span className="font-semibold text-lg">{brandLogos[currentSlide].name}</span>
+                  </div>
+                  
+                  <button onClick={nextSlide} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                <div className="flex justify-center mt-4 space-x-2">
+                  {brandLogos.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        index === currentSlide ? 'bg-orange-500 scale-110' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-              
-              <button onClick={nextSlide} className="p-1 hover:bg-white/20 rounded">
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="flex justify-center mt-3 space-x-1">
-              {brandLogos.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentSlide ? 'bg-white' : 'bg-white/50'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
 
-          <div className="text-center mt-6">
-            <Link to="/products">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-3 bg-white text-orange-600 hover:bg-gray-100">
-                Start Shopping
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/products">
+                  <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-6 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all">
+                    Start Shopping
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="lg" variant="outline" className="border-2 border-orange-500 text-orange-600 hover:bg-orange-50 px-8 py-6 text-lg rounded-xl">
+                    Join Marketplace
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Category Sections */}
-        {categories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">{category.name}</h3>
-              <Link to="/products" className="text-orange-600 hover:text-orange-700 font-medium flex items-center">
-                See all <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {category.items.map((product) => (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow border border-gray-200 bg-white">
-                  <CardContent className="p-3">
-                    <div className="relative mb-3">
-                      <img 
-                        src={product.image} 
-                        alt={product.name}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <Badge className="absolute top-2 left-2 bg-red-500 text-xs">
-                        DEAL
-                      </Badge>
-                    </div>
-                    
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm line-clamp-2">{product.name}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{product.vendor}</p>
-                    
-                    <div className="flex items-center mb-2">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`h-3 w-3 ${
-                              i < Math.floor(product.rating) 
-                                ? 'fill-yellow-400 text-yellow-400' 
-                                : 'text-gray-300'
-                            }`} 
-                          />
-                        ))}
-                        <span className="text-xs text-gray-600 ml-1">
-                          ({product.reviews})
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-base font-bold text-gray-900">{product.price}</span>
-                        <span className="text-xs text-gray-500 line-through">{product.originalPrice}</span>
-                      </div>
-                      <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-xs px-3 py-1">
-                        <ShoppingCart className="h-3 w-3 mr-1" />
-                        Add
-                      </Button>
-                    </div>
+        {/* Features Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((feature, index) => (
+            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="p-3 bg-gray-50 rounded-full">
+                    {feature.icon}
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-600 text-sm">{feature.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Categories Preview */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Explore our diverse range of products across multiple categories, carefully curated for quality and value.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { name: "Electronics", icon: "📱", color: "bg-blue-50 border-blue-200" },
+              { name: "Fashion", icon: "👗", color: "bg-pink-50 border-pink-200" },
+              { name: "Beauty", icon: "💄", color: "bg-purple-50 border-purple-200" },
+              { name: "Auto Parts", icon: "🚗", color: "bg-green-50 border-green-200" }
+            ].map((category, index) => (
+              <Link key={index} to="/products" className="group">
+                <Card className={`${category.color} border-2 hover:shadow-lg transition-all duration-300 transform group-hover:-translate-y-1`}>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-4xl mb-3">{category.icon}</div>
+                    <h3 className="font-semibold text-gray-900">{category.name}</h3>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              </Link>
+            ))}
           </div>
-        ))}
+        </div>
 
-        {/* Quick Stats */}
-        <div className="bg-gray-900 text-white py-8 px-6 rounded-lg">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-2xl font-bold text-orange-400">2M+</div>
-              <div className="text-sm text-gray-300">Products</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-400">50K+</div>
-              <div className="text-sm text-gray-300">Vendors</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-400">1M+</div>
-              <div className="text-sm text-gray-300">Customers</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-400">24/7</div>
-              <div className="text-sm text-gray-300">Support</div>
-            </div>
+        {/* Call to Action */}
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-16 px-8 rounded-2xl text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Start Shopping?</h2>
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Join thousands of satisfied customers who trust Soko Smart for their shopping needs.
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            {[
+              { label: "Products", value: "2M+" },
+              { label: "Vendors", value: "50K+" },
+              { label: "Customers", value: "1M+" },
+              { label: "Support", value: "24/7" }
+            ].map((stat, index) => (
+              <div key={index}>
+                <div className="text-3xl font-bold text-orange-400">{stat.value}</div>
+                <div className="text-gray-300">{stat.label}</div>
+              </div>
+            ))}
           </div>
+
+          <Link to="/products">
+            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg">
+              Explore Products
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
     </MainLayout>

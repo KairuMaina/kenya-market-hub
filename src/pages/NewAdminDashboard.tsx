@@ -13,11 +13,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit2, Plus, Users, Package, CreditCard, BarChart3 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import AddProductModal from '@/components/AddProductModal';
 
 const NewAdminDashboard = () => {
   const { user, isAdmin, loading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
   if (loading) {
     return (
@@ -43,6 +45,20 @@ const NewAdminDashboard = () => {
           *,
           user_roles!inner(role)
         `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch products
+  const { data: products, isLoading: productsLoading } = useQuery({
+    queryKey: ['admin-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -111,9 +127,37 @@ const NewAdminDashboard = () => {
     }
   });
 
+  // Delete product mutation
+  const deleteProduct = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast({ title: "Product deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error deleting product", 
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleDeleteUser = (userId: string) => {
     if (confirm('Are you sure you want to delete this user?')) {
       deleteUser.mutate(userId);
+    }
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      deleteProduct.mutate(productId);
     }
   };
 
@@ -155,20 +199,20 @@ const NewAdminDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{products?.length || 0}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{orders?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{transactions?.length || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -184,13 +228,72 @@ const NewAdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="users" className="space-y-4">
+        <Tabs defaultValue="products" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
           </TabsList>
           
+          <TabsContent value="products" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Product Management</CardTitle>
+                    <CardDescription>Manage your marketplace products</CardDescription>
+                  </div>
+                  <Button onClick={() => setShowAddProduct(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {productsLoading ? (
+                  <div>Loading products...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products?.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{product.category}</TableCell>
+                          <TableCell>KSH {Number(product.price).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge variant={product.in_stock ? 'default' : 'destructive'}>
+                              {product.in_stock ? `${product.stock_quantity} in stock` : 'Out of stock'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteProduct(product.id)}
+                              disabled={deleteProduct.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
@@ -334,6 +437,15 @@ const NewAdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AddProductModal 
+        open={showAddProduct} 
+        onOpenChange={setShowAddProduct}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+          setShowAddProduct(false);
+        }}
+      />
     </MainLayout>
   );
 };

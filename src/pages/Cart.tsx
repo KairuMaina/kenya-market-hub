@@ -1,67 +1,24 @@
 
-import { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/MainLayout';
+import { useCart } from '@/contexts/CartContext';
+import PaymentModal from '@/components/PaymentModal';
+import { useState } from 'react';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Samsung Galaxy A54 5G Smartphone",
-      price: 35000,
-      originalPrice: 42000,
-      image: "/placeholder.svg",
-      vendor: "TechHub Kenya",
-      quantity: 1,
-      inStock: true
-    },
-    {
-      id: 2,
-      name: "Women's Elegant Evening Dress",
-      price: 2800,
-      originalPrice: 3500,
-      image: "/placeholder.svg",
-      vendor: "StyleHub",
-      quantity: 2,
-      inStock: true
-    },
-    {
-      id: 3,
-      name: "Wireless Bluetooth Headphones",
-      price: 3500,
-      originalPrice: 4500,
-      image: "/placeholder.svg",
-      vendor: "AudioMax Kenya",
-      quantity: 1,
-      inStock: false
-    }
-  ]);
-
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      removeItem(id);
-      return;
-    }
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 500;
+  const { items, updateQuantity, removeFromCart, getTotalPrice } = useCart();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  
+  const subtotal = getTotalPrice();
+  const shipping = subtotal > 5000 ? 0 : 500;
   const total = subtotal + shipping;
 
-  if (cartItems.length === 0) {
+  if (items.length === 0) {
     return (
       <MainLayout>
         <div className="text-center py-16">
@@ -69,7 +26,7 @@ const Cart = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
           <p className="text-gray-600 mb-8">Start shopping to add items to your cart</p>
           <Link to="/products">
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-orange-600 hover:bg-orange-700">
               Continue Shopping
             </Button>
           </Link>
@@ -82,16 +39,16 @@ const Cart = () => {
     <MainLayout>
       <div className="space-y-8">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h2>
-          <p className="text-gray-600">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
+          <p className="text-gray-600">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
-              <Card key={item.id} className="bg-white border-gray-200">
+            {items.map((item) => (
+              <Card key={item.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative">
@@ -100,11 +57,6 @@ const Cart = () => {
                         alt={item.name}
                         className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg"
                       />
-                      {!item.inStock && (
-                        <Badge className="absolute top-2 left-2 bg-red-500">
-                          Out of Stock
-                        </Badge>
-                      )}
                     </div>
                     
                     <div className="flex-1">
@@ -114,7 +66,6 @@ const Cart = () => {
                           <p className="text-sm text-gray-600 mb-2">{item.vendor}</p>
                           <div className="flex items-center gap-2">
                             <span className="text-lg font-bold text-gray-900">KSh {item.price.toLocaleString()}</span>
-                            <span className="text-sm text-gray-500 line-through">KSh {item.originalPrice.toLocaleString()}</span>
                           </div>
                         </div>
                         
@@ -124,7 +75,6 @@ const Cart = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              disabled={!item.inStock}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
@@ -133,7 +83,6 @@ const Cart = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              disabled={!item.inStock}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -142,8 +91,8 @@ const Cart = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => removeItem(item.id)}
-                            className="text-red-600 hover:text-red-700"
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -158,7 +107,7 @@ const Cart = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="bg-white border-gray-200 sticky top-6">
+            <Card className="bg-white border-gray-200 sticky top-6 shadow-lg">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
@@ -169,8 +118,17 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">KSh {shipping.toLocaleString()}</span>
+                  <span className="font-medium">
+                    {shipping === 0 ? (
+                      <Badge variant="secondary" className="text-green-600">FREE</Badge>
+                    ) : (
+                      `KSh ${shipping.toLocaleString()}`
+                    )}
+                  </span>
                 </div>
+                {shipping === 0 && (
+                  <p className="text-sm text-green-600">🎉 You qualified for free shipping!</p>
+                )}
                 <div className="border-t pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold">Total</span>
@@ -179,11 +137,12 @@ const Cart = () => {
                 </div>
                 
                 <div className="space-y-3 pt-4">
-                  <Link to="/checkout" className="block">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Proceed to Checkout
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    onClick={() => setShowPaymentModal(true)}
+                  >
+                    Proceed to Checkout
+                  </Button>
                   <Link to="/products" className="block">
                     <Button variant="outline" className="w-full">
                       Continue Shopping
@@ -195,6 +154,13 @@ const Cart = () => {
           </div>
         </div>
       </div>
+
+      <PaymentModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        total={total}
+        items={items}
+      />
     </MainLayout>
   );
 };
