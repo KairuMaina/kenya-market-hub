@@ -1,8 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, ShoppingCart, ArrowRight, ChevronLeft, ChevronRight, Zap, Shield, Truck, Headphones } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Zap, Shield, Truck, Headphones } from "lucide-react";
 import { Link } from "react-router-dom";
 import MainLayout from "@/components/MainLayout";
 import { useState, useEffect } from "react";

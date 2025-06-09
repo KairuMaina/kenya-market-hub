@@ -5,15 +5,49 @@ import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Edit2, Plus, Users, Package, CreditCard, BarChart3 } from 'lucide-react';
+import { Trash2, Plus, Users, Package, BarChart3 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  created_at: string;
+  user_roles: Array<{ role: string }>;
+}
+
+interface OrderWithProfile {
+  id: string;
+  total_amount: number;
+  status: string;
+  payment_status: string;
+  created_at: string;
+  profiles: {
+    full_name?: string;
+    email: string;
+  } | null;
+}
+
+interface TransactionWithOrder {
+  id: string;
+  amount: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+  orders: {
+    id: string;
+    profiles: {
+      full_name?: string;
+      email: string;
+    } | null;
+  } | null;
+}
 
 const NewAdminDashboard = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -38,17 +72,20 @@ const NewAdminDashboard = () => {
   // Fetch users with their roles
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserProfile[]> => {
       const { data, error } = await supabase
         .from('profiles')
         .select(`
-          *,
-          user_roles!inner(role)
+          id,
+          email,
+          full_name,
+          created_at,
+          user_roles(role)
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as UserProfile[];
     }
   });
 
@@ -69,34 +106,37 @@ const NewAdminDashboard = () => {
   // Fetch orders with user profiles
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: async () => {
+    queryFn: async (): Promise<OrderWithProfile[]> => {
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          *,
-          profiles!orders_user_id_fkey(full_name, email),
-          order_items(
-            quantity,
-            unit_price,
-            products(name)
-          )
+          id,
+          total_amount,
+          status,
+          payment_status,
+          created_at,
+          profiles!orders_user_id_fkey(full_name, email)
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as OrderWithProfile[];
     }
   });
 
   // Fetch transactions with related order and user data
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ['admin-transactions'],
-    queryFn: async () => {
+    queryFn: async (): Promise<TransactionWithOrder[]> => {
       const { data, error } = await supabase
         .from('transactions')
         .select(`
-          *,
-          orders!inner(
+          id,
+          amount,
+          payment_method,
+          status,
+          created_at,
+          orders!transactions_order_id_fkey(
             id,
             profiles!orders_user_id_fkey(full_name, email)
           )
@@ -104,7 +144,7 @@ const NewAdminDashboard = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as TransactionWithOrder[];
     }
   });
 
