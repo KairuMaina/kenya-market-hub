@@ -19,34 +19,27 @@ interface UserProfile {
   email: string;
   full_name?: string;
   created_at: string;
-  user_roles: Array<{ role: string }>;
+  role?: string;
 }
 
-interface OrderWithProfile {
+interface OrderData {
   id: string;
   total_amount: number;
   status: string;
   payment_status: string;
   created_at: string;
-  profiles: {
-    full_name?: string;
-    email: string;
-  } | null;
+  user_id: string;
+  user_email?: string;
+  user_name?: string;
 }
 
-interface TransactionWithOrder {
+interface TransactionData {
   id: string;
   amount: number;
   payment_method: string;
   status: string;
   created_at: string;
-  orders: {
-    id: string;
-    profiles: {
-      full_name?: string;
-      email: string;
-    } | null;
-  } | null;
+  order_id: string;
 }
 
 const NewAdminDashboard = () => {
@@ -69,23 +62,35 @@ const NewAdminDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Fetch users with their roles
+  // Fetch users with their roles - simplified query
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async (): Promise<UserProfile[]> => {
-      const { data, error } = await supabase
+      // Get profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          created_at,
-          user_roles(role)
-        `)
+        .select('id, email, full_name, created_at')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as UserProfile[];
+      if (profilesError) throw profilesError;
+
+      // Get user roles
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      if (rolesError) throw rolesError;
+
+      // Combine the data
+      const usersWithRoles = profiles.map(profile => {
+        const userRole = roles.find(role => role.user_id === profile.id);
+        return {
+          ...profile,
+          role: userRole?.role || 'customer'
+        };
+      });
+
+      return usersWithRoles;
     }
   });
 
@@ -103,48 +108,50 @@ const NewAdminDashboard = () => {
     }
   });
 
-  // Fetch orders with user profiles
+  // Fetch orders - simplified query
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: async (): Promise<OrderWithProfile[]> => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<OrderData[]> => {
+      // Get orders
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          id,
-          total_amount,
-          status,
-          payment_status,
-          created_at,
-          profiles!orders_user_id_fkey(full_name, email)
-        `)
+        .select('id, total_amount, status, payment_status, created_at, user_id')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as OrderWithProfile[];
+      if (ordersError) throw ordersError;
+
+      // Get user profiles for user info
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name');
+      
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const ordersWithUsers = ordersData.map(order => {
+        const profile = profiles.find(p => p.id === order.user_id);
+        return {
+          ...order,
+          user_email: profile?.email,
+          user_name: profile?.full_name
+        };
+      });
+
+      return ordersWithUsers;
     }
   });
 
-  // Fetch transactions with related order and user data
+  // Fetch transactions - simplified query
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ['admin-transactions'],
-    queryFn: async (): Promise<TransactionWithOrder[]> => {
+    queryFn: async (): Promise<TransactionData[]> => {
       const { data, error } = await supabase
         .from('transactions')
-        .select(`
-          id,
-          amount,
-          payment_method,
-          status,
-          created_at,
-          orders!transactions_order_id_fkey(
-            id,
-            profiles!orders_user_id_fkey(full_name, email)
-          )
-        `)
+        .select('id, amount, payment_method, status, created_at, order_id')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as TransactionWithOrder[];
+      return data;
     }
   });
 
@@ -360,8 +367,8 @@ const NewAdminDashboard = () => {
                           <TableCell className="font-medium">{user.full_name || 'N/A'}</TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
-                            <Badge variant={user.user_roles?.[0]?.role === 'admin' ? 'default' : 'secondary'}>
-                              {user.user_roles?.[0]?.role || 'customer'}
+                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                              {user.role || 'customer'}
                             </Badge>
                           </TableCell>
                           <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
@@ -409,7 +416,7 @@ const NewAdminDashboard = () => {
                       {orders?.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-mono">{order.id.slice(0, 8)}...</TableCell>
-                          <TableCell>{order.profiles?.full_name || order.profiles?.email}</TableCell>
+                          <TableCell>{order.user_name || order.user_email || 'Unknown'}</TableCell>
                           <TableCell>KSH {Number(order.total_amount).toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(order.status)}>
@@ -445,7 +452,7 @@ const NewAdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Transaction ID</TableHead>
-                        <TableHead>Customer</TableHead>
+                        <TableHead>Order ID</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Method</TableHead>
                         <TableHead>Status</TableHead>
@@ -456,9 +463,7 @@ const NewAdminDashboard = () => {
                       {transactions?.map((transaction) => (
                         <TableRow key={transaction.id}>
                           <TableCell className="font-mono">{transaction.id.slice(0, 8)}...</TableCell>
-                          <TableCell>
-                            {transaction.orders?.profiles?.full_name || transaction.orders?.profiles?.email}
-                          </TableCell>
+                          <TableCell className="font-mono">{transaction.order_id.slice(0, 8)}...</TableCell>
                           <TableCell>KSH {Number(transaction.amount).toFixed(2)}</TableCell>
                           <TableCell className="capitalize">{transaction.payment_method}</TableCell>
                           <TableCell>
