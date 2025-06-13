@@ -9,28 +9,13 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, Smartphone, Building2 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 
+import { cartItems, shippingCost, counties } from '@/utils/checkoutData';
+
 const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
   
-  const cartItems = [
-    {
-      id: 1,
-      name: "Samsung Galaxy A54 5G Smartphone",
-      price: 35000,
-      quantity: 1,
-      vendor: "TechHub Kenya"
-    },
-    {
-      id: 2,
-      name: "Women's Elegant Evening Dress",
-      price: 2800,
-      quantity: 2,
-      vendor: "StyleHub"
-    }
-  ];
-
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 500;
+  const shipping = shippingCost;
   const total = subtotal + shipping;
 
   return (
@@ -85,17 +70,17 @@ const Checkout = () => {
                   <div>
                     <Label htmlFor="county">County</Label>
                     <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select county" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="nairobi">Nairobi</SelectItem>
-                        <SelectItem value="mombasa">Mombasa</SelectItem>
-                        <SelectItem value="kisumu">Kisumu</SelectItem>
-                        <SelectItem value="nakuru">Nakuru</SelectItem>
-                        <SelectItem value="eldoret">Eldoret</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select county" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {counties.map((county) => (
+                        <SelectItem key={county.value} value={county.value}>
+                          {county.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
                 </div>
               </CardContent>

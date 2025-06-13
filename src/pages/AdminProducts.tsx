@@ -12,12 +12,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Trash2, Plus, Package2 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
+import EditProductModal from '@/components/EditProductModal';
+import ViewProductModal from '@/components/ViewProductModal';
 
 const AdminProducts = () => {
   const { user, isAdmin, loading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showEditProduct, setShowEditProduct] = useState(false);
+  const [showViewProduct, setShowViewProduct] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   if (loading) {
     return (
@@ -79,6 +84,21 @@ const AdminProducts = () => {
   const handleProductAdded = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-products'] });
     setShowAddProduct(false);
+  };
+
+  const handleEditClick = (product) => {
+    setSelectedProduct(product);
+    setShowEditProduct(true);
+  };
+
+  const handleViewClick = (product) => {
+    setSelectedProduct(product);
+    setShowViewProduct(true);
+  };
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+    setShowEditProduct(false);
   };
 
   return (
@@ -148,7 +168,23 @@ const AdminProducts = () => {
                             {product.in_stock ? `${product.stock_quantity} in stock` : 'Out of stock'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewClick(product)}
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:scale-105"
+                          >
+                            View
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEditClick(product)}
+                            className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 hover:scale-105"
+                          >
+                            Edit
+                          </Button>
                           <Button
                             variant="destructive"
                             size="sm"
@@ -173,6 +209,17 @@ const AdminProducts = () => {
         open={showAddProduct} 
         onOpenChange={setShowAddProduct}
         onSuccess={handleProductAdded}
+      />
+      <EditProductModal
+        open={showEditProduct}
+        product={selectedProduct}
+        onOpenChange={setShowEditProduct}
+        onSuccess={handleEditSuccess}
+      />
+      <ViewProductModal
+        open={showViewProduct}
+        product={selectedProduct}
+        onOpenChange={setShowViewProduct}
       />
     </MainLayout>
   );
