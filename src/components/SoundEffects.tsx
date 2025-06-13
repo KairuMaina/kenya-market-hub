@@ -74,7 +74,7 @@ const SoundEffects = () => {
     };
 
     // Add event listeners for sound effects
-    const handle Click = (e: Event) => {
+    const handleClick = (e: Event) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'BUTTON' || target.closest('button')) {
         playClickSound();
