@@ -12,6 +12,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import NewAdminDashboard from "./pages/NewAdminDashboard";
+import AdminProducts from "./pages/AdminProducts";
+import AdminOrders from "./pages/AdminOrders";
+import AdminCustomers from "./pages/AdminCustomers";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +39,30 @@ const App = () => (
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <NewAdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/products" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminProducts />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/orders" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminOrders />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/customers" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminCustomers />
                   </ProtectedRoute>
                 } 
               />

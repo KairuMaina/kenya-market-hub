@@ -9,7 +9,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Home, Package, ShoppingCart, CreditCard, Users, Settings } from "lucide-react"
+import { 
+  Home, 
+  Package, 
+  ShoppingCart, 
+  Users, 
+  Settings, 
+  BarChart3,
+  Truck,
+  DollarSign,
+  Tag,
+  MessageSquare,
+  FileText,
+  Shield
+} from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCart } from "@/contexts/CartContext"
@@ -42,9 +55,54 @@ const AppSidebar = () => {
 
   const adminItems = [
     {
-      title: "Admin Dashboard",
+      title: "Dashboard",
       url: "/admin",
+      icon: BarChart3,
+    },
+    {
+      title: "Products",
+      url: "/admin/products",
+      icon: Package,
+    },
+    {
+      title: "Orders",
+      url: "/admin/orders",
+      icon: ShoppingCart,
+    },
+    {
+      title: "Customers",
+      url: "/admin/customers",
       icon: Users,
+    },
+    {
+      title: "Analytics",
+      url: "/admin/analytics",
+      icon: BarChart3,
+    },
+    {
+      title: "Inventory",
+      url: "/admin/inventory",
+      icon: Truck,
+    },
+    {
+      title: "Categories",
+      url: "/admin/categories",
+      icon: Tag,
+    },
+    {
+      title: "Reviews",
+      url: "/admin/reviews",
+      icon: MessageSquare,
+    },
+    {
+      title: "Reports",
+      url: "/admin/reports",
+      icon: FileText,
+    },
+    {
+      title: "Settings",
+      url: "/admin/settings",
+      icon: Settings,
     },
   ]
 
@@ -78,7 +136,7 @@ const AppSidebar = () => {
         
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
