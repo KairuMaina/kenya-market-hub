@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, Menu, UserPlus, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const UserNav = () => {
@@ -12,14 +12,27 @@ const UserNav = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center space-x-2">
-        <Button asChild variant="ghost" className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50">
-          <Link to="/auth">Sign In</Link>
-        </Button>
-        <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-          <Link to="/auth">Sign Up</Link>
-        </Button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48 bg-white/95 backdrop-blur-sm border-0 shadow-xl" align="end">
+          <DropdownMenuItem asChild className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50">
+            <Link to="/auth" className="flex items-center">
+              <LogIn className="mr-2 h-4 w-4" />
+              Sign In
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50">
+            <Link to="/auth" className="flex items-center">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Sign Up
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
