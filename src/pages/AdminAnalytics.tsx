@@ -180,7 +180,7 @@ const AdminAnalytics = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Low Stock (< 10)</span>
+                  <span className="text-sm">Low Stock (&lt; 10)</span>
                   <span className="font-semibold text-orange-600">
                     {products.filter(p => p.stock_quantity < 10 && p.in_stock).length}
                   </span>
