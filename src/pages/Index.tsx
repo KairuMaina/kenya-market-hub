@@ -1,197 +1,196 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ChevronLeft, ChevronRight, Zap, Shield, Truck, Headphones } from "lucide-react";
-import { Link } from "react-router-dom";
-import MainLayout from "@/components/MainLayout";
-import { useState, useEffect } from "react";
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ShoppingBag, Star, Truck, Shield, Heart, Search } from 'lucide-react';
+import MainLayout from '@/components/MainLayout';
+import { useProducts } from '@/hooks/useProducts';
 
 const Index = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const { user } = useAuth();
+  const { data: products } = useProducts();
+  const featuredProducts = products?.slice(0, 6) || [];
 
-  const brandLogos = [
-    { name: "Samsung", logo: "📱", color: "bg-blue-100" },
-    { name: "Tecno", logo: "📞", color: "bg-green-100" },
-    { name: "Toyota", logo: "🚗", color: "bg-red-100" },
-    { name: "Infinix", logo: "📲", color: "bg-purple-100" },
-    { name: "Nike", logo: "👟", color: "bg-orange-100" },
-    { name: "Shea Moisture", logo: "💄", color: "bg-pink-100" }
+  const heroImages = [
+    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
   ];
 
-  const features = [
-    {
-      icon: <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />,
-      title: "Lightning Fast",
-      description: "Quick delivery across Kenya within 24-48 hours"
-    },
-    {
-      icon: <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />,
-      title: "Secure Payments",
-      description: "Multiple payment options including M-Pesa, PayPal & Stripe"
-    },
-    {
-      icon: <Truck className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />,
-      title: "Free Shipping",
-      description: "Free delivery on orders above KSH 5,000"
-    },
-    {
-      icon: <Headphones className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />,
-      title: "24/7 Support",
-      description: "Round-the-clock customer support team"
-    }
-  ];
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % brandLogos.length);
-    }, 3000);
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
     return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % brandLogos.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + brandLogos.length) % brandLogos.length);
-  };
+  }, [heroImages.length]);
 
   return (
     <MainLayout>
-      <div className="space-y-8 sm:space-y-12 px-2 sm:px-0">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 rounded-2xl sm:rounded-3xl animate-fade-in">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 via-red-500/10 to-pink-500/10" />
-          <div className="relative px-4 sm:px-6 py-12 sm:py-16 md:py-24 text-center">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight animate-slide-in-right">
-                Kenya's Premier
-                <span className="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent block sm:inline"> Digital Marketplace</span>
-              </h1>
-              <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-                Discover quality products from trusted vendors. Electronics, fashion, beauty, auto parts and more - all in one place.
-              </p>
-              
-              {/* Brand Slideshow */}
-              <div className="relative max-w-xs sm:max-w-md mx-auto mb-6 sm:mb-8">
-                <div className="flex items-center justify-center space-x-2 sm:space-x-4 bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg animate-scale-in">
-                  <button onClick={prevSlide} className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </button>
-                  
-                  <div className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-black ${brandLogos[currentSlide].color} shadow-sm transform hover:scale-105 transition-transform duration-200`}>
-                    <span className="text-2xl sm:text-3xl">{brandLogos[currentSlide].logo}</span>
-                    <span className="font-semibold text-base sm:text-lg">{brandLogos[currentSlide].name}</span>
-                  </div>
-                  
-                  <button onClick={nextSlide} className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </button>
-                </div>
-                
-                <div className="flex justify-center mt-3 sm:mt-4 space-x-2">
-                  {brandLogos.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentSlide(index)}
-                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
-                        index === currentSlide ? 'bg-orange-500 scale-110' : 'bg-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
+      <div className="space-y-8 sm:space-y-12">
+        {/* Hero Section with Image Slideshow */}
+        <section className="relative h-[60vh] sm:h-[80vh] rounded-xl overflow-hidden shadow-2xl animate-fade-in">
+          <div className="absolute inset-0">
+            {heroImages.map((image, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-1000 ${
+                  index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <img
+                  src={image}
+                  alt={`Hero ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40" />
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            ))}
+          </div>
+          
+          <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-4 sm:p-8">
+            <div className="max-w-4xl animate-scale-in">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+                Welcome to{' '}
+                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                  Soko Smart
+                </span>
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 max-w-2xl mx-auto">
+                Kenya's Premier Digital Marketplace - Discover amazing products from trusted vendors across the country
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
                 <Link to="/products">
-                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all animate-pulse">
+                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3">
+                    <ShoppingBag className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     Start Shopping
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </Link>
-                <Link to="/auth">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-orange-500 text-orange-600 hover:bg-orange-50 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-xl hover:scale-105 transition-all">
-                    Join Marketplace
-                  </Button>
-                </Link>
+                {!user && (
+                  <Link to="/auth">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-6 sm:px-8 py-3">
+                      Join Today
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Slideshow Indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {heroImages.map((_, index) => (
+              <button
+                key={index}
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                  index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+                onClick={() => setCurrentImageIndex(index)}
+              />
+            ))}
+          </div>
+        </section>
 
         {/* Features Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              <CardContent className="p-4 sm:p-6 text-center">
-                <div className="mb-3 sm:mb-4 flex justify-center">
-                  <div className="p-2 sm:p-3 bg-gray-50 rounded-full hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 transition-all">
-                    {feature.icon}
-                  </div>
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-xs sm:text-sm">{feature.description}</p>
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-slide-in-left">
+          {[
+            { icon: Truck, title: 'Fast Delivery', desc: 'Quick nationwide shipping' },
+            { icon: Shield, title: 'Secure Shopping', desc: 'Protected transactions' },
+            { icon: Star, title: 'Quality Products', desc: 'Verified vendors only' },
+            { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
+          ].map((feature, index) => (
+            <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
+              <CardContent className="p-4 sm:p-6">
+                <feature.icon className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-orange-500" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">{feature.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600">{feature.desc}</p>
               </CardContent>
             </Card>
           ))}
-        </div>
+        </section>
 
-        {/* Categories Preview */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 animate-fade-in">
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Shop by Category</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
-              Explore our diverse range of products across multiple categories, carefully curated for quality and value.
-            </p>
+        {/* Featured Products */}
+        <section className="animate-slide-in-right">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2">Featured Products</h2>
+              <p className="text-gray-600">Discover our most popular items</p>
+            </div>
+            <Link to="/products">
+              <Button variant="outline" className="mt-4 sm:mt-0 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all duration-300">
+                <Search className="mr-2 h-4 w-4" />
+                View All Products
+              </Button>
+            </Link>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-            {[
-              { name: "Electronics", icon: "📱", color: "bg-blue-50 border-blue-200" },
-              { name: "Fashion", icon: "👗", color: "bg-pink-50 border-pink-200" },
-              { name: "Beauty", icon: "💄", color: "bg-purple-50 border-purple-200" },
-              { name: "Auto Parts", icon: "🚗", color: "bg-green-50 border-green-200" }
-            ].map((category, index) => (
-              <Link key={index} to="/products" className="group">
-                <Card className={`${category.color} border-2 hover:shadow-lg transition-all duration-300 transform group-hover:-translate-y-1 group-hover:scale-105`}>
-                  <CardContent className="p-4 sm:p-6 text-center">
-                    <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{category.icon}</div>
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{category.name}</h3>
-                  </CardContent>
-                </Card>
-              </Link>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {featuredProducts.map((product, index) => (
+              <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white border-0 shadow-lg overflow-hidden"
+                    style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}
+                    alt={product.name}
+                    className="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                      {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                    </Badge>
+                  </div>
+                </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base sm:text-lg line-clamp-1">{product.name}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-xs sm:text-sm">{product.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs sm:text-sm font-medium">{product.rating}</span>
+                      <span className="text-xs text-gray-500">({product.reviews_count})</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-lg sm:text-xl font-bold text-green-600">
+                        KSh {Number(product.price).toLocaleString()}
+                      </span>
+                      {product.original_price && product.original_price > product.price && (
+                        <span className="text-xs sm:text-sm text-gray-500 line-through ml-2">
+                          KSh {Number(product.original_price).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white transition-all duration-300 hover:scale-105">
+                      Add to Cart
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Call to Action */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 sm:py-16 px-4 sm:px-8 rounded-xl sm:rounded-2xl text-center animate-fade-in">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Ready to Start Shopping?</h2>
-          <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust Soko Smart for their shopping needs.
+        <section className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 sm:p-8 rounded-xl text-center animate-bounce-in shadow-2xl">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Ready to Start Shopping?</h2>
+          <p className="text-base sm:text-lg mb-4 sm:mb-6 opacity-90">
+            Join thousands of satisfied customers and discover amazing deals today!
           </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 mb-6 sm:mb-8">
-            {[
-              { label: "Products", value: "2M+" },
-              { label: "Vendors", value: "50K+" },
-              { label: "Customers", value: "1M+" },
-              { label: "Support", value: "24/7" }
-            ].map((stat, index) => (
-              <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 0.2}s` }}>
-                <div className="text-2xl sm:text-3xl font-bold text-orange-400">{stat.value}</div>
-                <div className="text-gray-300 text-sm sm:text-base">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
           <Link to="/products">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all">
+            <Button size="lg" variant="secondary" className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3">
+              <ShoppingBag className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               Explore Products
-              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </Link>
-        </div>
+        </section>
       </div>
     </MainLayout>
   );

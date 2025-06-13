@@ -1,14 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Eye, Package, Truck, CheckCircle } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminOrders = () => {
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+
   const { data: orders = [] } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
@@ -21,6 +25,22 @@ const AdminOrders = () => {
       return data;
     }
   });
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const getCustomerInfo = (userId: string) => {
+    return profiles.find(p => p.id === userId);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,6 +61,11 @@ const AdminOrders = () => {
       case 'delivered': return <CheckCircle className="h-4 w-4" />;
       default: return <Package className="h-4 w-4" />;
     }
+  };
+
+  const handleViewOrder = (order: any) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
   };
 
   return (
@@ -123,41 +148,97 @@ const AdminOrders = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-mono text-sm">#{order.id.slice(-8)}</td>
-                      <td className="p-4">{order.user_id.slice(-8)}</td>
-                      <td className="p-4 font-medium">KSh {order.total_amount.toLocaleString()}</td>
-                      <td className="p-4">
-                        <Badge className={getStatusColor(order.status || 'pending')}>
-                          <div className="flex items-center gap-1">
-                            {getStatusIcon(order.status || 'pending')}
-                            {order.status || 'pending'}
+                  {orders.map((order) => {
+                    const customer = getCustomerInfo(order.user_id);
+                    return (
+                      <tr key={order.id} className="border-b hover:bg-gray-50">
+                        <td className="p-4 font-mono text-sm">#{order.id.slice(-8)}</td>
+                        <td className="p-4">
+                          <div>
+                            <p className="font-medium">{customer?.full_name || 'Unknown Customer'}</p>
+                            <p className="text-sm text-gray-500">{customer?.email}</p>
                           </div>
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={order.payment_status === 'completed' ? 'default' : 'secondary'}>
-                          {order.payment_status || 'pending'}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-sm text-gray-600">
-                        {new Date(order.created_at || '').toLocaleDateString()}
-                      </td>
-                      <td className="p-4">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-4 font-medium">KSh {order.total_amount.toLocaleString()}</td>
+                        <td className="p-4">
+                          <Badge className={getStatusColor(order.status || 'pending')}>
+                            <div className="flex items-center gap-1">
+                              {getStatusIcon(order.status || 'pending')}
+                              {order.status || 'pending'}
+                            </div>
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant={order.payment_status === 'completed' ? 'default' : 'secondary'}>
+                            {order.payment_status || 'pending'}
+                          </Badge>
+                        </td>
+                        <td className="p-4 text-sm text-gray-600">
+                          {new Date(order.created_at || '').toLocaleDateString()}
+                        </td>
+                        <td className="p-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewOrder(order)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Order Details Dialog */}
+      <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              Order #{selectedOrder?.id?.slice(-8)}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold">Customer Information</h4>
+                  <p>{getCustomerInfo(selectedOrder.user_id)?.full_name || 'Unknown'}</p>
+                  <p className="text-sm text-gray-600">{getCustomerInfo(selectedOrder.user_id)?.email}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Order Status</h4>
+                  <Badge className={getStatusColor(selectedOrder.status || 'pending')}>
+                    {selectedOrder.status || 'pending'}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold">Shipping Address</h4>
+                <p className="text-sm text-gray-600">
+                  {selectedOrder.shipping_address ? 
+                    JSON.stringify(selectedOrder.shipping_address) : 
+                    'No shipping address provided'
+                  }
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Order Total</h4>
+                <p className="text-xl font-bold text-green-600">
+                  KSh {selectedOrder.total_amount.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,17 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     year: ''
   });
 
+  const categories = [
+    'Electronics',
+    'Fashion',
+    'Beauty',
+    'Auto Parts',
+    'Food & Beverages',
+    'Motobike Spareparts',
+    'Motobike Accessories',
+    'Other'
+  ];
+
   const addProduct = useMutation({
     mutationFn: async (productData: any) => {
       const { error } = await supabase
@@ -43,7 +54,8 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Product added successfully" });
+      toast({ title: "Product added successfully!" });
+      onSuccess();
       setFormData({
         name: '',
         description: '',
@@ -59,7 +71,6 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
         model: '',
         year: ''
       });
-      onSuccess();
     },
     onError: (error: any) => {
       toast({ 
@@ -84,166 +95,163 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     addProduct.mutate(productData);
   };
 
-  const categories = [
-    'Electronics & Tech',
-    'Fashion & Apparel',
-    'Cosmetics & Beauty',
-    'Auto Parts & Accessories',
-    'Home & Garden',
-    'Sports & Recreation',
-    'Books & Media',
-    'Health & Wellness'
-  ];
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
+          <DialogDescription>
+            Fill in the product details to add it to your inventory.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 required
               />
             </div>
             
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => handleInputChange('description', e.target.value)}
               rows={3}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="price">Price (KSH) *</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price (KSh) *</Label>
               <Input
                 id="price"
                 type="number"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                onChange={(e) => handleInputChange('price', e.target.value)}
                 required
               />
             </div>
             
-            <div>
-              <Label htmlFor="original_price">Original Price (KSH)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="original_price">Original Price (KSh)</Label>
               <Input
                 id="original_price"
                 type="number"
                 step="0.01"
                 value={formData.original_price}
-                onChange={(e) => setFormData(prev => ({ ...prev, original_price: e.target.value }))}
+                onChange={(e) => handleInputChange('original_price', e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="brand">Brand</Label>
               <Input
                 id="brand"
                 value={formData.brand}
-                onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
+                onChange={(e) => handleInputChange('brand', e.target.value)}
               />
             </div>
             
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="vendor">Vendor</Label>
               <Input
                 id="vendor"
                 value={formData.vendor}
-                onChange={(e) => setFormData(prev => ({ ...prev, vendor: e.target.value }))}
+                onChange={(e) => handleInputChange('vendor', e.target.value)}
               />
             </div>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="image_url">Image URL</Label>
             <Input
               id="image_url"
               type="url"
               value={formData.image_url}
-              onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+              onChange={(e) => handleInputChange('image_url', e.target.value)}
               placeholder="https://example.com/image.jpg"
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="stock_quantity">Stock Quantity</Label>
               <Input
                 id="stock_quantity"
                 type="number"
                 value={formData.stock_quantity}
-                onChange={(e) => setFormData(prev => ({ ...prev, stock_quantity: e.target.value }))}
+                onChange={(e) => handleInputChange('stock_quantity', e.target.value)}
               />
             </div>
             
-            <div>
-              <Label htmlFor="make">Make (Auto Parts)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="make">Make</Label>
               <Input
                 id="make"
                 value={formData.make}
-                onChange={(e) => setFormData(prev => ({ ...prev, make: e.target.value }))}
+                onChange={(e) => handleInputChange('make', e.target.value)}
               />
             </div>
             
-            <div>
-              <Label htmlFor="model">Model (Auto Parts)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="model">Model</Label>
               <Input
                 id="model"
                 value={formData.model}
-                onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
+                onChange={(e) => handleInputChange('model', e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="year">Year (Auto Parts)</Label>
-              <Input
-                id="year"
-                type="number"
-                value={formData.year}
-                onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="in_stock"
-                checked={formData.in_stock}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, in_stock: checked }))}
-              />
-              <Label htmlFor="in_stock">In Stock</Label>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="year">Year</Label>
+            <Input
+              id="year"
+              type="number"
+              value={formData.year}
+              onChange={(e) => handleInputChange('year', e.target.value)}
+              placeholder="2024"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="in_stock"
+              checked={formData.in_stock}
+              onCheckedChange={(checked) => handleInputChange('in_stock', checked)}
+            />
+            <Label htmlFor="in_stock">In Stock</Label>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

@@ -39,6 +39,9 @@ const AdminCustomers = () => {
     return role?.role || 'customer';
   };
 
+  const customerProfiles = profiles.filter(p => getUserRole(p.id) === 'customer');
+  const adminProfiles = profiles.filter(p => getUserRole(p.id) === 'admin');
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -55,7 +58,7 @@ const AdminCustomers = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                  <p className="text-2xl font-bold">{profiles.length}</p>
+                  <p className="text-2xl font-bold">{customerProfiles.length}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
@@ -67,7 +70,7 @@ const AdminCustomers = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Customers</p>
-                  <p className="text-2xl font-bold">{profiles.filter(p => getUserRole(p.id) === 'customer').length}</p>
+                  <p className="text-2xl font-bold">{customerProfiles.length}</p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-600" />
               </div>
@@ -79,7 +82,7 @@ const AdminCustomers = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Admins</p>
-                  <p className="text-2xl font-bold">{profiles.filter(p => getUserRole(p.id) === 'admin').length}</p>
+                  <p className="text-2xl font-bold">{adminProfiles.length}</p>
                 </div>
                 <UserX className="h-8 w-8 text-purple-600" />
               </div>
@@ -90,14 +93,14 @@ const AdminCustomers = () => {
         {/* Customers Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Customers</CardTitle>
+            <CardTitle>All Users</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4">Customer</th>
+                    <th className="text-left p-4">User</th>
                     <th className="text-left p-4">Email</th>
                     <th className="text-left p-4">Role</th>
                     <th className="text-left p-4">Location</th>
