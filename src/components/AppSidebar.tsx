@@ -17,11 +17,9 @@ import {
   Settings, 
   BarChart3,
   Truck,
-  DollarSign,
   Tag,
   MessageSquare,
   FileText,
-  Shield
 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
@@ -30,7 +28,7 @@ import { Badge } from "@/components/ui/badge"
 
 const AppSidebar = () => {
   const location = useLocation()
-  const { isAdmin } = useAuth()
+  const { user } = useAuth()
   const { getTotalItems } = useCart()
   const cartItems = getTotalItems()
 
@@ -107,22 +105,28 @@ const AppSidebar = () => {
   ]
 
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-gray-200/50 bg-gradient-to-b from-white to-gray-50/50">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Soko Smart</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Soko Smart
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={location.pathname === item.url}
+                    className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                  >
                     <Link to={item.url} className="flex items-center justify-between w-full">
                       <div className="flex items-center">
                         <item.icon className="mr-2 h-4 w-4" />
                         <span>{item.title}</span>
                       </div>
                       {item.badge && (
-                        <Badge variant="secondary" className="ml-auto">
+                        <Badge variant="secondary" className="ml-auto bg-gradient-to-r from-orange-400 to-red-500 text-white">
                           {item.badge}
                         </Badge>
                       )}
@@ -134,14 +138,21 @@ const AppSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        {isAdmin && (
+        {/* Only show admin panel for gmaina424@gmail.com */}
+        {user?.email === 'gmaina424@gmail.com' && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-lg font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+              Admin Panel
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={location.pathname === item.url}
+                      className="hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-200"
+                    >
                       <Link to={item.url}>
                         <item.icon className="mr-2 h-4 w-4" />
                         <span>{item.title}</span>

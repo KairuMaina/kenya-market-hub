@@ -9,12 +9,15 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center animate-pulse">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -23,7 +26,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     return <Navigate to="/auth" replace />;
   }
   
-  if (requireAdmin && !isAdmin) {
+  // Only gmaina424@gmail.com can access admin routes
+  if (requireAdmin && user.email !== 'gmaina424@gmail.com') {
     return <Navigate to="/" replace />;
   }
   

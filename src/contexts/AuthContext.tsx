@@ -27,36 +27,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            try {
-              const { data: userRoles } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .eq('role', 'admin')
-                .single();
-              
-              setIsAdmin(!!userRoles);
-            } catch (error) {
-              setIsAdmin(false);
-            }
-          }, 0);
+        // Only gmaina424@gmail.com is admin
+        if (session?.user?.email === 'gmaina424@gmail.com') {
+          setIsAdmin(true);
         } else {
           setIsAdmin(false);
         }
+        
         setLoading(false);
       }
     );
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Only gmaina424@gmail.com is admin
+      if (session?.user?.email === 'gmaina424@gmail.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+      
       setLoading(false);
     });
 

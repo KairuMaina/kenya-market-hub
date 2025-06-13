@@ -1,236 +1,178 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import MainLayout from '@/components/MainLayout';
-import AddProductModal from '@/components/AddProductModal';
-import { useProducts } from '@/hooks/useProducts';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Trash2, Plus, Package2 } from 'lucide-react';
+import MainLayout from '@/components/MainLayout';
+import AddProductModal from '@/components/AddProductModal';
 
 const AdminProducts = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const { data: products = [], refetch } = useProducts();
+  const { user, isAdmin, loading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">Loading...</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', productId);
+  // Only allow gmaina424@gmail.com to access admin panel
+  if (!user || user.email !== 'gmaina424@gmail.com') {
+    return <Navigate to="/" replace />;
+  }
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
+  // Fetch products
+  const { data: products, isLoading: productsLoading } = useQuery({
+    queryKey: ['admin-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Delete product mutation
+  const deleteProduct = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast({ title: "Product deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error deleting product", 
+        description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Product deleted successfully"
-      });
-      refetch();
+    }
+  });
+
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      deleteProduct.mutate(productId);
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.vendor?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = [...new Set(products.map(p => p.category))];
+  const handleProductAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+    setShowAddProduct(false);
+  };
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Products Management</h1>
-            <p className="text-gray-600">Manage your product inventory</p>
-          </div>
-          <Button onClick={() => setShowAddModal(true)} className="bg-orange-600 hover:bg-orange-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Package2 className="h-8 w-8" />
+            Product Management
+          </h1>
+          <p className="text-blue-100 mt-2">Manage your marketplace products</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Products</p>
-                  <p className="text-2xl font-bold">{products.length}</p>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">In Stock</p>
-                  <p className="text-2xl font-bold">{products.filter(p => p.in_stock).length}</p>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Badge className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Out of Stock</p>
-                  <p className="text-2xl font-bold">{products.filter(p => !p.in_stock).length}</p>
-                </div>
-                <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <Badge className="h-6 w-6 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Categories</p>
-                  <p className="text-2xl font-bold">{categories.length}</p>
-                </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Filter className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search products..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Products Table */}
-        <Card>
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
           <CardHeader>
-            <CardTitle>Products ({filteredProducts.length})</CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Products</CardTitle>
+                <CardDescription>Add, edit, and manage your product catalog</CardDescription>
+              </div>
+              <Button 
+                onClick={() => setShowAddProduct(true)}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-4">Product</th>
-                    <th className="text-left p-4">Category</th>
-                    <th className="text-left p-4">Price</th>
-                    <th className="text-left p-4">Stock</th>
-                    <th className="text-left p-4">Status</th>
-                    <th className="text-left p-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <img 
-                            src={product.image_url || '/placeholder.svg'} 
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-gray-600">{product.brand}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline">{product.category}</Badge>
-                      </td>
-                      <td className="p-4 font-medium">KSh {product.price.toLocaleString()}</td>
-                      <td className="p-4">{product.stock_quantity || 0}</td>
-                      <td className="p-4">
-                        <Badge variant={product.in_stock ? "default" : "destructive"}>
-                          {product.in_stock ? "In Stock" : "Out of Stock"}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
+            {productsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2">Loading products...</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <TableHead className="font-semibold">Name</TableHead>
+                      <TableHead className="font-semibold">Category</TableHead>
+                      <TableHead className="font-semibold">Price</TableHead>
+                      <TableHead className="font-semibold">Stock</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products?.map((product, index) => (
+                      <TableRow 
+                        key={product.id} 
+                        className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-gradient-to-r from-blue-100 to-purple-100">
+                            {product.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-semibold text-green-600">
+                          KSH {Number(product.price).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={product.in_stock ? 'default' : 'destructive'} 
+                                 className={product.in_stock ? 'bg-gradient-to-r from-green-500 to-green-600' : ''}>
+                            {product.in_stock ? `${product.stock_quantity} in stock` : 'Out of stock'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteProduct(product.id)}
-                            className="text-red-600 hover:text-red-700"
+                            disabled={deleteProduct.isPending}
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all duration-200 hover:scale-105"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      <AddProductModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        onProductAdded={() => {
-          refetch();
-          setShowAddModal(false);
-        }}
+      <AddProductModal 
+        open={showAddProduct} 
+        onOpenChange={setShowAddProduct}
+        onSuccess={handleProductAdded}
       />
     </MainLayout>
   );
