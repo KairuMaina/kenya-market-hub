@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import SoundEffects from "@/components/SoundEffects";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
@@ -15,6 +16,9 @@ import NewAdminDashboard from "./pages/NewAdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import AdminCustomers from "./pages/AdminCustomers";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSettings from "./pages/AdminSettings";
+import AdminReports from "./pages/AdminReports";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +29,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <CartProvider>
+          <SoundEffects />
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -63,6 +68,30 @@ const App = () => (
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <AdminCustomers />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/analytics" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminAnalytics />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/settings" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/reports" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminReports />
                   </ProtectedRoute>
                 } 
               />
