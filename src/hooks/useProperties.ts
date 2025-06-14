@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -73,10 +72,10 @@ export const useProperties = (filters?: PropertyFilters) => {
         .order('created_at', { ascending: false });
 
       if (filters?.property_type) {
-        query = query.eq('property_type', filters.property_type);
+        query = query.eq('property_type', filters.property_type as 'house' | 'apartment' | 'land' | 'commercial' | 'office');
       }
       if (filters?.listing_type) {
-        query = query.eq('listing_type', filters.listing_type);
+        query = query.eq('listing_type', filters.listing_type as 'sale' | 'rent');
       }
       if (filters?.min_price) {
         query = query.gte('price', filters.min_price);
@@ -208,9 +207,12 @@ export const useScheduleViewing = () => {
 export const useIncrementPropertyViews = () => {
   return useMutation({
     mutationFn: async (propertyId: string) => {
-      const { error } = await supabase.rpc('increment_property_views', {
-        property_id: propertyId
-      });
+      // Update the views count directly in the properties table
+      const { error } = await supabase
+        .from('properties')
+        .update({ views_count: supabase.raw('views_count + 1') })
+        .eq('id', propertyId);
+      
       if (error) throw error;
     },
   });
