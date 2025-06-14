@@ -1,4 +1,3 @@
-
 import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,6 @@ const OptimizedProductCard = memo<OptimizedProductCardProps>(({
       name: product.name,
       price: discountedPrice,
       image: product.image_url || '/placeholder.svg',
-      quantity: 1,
       vendor: 'Unknown Vendor'
     });
   };
