@@ -260,9 +260,6 @@ const AdvancedSearch = () => {
                     {product.brand && (
                       <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
                     )}
-                    {product.location && (
-                      <p className="text-xs text-gray-500">Location: {product.location}</p>
-                    )}
                   </CardContent>
                 </Card>
               ))}
