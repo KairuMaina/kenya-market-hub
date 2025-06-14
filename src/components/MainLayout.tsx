@@ -16,7 +16,7 @@ const MainLayout = ({
               <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600" />
               <div className="flex items-center space-x-2 sm:space-x-3 lg:hidden">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shadow-lg overflow-hidden">
-                  <img alt="Soko Smart Logo" className="w-full h-full object-cover" src="/lovable-uploads/14140c8d-7f46-44aa-951e-b7981b0a39b5.png" />
+                  <img alt="Soko Smart Logo" src="/lovable-uploads/14140c8d-7f46-44aa-951e-b7981b0a39b5.png" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <h1 className="text-lg sm:text-xl font-bold text-gray-900">Soko Smart</h1>
