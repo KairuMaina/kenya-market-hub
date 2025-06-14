@@ -1,103 +1,122 @@
 
-import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Products from "./pages/Products";
-import Search from "./pages/Search";
 import Shop from "./pages/Shop";
-import Profile from "./pages/Profile";
+import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import Profile from "./pages/Profile";
 import RealEstate from "./pages/RealEstate";
 import PropertyDetail from "./pages/PropertyDetail";
-import Services from "./pages/Services";
 import Rides from "./pages/Rides";
+import Services from "./pages/Services";
+import Search from "./pages/Search";
+import AdvancedProductSearch from "./pages/AdvancedProductSearch";
+import Wishlist from "./pages/Wishlist";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorAnalyticsPage from "./pages/VendorAnalyticsPage";
-import Wishlist from "./pages/Wishlist";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import NotFound from "./pages/NotFound";
+
+// Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
-import AdminOrders from "./pages/AdminOrders";
-import AdminCustomers from "./pages/AdminCustomers";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminVendors from "./pages/admin/AdminVendors";
+import AdminProperties from "./pages/admin/AdminProperties";
+import AdminRides from "./pages/admin/AdminRides";
+import AdminDrivers from "./pages/admin/AdminDrivers";
+import AdminServiceProviders from "./pages/admin/AdminServiceProviders";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminReports from "./pages/AdminReports";
 import AdminSettings from "./pages/AdminSettings";
-import NewAdminDashboard from "./pages/NewAdminDashboard";
-import AdminProperties from "./pages/admin/AdminProperties";
-import AdminRides from "./pages/admin/AdminRides";
-import AdminServiceProviders from "./pages/admin/AdminServiceProviders";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import NotFound from "./pages/NotFound";
-import AdvancedProductSearch from "./pages/AdvancedProductSearch";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProtectedVendorRoute from "./components/ProtectedVendorRoute";
-import ErrorBoundary from "./components/ErrorBoundary";
-import PerformanceMonitor from "./components/PerformanceMonitor";
-import SoundEffects from "./components/SoundEffects";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
-function App() {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+const App = () => (
+  <ErrorBoundary>
+    <PerformanceMonitor />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
         <AuthProvider>
           <CartProvider>
-            <TooltipProvider>
-              <BrowserRouter>
+            <BrowserRouter>
+              <div className="min-h-screen bg-gray-50">
                 <Routes>
+                  {/* Public Routes */}
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                  
+                  {/* Shop Routes */}
+                  <Route path="/shop" element={<Shop />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/search" element={<Search />} />
                   <Route path="/advanced-search" element={<AdvancedProductSearch />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/real-estate" element={<RealEstate />} />
-                  <Route path="/property/:id" element={<PropertyDetail />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/rides" element={<Rides />} />
-                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                  <Route path="/vendor-dashboard" element={<ProtectedVendorRoute><VendorDashboard /></ProtectedVendorRoute>} />
-                  <Route path="/vendor-analytics" element={<ProtectedVendorRoute><VendorAnalyticsPage /></ProtectedVendorRoute>} />
-                  <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  
+                  {/* Real Estate Routes */}
+                  <Route path="/real-estate" element={<RealEstate />} />
+                  <Route path="/real-estate/:id" element={<PropertyDetail />} />
+                  
+                  {/* Transportation Routes */}
+                  <Route path="/rides" element={<Rides />} />
+                  
+                  {/* Services Routes */}
+                  <Route path="/services" element={<Services />} />
+                  
+                  {/* User Routes */}
+                  <Route path="/profile" element={<Profile />} />
+                  
+                  {/* Vendor Routes */}
+                  <Route path="/vendor" element={<VendorDashboard />} />
+                  <Route path="/vendor/analytics" element={<VendorAnalyticsPage />} />
                   
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/admin/orders" element={<AdminOrders />} />
-                  <Route path="/admin/users" element={<AdminCustomers />} />
+                  <Route path="/admin/vendors" element={<AdminVendors />} />
+                  <Route path="/admin/properties" element={<AdminProperties />} />
+                  <Route path="/admin/rides" element={<AdminRides />} />
+                  <Route path="/admin/drivers" element={<AdminDrivers />} />
+                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
                   <Route path="/admin/analytics" element={<AdminAnalytics />} />
                   <Route path="/admin/reports" element={<AdminReports />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/admin/vendors" element={<NewAdminDashboard />} />
-                  <Route path="/admin/transactions" element={<NewAdminDashboard />} />
-                  <Route path="/admin/properties" element={<AdminProperties />} />
-                  <Route path="/admin/rides" element={<AdminRides />} />
-                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
                   
-                  <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                  {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
+              </div>
               <Toaster />
               <Sonner />
-              <SoundEffects />
-              <PerformanceMonitor />
-            </TooltipProvider>
+            </BrowserRouter>
           </CartProvider>
         </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
 
 export default App;

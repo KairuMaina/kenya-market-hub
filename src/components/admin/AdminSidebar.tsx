@@ -28,7 +28,8 @@ import {
   Store,
   UserCheck,
   Eye,
-  Bell
+  Bell,
+  Truck
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -45,12 +46,18 @@ const AdminSidebar = () => {
       ]
     },
     {
+      title: 'User Management',
+      items: [
+        { title: 'Users', url: '/admin/users', icon: Users },
+        { title: 'Vendors', url: '/admin/vendors', icon: Store },
+        { title: 'Drivers', url: '/admin/drivers', icon: Truck },
+      ]
+    },
+    {
       title: 'E-commerce',
       items: [
         { title: 'Products', url: '/admin/products', icon: Package },
         { title: 'Orders', url: '/admin/orders', icon: ShoppingCart },
-        { title: 'Vendors', url: '/admin/vendors', icon: Store },
-        { title: 'Transactions', url: '/admin/transactions', icon: DollarSign },
       ]
     },
     {
@@ -66,7 +73,6 @@ const AdminSidebar = () => {
       title: 'Transportation',
       items: [
         { title: 'Rides', url: '/admin/rides', icon: Car },
-        { title: 'Drivers', url: '/admin/drivers', icon: Users },
         { title: 'Pricing', url: '/admin/ride-pricing', icon: DollarSign },
       ]
     },
@@ -75,13 +81,6 @@ const AdminSidebar = () => {
       items: [
         { title: 'Service Providers', url: '/admin/service-providers', icon: Briefcase },
         { title: 'Service Bookings', url: '/admin/service-bookings', icon: Bell },
-      ]
-    },
-    {
-      title: 'User Management',
-      items: [
-        { title: 'Users', url: '/admin/users', icon: Users },
-        { title: 'Customer Support', url: '/admin/support', icon: Bell },
       ]
     },
     {
