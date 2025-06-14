@@ -2,22 +2,26 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Home, MapPin, Phone } from 'lucide-react';
+import { Building, Home, MapPin, Phone, Map, Grid3X3 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType } from '@/hooks/useProperties';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters from '@/components/PropertyFilters';
 import PropertyInquiryModal from '@/components/PropertyInquiryModal';
+import PropertyMapView from '@/components/PropertyMapView';
 import { Property } from '@/hooks/useProperties';
 import { Input } from '@/components/ui/input';
 import { Search, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const RealEstate = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FiltersType>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
   const { data: properties = [], isLoading } = useProperties(filters);
   const { data: featuredProperties = [] } = useFeaturedProperties();
@@ -56,7 +60,7 @@ const RealEstate = () => {
   };
 
   const handleViewDetails = (property: Property) => {
-    console.log('View property details:', property.id);
+    navigate(`/property/${property.id}`);
   };
 
   const filteredProperties = properties.filter(property =>
@@ -102,14 +106,34 @@ const RealEstate = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-12 px-6"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="h-12 px-6"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Filters
+              </Button>
+              <div className="flex border rounded-lg">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-r-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'map' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                  className="rounded-l-none border-l"
+                >
+                  <Map className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
 
           {showFilters && (
@@ -122,7 +146,7 @@ const RealEstate = () => {
         </section>
 
         {/* Featured Properties */}
-        {featuredProperties.length > 0 && (
+        {featuredProperties.length > 0 && viewMode === 'grid' && (
           <section>
             <h2 className="text-3xl font-bold text-center mb-8">Featured Properties</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -157,6 +181,14 @@ const RealEstate = () => {
                 Clear Filters
               </Button>
             </div>
+          ) : viewMode === 'map' ? (
+            <div className="h-[600px] rounded-lg overflow-hidden border">
+              <PropertyMapView
+                properties={filteredProperties}
+                onPropertySelect={setSelectedProperty}
+                onViewDetails={handleViewDetails}
+              />
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProperties.map((property) => (
@@ -171,62 +203,68 @@ const RealEstate = () => {
           )}
         </section>
 
-        {/* Property Types */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Property Types</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {propertyTypes.map((type, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300">
-                <CardHeader className="text-center">
-                  <div className="p-3 bg-purple-100 rounded-xl w-fit mx-auto mb-4">
-                    <type.icon className="h-8 w-8 text-purple-600" />
+        {/* Property Types - Only show in grid mode */}
+        {viewMode === 'grid' && (
+          <section>
+            <h2 className="text-3xl font-bold text-center mb-8">Property Types</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {propertyTypes.map((type, index) => (
+                <Card key={index} className="hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="text-center">
+                    <div className="p-3 bg-purple-100 rounded-xl w-fit mx-auto mb-4">
+                      <type.icon className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-xl">{type.type}</CardTitle>
+                    <CardDescription>{type.count} properties</CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-gray-600 mb-4">{type.description}</p>
+                    <p className="font-bold text-purple-600 mb-4">{type.priceRange}</p>
+                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600">
+                      Browse {type.type}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Popular Areas - Only show in grid mode */}
+        {viewMode === 'grid' && (
+          <section>
+            <h2 className="text-3xl font-bold text-center mb-8">Popular Areas</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {popularAreas.map((area, index) => (
+                <Button 
+                  key={index} 
+                  variant="outline" 
+                  className="p-4 h-auto"
+                  onClick={() => setFilters({ ...filters, city: area })}
+                >
+                  <div className="text-center">
+                    <MapPin className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                    <span className="font-medium">{area}</span>
                   </div>
-                  <CardTitle className="text-xl">{type.type}</CardTitle>
-                  <CardDescription>{type.count} properties</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-gray-600 mb-4">{type.description}</p>
-                  <p className="font-bold text-purple-600 mb-4">{type.priceRange}</p>
-                  <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600">
-                    Browse {type.type}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+                </Button>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Popular Areas */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Popular Areas</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {popularAreas.map((area, index) => (
-              <Button 
-                key={index} 
-                variant="outline" 
-                className="p-4 h-auto"
-                onClick={() => setFilters({ ...filters, city: area })}
-              >
-                <div className="text-center">
-                  <MapPin className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                  <span className="font-medium">{area}</span>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </section>
-
-        {/* Coming Soon Notice */}
-        <section className="text-center bg-gradient-to-r from-purple-500 to-pink-600 text-white p-12 rounded-2xl">
-          <h2 className="text-3xl font-bold mb-4">Full Platform Coming Soon!</h2>
-          <p className="text-lg mb-6 opacity-90">
-            We're building the most comprehensive real estate platform in Kenya. Get early access!
-          </p>
-          <Button variant="secondary" size="lg" className="px-8 py-3">
-            <Phone className="mr-2 h-5 w-5" />
-            Get Early Access
-          </Button>
-        </section>
+        {/* Coming Soon Notice - Only show in grid mode */}
+        {viewMode === 'grid' && (
+          <section className="text-center bg-gradient-to-r from-purple-500 to-pink-600 text-white p-12 rounded-2xl">
+            <h2 className="text-3xl font-bold mb-4">Full Platform Coming Soon!</h2>
+            <p className="text-lg mb-6 opacity-90">
+              We're building the most comprehensive real estate platform in Kenya. Get early access!
+            </p>
+            <Button variant="secondary" size="lg" className="px-8 py-3">
+              <Phone className="mr-2 h-5 w-5" />
+              Get Early Access
+            </Button>
+          </section>
+        )}
 
         {/* Property Inquiry Modal */}
         <PropertyInquiryModal
