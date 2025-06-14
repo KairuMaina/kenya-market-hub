@@ -4,192 +4,181 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Star, Truck, Shield, Heart, Search } from 'lucide-react';
+import { ShoppingBag, Car, Wrench, Home, Star, Shield, Heart, Clock } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import { useProducts } from '@/hooks/useProducts';
 
 const Index = () => {
   const { user } = useAuth();
-  const { data: products } = useProducts();
-  const featuredProducts = products?.slice(0, 6) || [];
 
-  const heroImages = [
-    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
+  const services = [
+    {
+      id: 'shop',
+      title: 'Shop',
+      description: 'Browse and buy products from trusted vendors across Kenya',
+      icon: ShoppingBag,
+      color: 'from-orange-500 to-red-600',
+      hoverColor: 'hover:from-orange-600 hover:to-red-700',
+      link: '/shop',
+      features: ['Secure payments', 'Fast delivery', 'Quality products']
+    },
+    {
+      id: 'rides',
+      title: 'Rides',
+      description: 'Book taxis and motorbikes for quick transportation',
+      icon: Car,
+      color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
+      link: '/rides',
+      features: ['Real-time tracking', 'Fair pricing', 'Safe drivers']
+    },
+    {
+      id: 'services',
+      title: 'Services',
+      description: 'Hire skilled technicians for home and office repairs',
+      icon: Wrench,
+      color: 'from-green-500 to-emerald-600',
+      hoverColor: 'hover:from-green-600 hover:to-emerald-700',
+      link: '/services',
+      features: ['Verified technicians', 'Fixed pricing', 'Quality guarantee']
+    },
+    {
+      id: 'real-estate',
+      title: 'Real Estate',
+      description: 'Find your perfect home or investment property',
+      icon: Home,
+      color: 'from-purple-500 to-violet-600',
+      hoverColor: 'hover:from-purple-600 hover:to-violet-700',
+      link: '/real-estate',
+      features: ['Prime locations', 'Virtual tours', 'Expert guidance']
+    },
   ];
 
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [heroImages.length]);
+  const stats = [
+    { label: 'Happy Customers', value: '50K+', icon: Star },
+    { label: 'Services Available', value: '4', icon: Shield },
+    { label: 'Cities Covered', value: '25+', icon: Heart },
+    { label: 'Years of Trust', value: '5+', icon: Clock },
+  ];
 
   return (
     <MainLayout>
-      <div className="space-y-8 sm:space-y-12">
-        {/* Hero Section with Image Slideshow */}
-        <section className="relative h-[60vh] sm:h-[80vh] rounded-xl overflow-hidden shadow-2xl animate-fade-in">
-          <div className="absolute inset-0">
-            {heroImages.map((image, index) => (
-              <div
-                key={index}
-                className={`absolute inset-0 transition-opacity duration-1000 ${
-                  index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`Hero ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40" />
-              </div>
-            ))}
-          </div>
-          
-          <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-4 sm:p-8">
-            <div className="max-w-4xl animate-scale-in">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                Welcome to{' '}
-                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                  Soko Smart
-                </span>
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 max-w-2xl mx-auto">
-                Kenya's Premier Digital Marketplace - Discover amazing products from trusted vendors across the country
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                <Link to="/products">
-                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3">
-                    <ShoppingBag className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    Start Shopping
+      <div className="space-y-12">
+        {/* Hero Section */}
+        <section className="relative py-20 px-4 text-center bg-gradient-to-br from-orange-50 via-red-50 to-purple-50 rounded-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-purple-500/10" />
+          <div className="relative z-10 max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome to Soko Smart
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed">
+              Kenya's comprehensive digital platform for all your daily needs
+            </p>
+            <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
+              Shop online, book rides, hire services, and find properties - all in one trusted platform
+            </p>
+            
+            {!user && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/auth">
+                  <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-3">
+                    Get Started Today
                   </Button>
                 </Link>
-                {!user && (
-                  <Link to="/auth">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-6 sm:px-8 py-3">
-                      Join Today
-                    </Button>
-                  </Link>
-                )}
+                <Button variant="outline" size="lg" className="border-orange-500 text-orange-600 hover:bg-orange-50 px-8 py-3">
+                  Learn More
+                </Button>
               </div>
-            </div>
+            )}
+          </div>
+        </section>
+
+        {/* Services Grid */}
+        <section>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Service</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Discover our comprehensive range of services designed to make your life easier
+            </p>
           </div>
 
-          {/* Slideshow Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {heroImages.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                }`}
-                onClick={() => setCurrentImageIndex(index)}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {services.map((service, index) => (
+              <Link key={service.id} to={service.link} className="group">
+                <Card className="h-full hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
+                  <div className={`h-2 bg-gradient-to-r ${service.color}`} />
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${service.color} text-white group-hover:scale-110 transition-transform duration-300`}>
+                        <service.icon className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl group-hover:text-orange-600 transition-colors">
+                          {service.title}
+                        </CardTitle>
+                      </div>
+                    </div>
+                    <CardDescription className="text-gray-600 text-base leading-relaxed">
+                      {service.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 mb-6">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center text-sm text-gray-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button 
+                      className={`w-full bg-gradient-to-r ${service.color} ${service.hoverColor} text-white transition-all duration-300 group-hover:scale-105`}
+                      size="lg"
+                    >
+                      Explore {service.title}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-slide-in-left">
-          {[
-            { icon: Truck, title: 'Fast Delivery', desc: 'Quick nationwide shipping' },
-            { icon: Shield, title: 'Secure Shopping', desc: 'Protected transactions' },
-            { icon: Star, title: 'Quality Products', desc: 'Verified vendors only' },
-            { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
-          ].map((feature, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-              <CardContent className="p-4 sm:p-6">
-                <feature.icon className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-orange-500" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">{feature.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">{feature.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-
-        {/* Featured Products */}
-        <section className="animate-slide-in-right">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">Featured Products</h2>
-              <p className="text-gray-600">Discover our most popular items</p>
-            </div>
-            <Link to="/products">
-              <Button variant="outline" className="mt-4 sm:mt-0 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all duration-300">
-                <Search className="mr-2 h-4 w-4" />
-                View All Products
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {featuredProducts.map((product, index) => (
-              <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white border-0 shadow-lg overflow-hidden"
-                    style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="relative overflow-hidden">
-                  <img
-                    src={product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}
-                    alt={product.name}
-                    className="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                      {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                    </Badge>
-                  </div>
-                </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base sm:text-lg line-clamp-1">{product.name}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-xs sm:text-sm">{product.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs sm:text-sm font-medium">{product.rating}</span>
-                      <span className="text-xs text-gray-500">({product.reviews_count})</span>
-                    </div>
-                    <Badge variant="outline" className="text-xs">{product.category}</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-lg sm:text-xl font-bold text-green-600">
-                        KSh {Number(product.price).toLocaleString()}
-                      </span>
-                      {product.original_price && product.original_price > product.price && (
-                        <span className="text-xs sm:text-sm text-gray-500 line-through ml-2">
-                          KSh {Number(product.original_price).toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white transition-all duration-300 hover:scale-105">
-                      Add to Cart
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Stats Section */}
+        <section className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <stat.icon className="h-8 w-8 mx-auto mb-3 text-orange-500" />
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
+              </div>
             ))}
           </div>
         </section>
 
         {/* Call to Action */}
-        <section className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 sm:p-8 rounded-xl text-center animate-bounce-in shadow-2xl">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Ready to Start Shopping?</h2>
-          <p className="text-base sm:text-lg mb-4 sm:mb-6 opacity-90">
-            Join thousands of satisfied customers and discover amazing deals today!
+        <section className="text-center bg-gradient-to-r from-orange-500 to-red-600 text-white p-12 rounded-2xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+          <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+            Join thousands of satisfied customers across Kenya and experience the convenience of Soko Smart
           </p>
-          <Link to="/products">
-            <Button size="lg" variant="secondary" className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3">
-              <ShoppingBag className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Explore Products
-            </Button>
-          </Link>
+          {!user ? (
+            <Link to="/auth">
+              <Button size="lg" variant="secondary" className="px-8 py-3 text-lg">
+                Sign Up Now - It's Free!
+              </Button>
+            </Link>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-4">
+              {services.map((service) => (
+                <Link key={service.id} to={service.link}>
+                  <Button variant="secondary" className="px-6 py-2">
+                    Go to {service.title}
+                  </Button>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </MainLayout>

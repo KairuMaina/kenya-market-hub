@@ -39,14 +39,26 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              
+              {/* Shop Routes */}
+              <Route path="/shop" element={<div>Shop</div>} />
               <Route path="/products" element={<Products />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              
+              {/* New Service Routes */}
+              <Route path="/rides" element={<div>Rides</div>} />
+              <Route path="/services" element={<div>Services</div>} />
+              <Route path="/real-estate" element={<div>RealEstate</div>} />
+              
+              {/* User Routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/vendor" element={<VendorDashboard />} />
               <Route path="/confirm" element={<EmailConfirmation />} />
+              
+              {/* Admin Routes */}
               <Route 
                 path="/admin" 
                 element={
