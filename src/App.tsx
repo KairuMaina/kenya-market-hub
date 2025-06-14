@@ -22,7 +22,6 @@ import Rides from "./pages/Rides";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorAnalyticsPage from "./pages/VendorAnalyticsPage";
 import Wishlist from "./pages/Wishlist";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
@@ -31,6 +30,9 @@ import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminReports from "./pages/AdminReports";
 import AdminSettings from "./pages/AdminSettings";
 import NewAdminDashboard from "./pages/NewAdminDashboard";
+import AdminProperties from "./pages/admin/AdminProperties";
+import AdminRides from "./pages/admin/AdminRides";
+import AdminServiceProviders from "./pages/admin/AdminServiceProviders";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
 import AdvancedProductSearch from "./pages/AdvancedProductSearch";
@@ -67,15 +69,21 @@ function App() {
                   <Route path="/vendor-dashboard" element={<ProtectedVendorRoute><VendorDashboard /></ProtectedVendorRoute>} />
                   <Route path="/vendor-analytics" element={<ProtectedVendorRoute><VendorAnalyticsPage /></ProtectedVendorRoute>} />
                   <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-                  <Route path="/admin/login" element={<AdminLogin />} />
+                  
+                  {/* Admin Routes */}
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/admin/orders" element={<AdminOrders />} />
-                  <Route path="/admin/customers" element={<AdminCustomers />} />
+                  <Route path="/admin/users" element={<AdminCustomers />} />
                   <Route path="/admin/analytics" element={<AdminAnalytics />} />
                   <Route path="/admin/reports" element={<AdminReports />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/admin/dashboard" element={<NewAdminDashboard />} />
+                  <Route path="/admin/vendors" element={<NewAdminDashboard />} />
+                  <Route path="/admin/transactions" element={<NewAdminDashboard />} />
+                  <Route path="/admin/properties" element={<AdminProperties />} />
+                  <Route path="/admin/rides" element={<AdminRides />} />
+                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
+                  
                   <Route path="/email-confirmation" element={<EmailConfirmation />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

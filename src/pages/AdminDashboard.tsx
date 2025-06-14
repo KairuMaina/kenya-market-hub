@@ -1,357 +1,208 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  ShoppingBag, 
-  DollarSign, 
-  TrendingUp, 
-  LogOut,
-  Package,
-  UserCheck,
-  Eye,
-  Settings,
-  BarChart3,
-  Store,
-  ShoppingCart
-} from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Users, Package, ShoppingCart, Building, Car, Briefcase, DollarSign, TrendingUp } from 'lucide-react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
+  // Fetch dashboard statistics
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['admin-dashboard-stats'],
+    queryFn: async () => {
+      const [
+        { count: usersCount },
+        { count: productsCount },
+        { count: ordersCount },
+        { count: propertiesCount },
+        { count: ridesCount },
+        { count: serviceProvidersCount },
+        { data: transactions }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('properties').select('*', { count: 'exact', head: true }),
+        supabase.from('rides').select('*', { count: 'exact', head: true }),
+        supabase.from('service_provider_profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('transactions').select('amount')
+      ]);
+
+      const totalRevenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+
+      return {
+        users: usersCount || 0,
+        products: productsCount || 0,
+        orders: ordersCount || 0,
+        properties: propertiesCount || 0,
+        rides: ridesCount || 0,
+        serviceProviders: serviceProvidersCount || 0,
+        revenue: totalRevenue
+      };
     }
-  }, [navigate]);
+  });
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    navigate('/admin/login');
-  };
-
-  const stats = [
-    { title: 'Total Users', value: '1,234', icon: Users, change: '+12%' },
-    { title: 'Total Orders', value: '856', icon: ShoppingBag, change: '+23%' },
-    { title: 'Revenue', value: 'KSh 2.4M', icon: DollarSign, change: '+18%' },
-    { title: 'Active Vendors', value: '45', icon: UserCheck, change: '+8%' },
+  const statCards = [
+    {
+      title: 'Total Users',
+      value: stats?.users || 0,
+      icon: Users,
+      color: 'from-blue-500 to-blue-600',
+      description: 'Registered users'
+    },
+    {
+      title: 'Products',
+      value: stats?.products || 0,
+      icon: Package,
+      color: 'from-green-500 to-green-600',
+      description: 'Active products'
+    },
+    {
+      title: 'Orders',
+      value: stats?.orders || 0,
+      icon: ShoppingCart,
+      color: 'from-purple-500 to-purple-600',
+      description: 'Total orders'
+    },
+    {
+      title: 'Properties',
+      value: stats?.properties || 0,
+      icon: Building,
+      color: 'from-orange-500 to-orange-600',
+      description: 'Listed properties'
+    },
+    {
+      title: 'Rides',
+      value: stats?.rides || 0,
+      icon: Car,
+      color: 'from-red-500 to-red-600',
+      description: 'Ride requests'
+    },
+    {
+      title: 'Service Providers',
+      value: stats?.serviceProviders || 0,
+      icon: Briefcase,
+      color: 'from-indigo-500 to-indigo-600',
+      description: 'Active providers'
+    },
+    {
+      title: 'Revenue',
+      value: `KSH ${(stats?.revenue || 0).toLocaleString()}`,
+      icon: DollarSign,
+      color: 'from-emerald-500 to-emerald-600',
+      description: 'Total revenue'
+    },
+    {
+      title: 'Growth',
+      value: '+12.5%',
+      icon: TrendingUp,
+      color: 'from-teal-500 to-teal-600',
+      description: 'Monthly growth'
+    }
   ];
 
-  const recentOrders = [
-    { id: '#001', customer: 'John Doe', amount: 'KSh 15,000', status: 'Completed', vendor: 'TechHub Kenya' },
-    { id: '#002', customer: 'Jane Smith', amount: 'KSh 8,500', status: 'Processing', vendor: 'AutoSpare Kenya' },
-    { id: '#003', customer: 'Mike Johnson', amount: 'KSh 12,000', status: 'Shipped', vendor: 'StyleHub' },
-    { id: '#004', customer: 'Sarah Wilson', amount: 'KSh 4,500', status: 'Pending', vendor: 'HomeEssentials' },
-  ];
-
-  const pendingVendors = [
-    { name: 'Electronics Plus', email: 'info@electronicsplus.ke', applied: '2 days ago' },
-    { name: 'Fashion Forward', email: 'hello@fashionforward.ke', applied: '1 day ago' },
-    { name: 'Auto Masters', email: 'contact@automasters.ke', applied: '3 hours ago' },
-  ];
-
-  const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'vendors', label: 'Vendors', icon: Store },
-    { id: 'products', label: 'Products', icon: Package },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
-
-  const AdminSidebar = () => (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center space-x-3 px-4 py-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">SS</span>
-          </div>
-          <h1 className="text-xl font-bold text-gray-900">Soko Smart</h1>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    onClick={() => setActiveTab(item.id)}
-                    isActive={activeTab === item.id}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return (
-          <div>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {stats.map((stat, index) => (
-                <Card key={index} className="bg-white border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-sm text-green-600">{stat.change}</p>
-                      </div>
-                      <stat.icon className="h-8 w-8 text-gray-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Orders */}
-              <Card className="bg-white border-gray-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-gray-900">
-                    <Package className="h-5 w-5 mr-2" />
-                    Recent Orders
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.id}</TableCell>
-                          <TableCell>{order.customer}</TableCell>
-                          <TableCell>{order.amount}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={
-                                order.status === 'Completed' ? 'default' : 
-                                order.status === 'Processing' ? 'secondary' :
-                                order.status === 'Shipped' ? 'outline' : 'destructive'
-                              }
-                            >
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-
-              {/* Pending Vendor Approvals */}
-              <Card className="bg-white border-gray-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-gray-900">
-                    <UserCheck className="h-5 w-5 mr-2" />
-                    Pending Vendor Approvals
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {pendingVendors.map((vendor, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{vendor.name}</h4>
-                          <p className="text-sm text-gray-600">{vendor.email}</p>
-                          <p className="text-xs text-gray-500">Applied {vendor.applied}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="default">
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="destructive">
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+  if (isLoading) {
+    return (
+      <ProtectedAdminRoute>
+        <AdminLayout>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+              <p>Loading dashboard...</p>
             </div>
           </div>
-        );
-      case 'users':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Manage all registered users, view their activity, and handle support requests.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Total registered users: 1,234</p>
-                <p className="text-sm text-gray-500">• Active users (last 30 days): 856</p>
-                <p className="text-sm text-gray-500">• New registrations this week: 45</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'vendors':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Vendor Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Approve new vendors, manage existing vendor accounts, and monitor vendor performance.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Active vendors: 45</p>
-                <p className="text-sm text-gray-500">• Pending approvals: 3</p>
-                <p className="text-sm text-gray-500">• Top performing vendor: TechHub Kenya</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'products':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Product Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Manage product catalog, approve new products, and handle product reports.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Total products: 2,450</p>
-                <p className="text-sm text-gray-500">• Products pending approval: 15</p>
-                <p className="text-sm text-gray-500">• Most popular category: Electronics</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'orders':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Order Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Track all orders, manage disputes, and handle refunds.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Total orders: 856</p>
-                <p className="text-sm text-gray-500">• Completed orders: 645</p>
-                <p className="text-sm text-gray-500">• Pending orders: 211</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'analytics':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Analytics & Reports</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">View detailed analytics, generate reports, and track platform performance.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Monthly revenue: KSh 2.4M</p>
-                <p className="text-sm text-gray-500">• Growth rate: +18%</p>
-                <p className="text-sm text-gray-500">• Best selling category: Electronics</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'settings':
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Platform Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Configure platform settings, payment methods, and system preferences.</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">• Payment methods: MPesa, Visa, PayPal</p>
-                <p className="text-sm text-gray-500">• Delivery partners: Sendy, Fargo Courier</p>
-                <p className="text-sm text-gray-500">• Platform commission: 5%</p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      default:
-        return (
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">This section is under development.</p>
-            </CardContent>
-          </Card>
-        );
-    }
-  };
+        </AdminLayout>
+      </ProtectedAdminRoute>
+    );
+  }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
-        <AdminSidebar />
-        <main className="flex-1">
-          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
-            </div>
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <div className="space-y-6 animate-fade-in">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold">Welcome back!</h1>
+            <p className="text-blue-100 mt-2">
+              Here's what's happening with Soko Smart today.
+            </p>
           </div>
-          <div className="p-6">
-            {renderContent()}
+
+          {/* Stats Grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {statCards.map((stat, index) => (
+              <Card key={stat.title} className="shadow-lg border-0 hover:shadow-xl transition-shadow duration-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color}`}>
+                    <stat.icon className="h-4 w-4 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+
+          {/* Quick Actions */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  E-commerce Management
+                </CardTitle>
+                <CardDescription>
+                  Manage products, orders, and vendors
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-gray-600">Latest activity in your marketplace</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Real Estate Hub
+                </CardTitle>
+                <CardDescription>
+                  Properties, agents, and inquiries
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-gray-600">Property listings and agent management</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Car className="h-5 w-5" />
+                  Transportation
+                </CardTitle>
+                <CardDescription>
+                  Rides, drivers, and logistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-gray-600">Ride management and driver coordination</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </AdminLayout>
+    </ProtectedAdminRoute>
   );
 };
 
