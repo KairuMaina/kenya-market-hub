@@ -1,70 +1,30 @@
 
 import React from 'react';
-import { Home, Package, ShoppingCart, Heart, User, Settings, BarChart3, Car, Wrench, Building } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import CartQuantityBadge from './CartQuantityBadge';
+import SidebarSection from './sidebar/SidebarSection';
+import { useSidebarLogic } from './sidebar/useSidebarLogic';
+import {
+  mainMenuItems,
+  serviceItems,
+  shopMenuItems,
+  ridesMenuItems,
+  servicesMenuItems,
+  realEstateMenuItems,
+  accountMenuItems,
+  adminItems,
+} from './sidebar/menuItems';
 
 const AppSidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user, isAdmin } = useAuth();
-
-  const mainMenuItems = [
-    { icon: Home, label: 'Home', path: '/' },
-  ];
-
-  const serviceItems = [
-    { icon: Package, label: 'Shop', path: '/shop' },
-    { icon: Car, label: 'Rides', path: '/rides' },
-    { icon: Wrench, label: 'Services', path: '/services' },
-    { icon: Building, label: 'Real Estate', path: '/real-estate' },
-  ];
-
-  const shopMenuItems = [
-    { icon: Package, label: 'Products', path: '/shop/products' },
-    { 
-      icon: ShoppingCart, 
-      label: 'Cart', 
-      path: '/shop/cart',
-      hasQuantityBadge: true
-    },
-    { icon: Heart, label: 'Wishlist', path: '/shop/wishlist' },
-  ];
-
-  const ridesMenuItems = [
-    { icon: Car, label: 'Book Ride', path: '/rides' },
-  ];
-
-  const servicesMenuItems = [
-    { icon: Wrench, label: 'Find Services', path: '/services' },
-  ];
-
-  const realEstateMenuItems = [
-    { icon: Building, label: 'Browse Properties', path: '/real-estate' },
-  ];
-
-  const adminItems = [
-    { icon: BarChart3, label: 'Admin Dashboard', path: '/admin' },
-    { icon: Package, label: 'Manage Products', path: '/admin/products' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
-  ];
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
-
-  // Determine which menu items to show based on current path
-  const isOnShopSection = location.pathname.startsWith('/shop') || 
-                         location.pathname.startsWith('/products') || 
-                         location.pathname.startsWith('/cart') || 
-                         location.pathname.startsWith('/wishlist') ||
-                         location.pathname.startsWith('/checkout');
-
-  const isOnRidesSection = location.pathname.startsWith('/rides');
-  const isOnServicesSection = location.pathname.startsWith('/services');
-  const isOnRealEstateSection = location.pathname.startsWith('/real-estate');
+  const {
+    isOnShopSection,
+    isOnRidesSection,
+    isOnServicesSection,
+    isOnRealEstateSection,
+    getShopSectionIsActive,
+    getServiceSectionIsActive,
+  } = useSidebarLogic();
 
   return (
     <Sidebar>
@@ -75,175 +35,40 @@ const AppSidebar = () => {
       </SidebarHeader>
       
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainMenuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path)}
-                    isActive={location.pathname === item.path}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarSection title="Main" items={mainMenuItems} />
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Services</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {serviceItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path)}
-                    isActive={location.pathname === item.path || 
-                             (item.path === '/shop' && isOnShopSection) ||
-                             (item.path === '/rides' && isOnRidesSection) ||
-                             (item.path === '/services' && isOnServicesSection) ||
-                             (item.path === '/real-estate' && isOnRealEstateSection)}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarSection 
+          title="Services" 
+          items={serviceItems}
+          isActive={(path) => getServiceSectionIsActive(path, path)}
+        />
 
         {isOnShopSection && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Shop</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {shopMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path ||
-                               (item.path === '/shop/products' && location.pathname === '/products') ||
-                               (item.path === '/shop/cart' && location.pathname === '/cart') ||
-                               (item.path === '/shop/wishlist' && location.pathname === '/wishlist')}
-                      className="relative"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                      {item.hasQuantityBadge && <CartQuantityBadge />}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection 
+            title="Shop" 
+            items={shopMenuItems}
+            isActive={getShopSectionIsActive}
+          />
         )}
 
         {isOnRidesSection && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Rides</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {ridesMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection title="Rides" items={ridesMenuItems} />
         )}
 
         {isOnServicesSection && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Services</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {servicesMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection title="Services" items={servicesMenuItems} />
         )}
 
         {isOnRealEstateSection && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Real Estate</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {realEstateMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection title="Real Estate" items={realEstateMenuItems} />
         )}
 
         {user && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Account</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation('/profile')}
-                    isActive={location.pathname === '/profile'}
-                  >
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection title="Account" items={accountMenuItems} />
         )}
 
         {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarSection title="Admin" items={adminItems} />
         )}
       </SidebarContent>
     </Sidebar>
