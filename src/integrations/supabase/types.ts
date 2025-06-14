@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      delivery_schedules: {
+        Row: {
+          created_at: string
+          delivery_address: string
+          id: string
+          order_id: string
+          phone_number: string
+          scheduled_date: string
+          special_instructions: string | null
+          status: string | null
+          time_slot: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address: string
+          id?: string
+          order_id: string
+          phone_number: string
+          scheduled_date: string
+          special_instructions?: string | null
+          status?: string | null
+          time_slot: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string
+          id?: string
+          order_id?: string
+          phone_number?: string
+          scheduled_date?: string
+          special_instructions?: string | null
+          status?: string | null
+          time_slot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_schedules_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -94,11 +138,13 @@ export type Database = {
         Row: {
           brand: string | null
           category: string
+          condition: string | null
           created_at: string | null
           description: string | null
           id: string
           image_url: string | null
           in_stock: boolean | null
+          location: string | null
           make: string | null
           model: string | null
           name: string
@@ -107,6 +153,7 @@ export type Database = {
           rating: number | null
           reviews_count: number | null
           stock_quantity: number | null
+          tags: string[] | null
           updated_at: string | null
           vendor: string | null
           year: number | null
@@ -114,11 +161,13 @@ export type Database = {
         Insert: {
           brand?: string | null
           category: string
+          condition?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           in_stock?: boolean | null
+          location?: string | null
           make?: string | null
           model?: string | null
           name: string
@@ -127,6 +176,7 @@ export type Database = {
           rating?: number | null
           reviews_count?: number | null
           stock_quantity?: number | null
+          tags?: string[] | null
           updated_at?: string | null
           vendor?: string | null
           year?: number | null
@@ -134,11 +184,13 @@ export type Database = {
         Update: {
           brand?: string | null
           category?: string
+          condition?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           in_stock?: boolean | null
+          location?: string | null
           make?: string | null
           model?: string | null
           name?: string
@@ -147,6 +199,7 @@ export type Database = {
           rating?: number | null
           reviews_count?: number | null
           stock_quantity?: number | null
+          tags?: string[] | null
           updated_at?: string | null
           vendor?: string | null
           year?: number | null
@@ -188,6 +241,73 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      recently_viewed: {
+        Row: {
+          id: string
+          product_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_viewed_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -254,17 +374,52 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlist: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["user_role"]
-        }
+        Args:
+          | {
+              _user_id: string
+              _role: Database["public"]["Enums"]["user_role"]
+            }
+          | { user_id: number; role_name: string }
         Returns: boolean
+      }
+      upsert_recently_viewed: {
+        Args: { p_user_id: string; p_product_id: string }
+        Returns: undefined
       }
     }
     Enums: {

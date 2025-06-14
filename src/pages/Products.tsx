@@ -7,61 +7,100 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Star, ShoppingCart, Search } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Star, ShoppingCart, Search, Filter } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAddToRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import { useAuth } from '@/contexts/AuthContext';
+import ProductDetailModal from '@/components/ProductDetailModal';
+import WishlistButton from '@/components/WishlistButton';
+import RecentlyViewed from '@/components/RecentlyViewed';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCondition, setSelectedCondition] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('newest');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const addToRecentlyViewed = useAddToRecentlyViewed();
 
   const { data: products, isLoading, error } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', searchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select('*')
         .eq('in_stock', true)
-        .order('created_at', { ascending: false });
+        .gte('price', priceRange[0])
+        .lte('price', priceRange[1]);
+
+      if (searchTerm) {
+        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,vendor.ilike.%${searchTerm}%`);
+      }
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
+      }
+
+      if (selectedCondition !== 'all') {
+        query = query.eq('condition', selectedCondition);
+      }
+
+      if (selectedLocation !== 'all') {
+        query = query.eq('location', selectedLocation);
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'price-low':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price-high':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'rating':
+          query = query.order('rating', { ascending: false });
+          break;
+        case 'name':
+          query = query.order('name', { ascending: true });
+          break;
+        case 'newest':
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       return data;
     }
   });
 
-  const categories = [
-    'Electronics & Tech',
-    'Fashion & Apparel', 
-    'Cosmetics & Beauty',
-    'Auto Parts & Accessories',
-    'Home & Garden',
-    'Sports & Recreation',
-    'Books & Media',
-    'Health & Wellness'
-  ];
+  // Get unique values for filters
+  const { data: filterOptions } = useQuery({
+    queryKey: ['filter-options'],
+    queryFn: async () => {
+      const { data: allProducts } = await supabase
+        .from('products')
+        .select('category, condition, location')
+        .eq('in_stock', true);
 
-  const filteredProducts = products?.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+      const categories = [...new Set(allProducts?.map(p => p.category).filter(Boolean))];
+      const conditions = [...new Set(allProducts?.map(p => p.condition).filter(Boolean))];
+      const locations = [...new Set(allProducts?.map(p => p.location).filter(Boolean))];
 
-  const sortedProducts = filteredProducts?.sort((a, b) => {
-    switch (sortBy) {
-      case 'price-low':
-        return Number(a.price) - Number(b.price);
-      case 'price-high':
-        return Number(b.price) - Number(a.price);
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
-      case 'newest':
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return { categories, conditions, locations };
     }
   });
 
@@ -74,6 +113,23 @@ const Products = () => {
       vendor: product.vendor || 'Unknown Vendor'
     });
     toast({ title: "Added to cart", description: `${product.name} has been added to your cart.` });
+  };
+
+  const handleProductClick = (product: any) => {
+    setSelectedProduct(product);
+    setShowProductModal(true);
+    if (user) {
+      addToRecentlyViewed.mutate(product.id);
+    }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedCondition('all');
+    setSelectedLocation('all');
+    setPriceRange([0, 100000]);
+    setSortBy('newest');
   };
 
   if (error) {
@@ -96,31 +152,19 @@ const Products = () => {
           <p className="text-gray-600 text-lg">Discover amazing products from trusted vendors across Kenya</p>
         </div>
 
-        {/* Filters */}
+        {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search products..."
+                placeholder="Search products, brands, vendors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
             
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
@@ -130,13 +174,94 @@ const Products = () => {
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="name">Name: A-Z</SelectItem>
               </SelectContent>
             </Select>
 
-            <div className="text-sm text-gray-600 flex items-center">
-              {sortedProducts?.length || 0} products found
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
           </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="border-t pt-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {filterOptions?.categories.map((category) => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Condition</label>
+                  <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Conditions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Conditions</SelectItem>
+                      {filterOptions?.conditions.map((condition) => (
+                        <SelectItem key={condition} value={condition}>{condition}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Location</label>
+                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Locations" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Locations</SelectItem>
+                      {filterOptions?.locations.map((location) => (
+                        <SelectItem key={location} value={location}>{location}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Price Range: KSH {priceRange[0].toLocaleString()} - KSH {priceRange[1].toLocaleString()}
+                </label>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={100000}
+                  min={0}
+                  step={1000}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  {products?.length || 0} products found
+                </div>
+                <Button variant="outline" size="sm" onClick={resetFilters}>
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Products Grid */}
@@ -152,15 +277,19 @@ const Products = () => {
               </Card>
             ))}
           </div>
-        ) : sortedProducts?.length === 0 ? (
+        ) : products?.length === 0 ? (
           <div className="text-center py-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">No products found</h2>
             <p className="text-gray-600">Try adjusting your search or filters.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {sortedProducts?.map((product) => (
-              <Card key={product.id} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-lg overflow-hidden">
+            {products?.map((product) => (
+              <Card 
+                key={product.id} 
+                className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-lg overflow-hidden cursor-pointer"
+                onClick={() => handleProductClick(product)}
+              >
                 <CardContent className="p-0">
                   <div className="relative">
                     <img 
@@ -171,6 +300,14 @@ const Products = () => {
                     {product.original_price && (
                       <Badge className="absolute top-2 left-2 bg-red-500 text-xs">
                         SALE
+                      </Badge>
+                    )}
+                    <div className="absolute top-2 right-2">
+                      <WishlistButton productId={product.id} />
+                    </div>
+                    {product.condition && product.condition !== 'new' && (
+                      <Badge className="absolute bottom-2 left-2 bg-blue-500 text-xs">
+                        {product.condition}
                       </Badge>
                     )}
                   </div>
@@ -197,6 +334,10 @@ const Products = () => {
                       </div>
                     </div>
                     
+                    {product.location && (
+                      <p className="text-xs text-gray-500 mb-2">📍 {product.location}</p>
+                    )}
+                    
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-base font-bold text-gray-900">
@@ -210,7 +351,10 @@ const Products = () => {
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => handleAddToCart(product)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product);
+                        }}
                         className="bg-orange-600 hover:bg-orange-700 text-xs px-3 py-1"
                       >
                         <ShoppingCart className="h-3 w-3 mr-1" />
@@ -223,7 +367,15 @@ const Products = () => {
             ))}
           </div>
         )}
+
+        <RecentlyViewed />
       </div>
+
+      <ProductDetailModal
+        open={showProductModal}
+        onOpenChange={setShowProductModal}
+        product={selectedProduct}
+      />
     </MainLayout>
   );
 };
