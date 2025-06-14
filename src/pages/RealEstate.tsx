@@ -1,11 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Home, MapPin, Bed, Bath, Square, Phone, Heart, Filter } from 'lucide-react';
+import { Building, Home, MapPin, Bed, Bath, Square, Phone, Heart, Filter, Search } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType } from '@/hooks/useProperties';
+import PropertyCard from '@/components/PropertyCard';
+import PropertyFilters from '@/components/PropertyFilters';
+import PropertyInquiryModal from '@/components/PropertyInquiryModal';
+import { Property } from '@/hooks/useProperties';
+import { Input } from '@/components/ui/input';
 
 const RealEstate = () => {
+  const [filters, setFilters] = useState<FiltersType>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+
+  const { data: properties = [], isLoading } = useProperties(filters);
+  const { data: featuredProperties = [] } = useFeaturedProperties();
+
   const propertyTypes = [
     {
       type: 'Apartments',
@@ -30,45 +45,25 @@ const RealEstate = () => {
     },
   ];
 
-  const featuredProperties = [
-    {
-      id: 1,
-      title: '3BR Apartment in Kilimani',
-      price: 'KSh 65,000/month',
-      location: 'Kilimani, Nairobi',
-      bedrooms: 3,
-      bathrooms: 2,
-      area: '120 sqm',
-      image: '/placeholder.svg',
-      type: 'Apartment',
-    },
-    {
-      id: 2,
-      title: '4BR House in Karen',
-      price: 'KSh 120,000/month',
-      location: 'Karen, Nairobi',
-      bedrooms: 4,
-      bathrooms: 3,
-      area: '250 sqm',
-      image: '/placeholder.svg',
-      type: 'House',
-    },
-    {
-      id: 3,
-      title: 'Office Space in Westlands',
-      price: 'KSh 85,000/month',
-      location: 'Westlands, Nairobi',
-      bedrooms: 0,
-      bathrooms: 2,
-      area: '180 sqm',
-      image: '/placeholder.svg',
-      type: 'Commercial',
-    },
-  ];
-
   const popularAreas = [
     'Kilimani', 'Karen', 'Westlands', 'Parklands', 'Lavington', 'Kileleshwa'
   ];
+
+  const handlePropertyInquiry = (property: Property) => {
+    setSelectedProperty(property);
+    setShowInquiryModal(true);
+  };
+
+  const handleViewDetails = (property: Property) => {
+    // TODO: Navigate to property detail page
+    console.log('View property details:', property.id);
+  };
+
+  const filteredProperties = properties.filter(property =>
+    !searchQuery || 
+    property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    property.location_address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <MainLayout>
@@ -87,44 +82,85 @@ const RealEstate = () => {
           </Button>
         </section>
 
-        {/* Quick Search */}
-        <section className="bg-white p-6 rounded-xl shadow-lg">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-              <select className="w-full p-3 border rounded-lg">
-                <option>Select Area</option>
-                {popularAreas.map(area => (
-                  <option key={area}>{area}</option>
-                ))}
-              </select>
+        {/* Search and Filters */}
+        <section className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                placeholder="Search by location or property name..."
+                className="pl-10 h-12"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
-              <select className="w-full p-3 border rounded-lg">
-                <option>Any Type</option>
-                <option>Apartment</option>
-                <option>House</option>
-                <option>Commercial</option>
-              </select>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="h-12 px-6"
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Filters
+            </Button>
+          </div>
+
+          {showFilters && (
+            <PropertyFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              onClearFilters={() => setFilters({})}
+            />
+          )}
+        </section>
+
+        {/* Featured Properties */}
+        {featuredProperties.length > 0 && (
+          <section>
+            <h2 className="text-3xl font-bold text-center mb-8">Featured Properties</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredProperties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  onViewDetails={handleViewDetails}
+                  onInquire={handlePropertyInquiry}
+                />
+              ))}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-              <select className="w-full p-3 border rounded-lg">
-                <option>Any Price</option>
-                <option>Under KSh 30K</option>
-                <option>KSh 30K - 60K</option>
-                <option>KSh 60K - 100K</option>
-                <option>Above KSh 100K</option>
-              </select>
+          </section>
+        )}
+
+        {/* All Properties */}
+        <section>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">
+              All Properties {filteredProperties.length > 0 && `(${filteredProperties.length})`}
+            </h2>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="text-lg text-gray-600">Loading properties...</div>
             </div>
-            <div className="flex items-end">
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600">
-                <Filter className="mr-2 h-4 w-4" />
-                Search
+          ) : filteredProperties.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-lg text-gray-600 mb-4">No properties found matching your criteria</div>
+              <Button onClick={() => { setFilters({}); setSearchQuery(''); }}>
+                Clear Filters
               </Button>
             </div>
-          </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProperties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  onViewDetails={handleViewDetails}
+                  onInquire={handlePropertyInquiry}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Property Types */}
@@ -152,69 +188,17 @@ const RealEstate = () => {
           </div>
         </section>
 
-        {/* Featured Properties */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Featured Properties</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredProperties.map((property) => (
-              <Card key={property.id} className="hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="relative">
-                  <img 
-                    src={property.image} 
-                    alt={property.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <Button size="sm" variant="ghost" className="absolute top-2 right-2 bg-white/80 hover:bg-white">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                  <div className="absolute bottom-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs">
-                    {property.type}
-                  </div>
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-lg">{property.title}</CardTitle>
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{property.location}</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {property.bedrooms > 0 && (
-                        <div className="flex items-center">
-                          <Bed className="h-4 w-4 mr-1" />
-                          <span>{property.bedrooms}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center">
-                        <Bath className="h-4 w-4 mr-1" />
-                        <span>{property.bathrooms}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Square className="h-4 w-4 mr-1" />
-                        <span>{property.area}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-purple-600">{property.price}</span>
-                    <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-600">
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
         {/* Popular Areas */}
         <section>
           <h2 className="text-3xl font-bold text-center mb-8">Popular Areas</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {popularAreas.map((area, index) => (
-              <Button key={index} variant="outline" className="p-4 h-auto">
+              <Button 
+                key={index} 
+                variant="outline" 
+                className="p-4 h-auto"
+                onClick={() => setFilters({ ...filters, city: area })}
+              >
                 <div className="text-center">
                   <MapPin className="h-6 w-6 mx-auto mb-2 text-purple-600" />
                   <span className="font-medium">{area}</span>
@@ -235,6 +219,13 @@ const RealEstate = () => {
             Get Early Access
           </Button>
         </section>
+
+        {/* Property Inquiry Modal */}
+        <PropertyInquiryModal
+          isOpen={showInquiryModal}
+          onClose={() => setShowInquiryModal(false)}
+          property={selectedProperty}
+        />
       </div>
     </MainLayout>
   );

@@ -658,6 +658,256 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          agent_id: string | null
+          amenities: string[] | null
+          area_sqm: number | null
+          available_from: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          county: string | null
+          created_at: string | null
+          description: string | null
+          features: string[] | null
+          id: string
+          images: string[] | null
+          is_featured: boolean | null
+          listing_type: Database["public"]["Enums"]["listing_type"]
+          location_address: string
+          location_coordinates: unknown | null
+          owner_id: string
+          price: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          status: Database["public"]["Enums"]["property_status"] | null
+          title: string
+          updated_at: string | null
+          views_count: number | null
+          virtual_tour_url: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          amenities?: string[] | null
+          area_sqm?: number | null
+          available_from?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          county?: string | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          listing_type: Database["public"]["Enums"]["listing_type"]
+          location_address: string
+          location_coordinates?: unknown | null
+          owner_id: string
+          price: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          status?: Database["public"]["Enums"]["property_status"] | null
+          title: string
+          updated_at?: string | null
+          views_count?: number | null
+          virtual_tour_url?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          amenities?: string[] | null
+          area_sqm?: number | null
+          available_from?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          county?: string | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          location_address?: string
+          location_coordinates?: unknown | null
+          owner_id?: string
+          price?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+          status?: Database["public"]["Enums"]["property_status"] | null
+          title?: string
+          updated_at?: string | null
+          views_count?: number | null
+          virtual_tour_url?: string | null
+        }
+        Relationships: []
+      }
+      property_inquiries: {
+        Row: {
+          created_at: string | null
+          id: string
+          inquirer_email: string
+          inquirer_id: string | null
+          inquirer_name: string
+          inquirer_phone: string | null
+          inquiry_type: string | null
+          message: string
+          preferred_contact_method: string | null
+          property_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inquirer_email: string
+          inquirer_id?: string | null
+          inquirer_name: string
+          inquirer_phone?: string | null
+          inquiry_type?: string | null
+          message: string
+          preferred_contact_method?: string | null
+          property_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inquirer_email?: string
+          inquirer_id?: string | null
+          inquirer_name?: string
+          inquirer_phone?: string | null
+          inquiry_type?: string | null
+          message?: string
+          preferred_contact_method?: string | null
+          property_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_inquiries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_viewings: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          property_id: string
+          status: string | null
+          viewer_email: string
+          viewer_id: string | null
+          viewer_name: string
+          viewer_phone: string | null
+          viewing_date: string
+          viewing_time: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          status?: string | null
+          viewer_email: string
+          viewer_id?: string | null
+          viewer_name: string
+          viewer_phone?: string | null
+          viewing_date: string
+          viewing_time: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          status?: string | null
+          viewer_email?: string
+          viewer_id?: string | null
+          viewer_name?: string
+          viewer_phone?: string | null
+          viewing_date?: string
+          viewing_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_viewings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      real_estate_agents: {
+        Row: {
+          agency_name: string | null
+          bio: string | null
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          license_number: string | null
+          phone: string
+          profile_image_url: string | null
+          rating: number | null
+          social_media: Json | null
+          specializations: string[] | null
+          total_sales: number | null
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          agency_name?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          license_number?: string | null
+          phone: string
+          profile_image_url?: string | null
+          rating?: number | null
+          social_media?: Json | null
+          specializations?: string[] | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          agency_name?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          license_number?: string | null
+          phone?: string
+          profile_image_url?: string | null
+          rating?: number | null
+          social_media?: Json | null
+          specializations?: string[] | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       recently_viewed: {
         Row: {
           id: string
@@ -1157,6 +1407,7 @@ export type Database = {
     }
     Enums: {
       driver_status: "offline" | "available" | "busy"
+      listing_type: "sale" | "rent"
       order_status_type:
         | "pending"
         | "confirmed"
@@ -1167,6 +1418,8 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
+      property_status: "available" | "sold" | "rented" | "pending"
+      property_type: "house" | "apartment" | "land" | "commercial" | "office"
       ride_status:
         | "requested"
         | "accepted"
@@ -1291,6 +1544,7 @@ export const Constants = {
   public: {
     Enums: {
       driver_status: ["offline", "available", "busy"],
+      listing_type: ["sale", "rent"],
       order_status_type: [
         "pending",
         "confirmed",
@@ -1302,6 +1556,8 @@ export const Constants = {
         "cancelled",
         "refunded",
       ],
+      property_status: ["available", "sold", "rented", "pending"],
+      property_type: ["house", "apartment", "land", "commercial", "office"],
       ride_status: [
         "requested",
         "accepted",
