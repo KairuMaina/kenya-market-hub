@@ -223,6 +223,60 @@ export type Database = {
           },
         ]
       }
+      driver_ride_requests: {
+        Row: {
+          created_at: string | null
+          distance_km: number | null
+          driver_id: string
+          estimated_pickup_minutes: number | null
+          expires_at: string
+          id: string
+          responded_at: string | null
+          ride_id: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id: string
+          estimated_pickup_minutes?: number | null
+          expires_at?: string
+          id?: string
+          responded_at?: string | null
+          ride_id: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id?: string
+          estimated_pickup_minutes?: number | null
+          expires_at?: string
+          id?: string
+          responded_at?: string | null
+          ride_id?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_ride_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_ride_requests_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           availability_status: string | null
@@ -1626,6 +1680,23 @@ export type Database = {
           p_product_categories?: string[]
         }
         Returns: Json
+      }
+      expire_old_ride_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      find_nearby_drivers: {
+        Args: {
+          pickup_lat: number
+          pickup_lng: number
+          vehicle_type_param: Database["public"]["Enums"]["vehicle_type"]
+          radius_km?: number
+        }
+        Returns: {
+          driver_id: string
+          distance_km: number
+          estimated_pickup_minutes: number
+        }[]
       }
       has_role: {
         Args:

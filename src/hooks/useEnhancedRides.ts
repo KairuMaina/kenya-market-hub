@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useFindNearbyDrivers, useSendRideRequests } from './useDriverMatching';
 
 export interface EnhancedRide {
   id: string;
@@ -69,12 +69,15 @@ export const useEnhancedRides = () => {
       })) as EnhancedRide[];
     },
     enabled: !!user,
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 };
 
 export const useBookEnhancedRide = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const findDrivers = useFindNearbyDrivers();
+  const sendRequests = useSendRideRequests();
 
   return useMutation({
     mutationFn: async (rideData: {
@@ -87,13 +90,22 @@ export const useBookEnhancedRide = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // For now, calculate a simple estimated fare based on distance
-      const estimatedDistance = 5; // km - in production this would be calculated from map data
-      const baseRate = rideData.vehicleType === 'taxi' ? 150 : 80;
-      const perKmRate = rideData.vehicleType === 'taxi' ? 50 : 30;
-      const estimatedFare = baseRate + (estimatedDistance * perKmRate);
+      // Get fare calculation
+      const { data: fareData, error: fareError } = await supabase
+        .from('fare_calculations')
+        .select('*')
+        .eq('vehicle_type', rideData.vehicleType)
+        .eq('is_active', true)
+        .single();
 
-      const { data, error } = await supabase
+      if (fareError) throw fareError;
+
+      // Calculate estimated distance (simplified - in production would use routing API)
+      const estimatedDistance = 5; // km
+      const estimatedFare = fareData.base_fare + (estimatedDistance * fareData.per_km_rate);
+
+      // Create the ride
+      const { data: ride, error } = await supabase
         .from('rides')
         .insert({
           user_id: user.id,
@@ -109,7 +121,27 @@ export const useBookEnhancedRide = () => {
         .single();
 
       if (error) throw error;
-      return data;
+
+      // Find nearby drivers
+      const nearbyDrivers = await findDrivers.mutateAsync({
+        pickupLat: rideData.pickupLocation.lat,
+        pickupLng: rideData.pickupLocation.lng,
+        vehicleType: rideData.vehicleType,
+      });
+
+      if (nearbyDrivers.length > 0) {
+        // Send ride requests to nearby drivers
+        await sendRequests.mutateAsync({
+          rideId: ride.id,
+          driverRequests: nearbyDrivers.map(driver => ({
+            driver_id: driver.driver_id,
+            distance_km: driver.distance_km,
+            estimated_pickup_minutes: driver.estimated_pickup_minutes
+          }))
+        });
+      }
+
+      return ride;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-rides'] });
