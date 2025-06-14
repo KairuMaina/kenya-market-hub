@@ -1,11 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, MapPin, Clock, Shield, Star, Phone } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import RideBookingModal from '@/components/RideBookingModal';
+import RideHistory from '@/components/RideHistory';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Rides = () => {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const { user } = useAuth();
+
   const vehicleTypes = [
     {
       type: 'Taxi',
@@ -23,6 +29,15 @@ const Rides = () => {
     }
   ];
 
+  const handleBookRide = () => {
+    if (!user) {
+      // Redirect to auth or show login modal
+      window.location.href = '/auth';
+      return;
+    }
+    setIsBookingModalOpen(true);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-12">
@@ -34,7 +49,7 @@ const Rides = () => {
           <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
             Get around Kenya safely and affordably with our ride-hailing service
           </p>
-          <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-3">
+          <Button size="lg" onClick={handleBookRide} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-3">
             <MapPin className="mr-2 h-5 w-5" />
             Book a Ride Now
           </Button>
@@ -63,7 +78,7 @@ const Rides = () => {
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="mb-4">{vehicle.description}</CardDescription>
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-600">
+                  <Button onClick={handleBookRide} className="w-full bg-gradient-to-r from-blue-500 to-indigo-600">
                     Select {vehicle.type}
                   </Button>
                 </CardContent>
@@ -87,11 +102,18 @@ const Rides = () => {
           ))}
         </section>
 
-        {/* Coming Soon Notice */}
+        {/* User's Ride History - Only show if logged in */}
+        {user && (
+          <section>
+            <RideHistory />
+          </section>
+        )}
+
+        {/* Coming Soon Notice - Show only if not fully functional */}
         <section className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-12 rounded-2xl">
-          <h2 className="text-3xl font-bold mb-4">Coming Soon!</h2>
+          <h2 className="text-3xl font-bold mb-4">Ride Matching Coming Soon!</h2>
           <p className="text-lg mb-6 opacity-90">
-            Our ride-hailing service is launching soon. Be the first to know when we go live!
+            You can book rides now, but driver matching is still in development. We'll notify you when it's ready!
           </p>
           <Button variant="secondary" size="lg" className="px-8 py-3">
             <Phone className="mr-2 h-5 w-5" />
@@ -99,6 +121,11 @@ const Rides = () => {
           </Button>
         </section>
       </div>
+
+      <RideBookingModal 
+        isOpen={isBookingModalOpen} 
+        onClose={() => setIsBookingModalOpen(false)} 
+      />
     </MainLayout>
   );
 };

@@ -182,6 +182,66 @@ export type Database = {
           },
         ]
       }
+      drivers: {
+        Row: {
+          created_at: string | null
+          current_location: unknown | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          license_number: string
+          license_plate: string
+          phone_number: string
+          rating: number | null
+          status: Database["public"]["Enums"]["driver_status"] | null
+          total_rides: number | null
+          updated_at: string | null
+          user_id: string
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+          vehicle_year: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_location?: unknown | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          license_number: string
+          license_plate: string
+          phone_number: string
+          rating?: number | null
+          status?: Database["public"]["Enums"]["driver_status"] | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+          vehicle_year?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_location?: unknown | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          license_number?: string
+          license_plate?: string
+          phone_number?: string
+          rating?: number | null
+          status?: Database["public"]["Enums"]["driver_status"] | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+          vehicle_year?: number | null
+        }
+        Relationships: []
+      }
       email_campaigns: {
         Row: {
           audience_segments: Json | null
@@ -269,6 +329,45 @@ export type Database = {
           tags?: string[] | null
           unsubscribed_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      fare_calculations: {
+        Row: {
+          base_fare: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          minimum_fare: number
+          per_km_rate: number
+          per_minute_rate: number
+          surge_multiplier: number | null
+          updated_at: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Insert: {
+          base_fare: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_fare: number
+          per_km_rate: number
+          per_minute_rate: number
+          surge_multiplier?: number | null
+          updated_at?: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Update: {
+          base_fare?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_fare?: number
+          per_km_rate?: number
+          per_minute_rate?: number
+          surge_multiplier?: number | null
+          updated_at?: string | null
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Relationships: []
       }
@@ -626,6 +725,134 @@ export type Database = {
           },
         ]
       }
+      ride_requests: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          expires_at: string
+          id: string
+          ride_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          expires_at: string
+          id?: string
+          ride_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          expires_at?: string
+          id?: string
+          ride_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_requests_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          accepted_at: string | null
+          actual_fare: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string | null
+          destination_address: string
+          destination_location: unknown
+          distance_km: number | null
+          driver_id: string | null
+          duration_minutes: number | null
+          estimated_fare: number | null
+          id: string
+          pickup_address: string
+          pickup_location: unknown
+          rating: number | null
+          requested_at: string | null
+          review: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["ride_status"] | null
+          updated_at: string | null
+          user_id: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Insert: {
+          accepted_at?: string | null
+          actual_fare?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          destination_address: string
+          destination_location: unknown
+          distance_km?: number | null
+          driver_id?: string | null
+          duration_minutes?: number | null
+          estimated_fare?: number | null
+          id?: string
+          pickup_address: string
+          pickup_location: unknown
+          rating?: number | null
+          requested_at?: string | null
+          review?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ride_status"] | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Update: {
+          accepted_at?: string | null
+          actual_fare?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          destination_address?: string
+          destination_location?: unknown
+          distance_km?: number | null
+          driver_id?: string | null
+          duration_minutes?: number | null
+          estimated_fare?: number | null
+          id?: string
+          pickup_address?: string
+          pickup_location?: unknown
+          rating?: number | null
+          requested_at?: string | null
+          review?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ride_status"] | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -929,6 +1156,7 @@ export type Database = {
       }
     }
     Enums: {
+      driver_status: "offline" | "available" | "busy"
       order_status_type:
         | "pending"
         | "confirmed"
@@ -939,7 +1167,14 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
+      ride_status:
+        | "requested"
+        | "accepted"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
       user_role: "admin" | "customer"
+      vehicle_type: "taxi" | "motorbike"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1055,6 +1290,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      driver_status: ["offline", "available", "busy"],
       order_status_type: [
         "pending",
         "confirmed",
@@ -1066,7 +1302,15 @@ export const Constants = {
         "cancelled",
         "refunded",
       ],
+      ride_status: [
+        "requested",
+        "accepted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
       user_role: ["admin", "customer"],
+      vehicle_type: ["taxi", "motorbike"],
     },
   },
 } as const

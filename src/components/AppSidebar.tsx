@@ -33,6 +33,18 @@ const AppSidebar = () => {
     { icon: Heart, label: 'Wishlist', path: '/shop/wishlist' },
   ];
 
+  const ridesMenuItems = [
+    { icon: Car, label: 'Book Ride', path: '/rides' },
+  ];
+
+  const servicesMenuItems = [
+    { icon: Wrench, label: 'Find Services', path: '/services' },
+  ];
+
+  const realEstateMenuItems = [
+    { icon: Building, label: 'Browse Properties', path: '/real-estate' },
+  ];
+
   const adminItems = [
     { icon: BarChart3, label: 'Admin Dashboard', path: '/admin' },
     { icon: Package, label: 'Manage Products', path: '/admin/products' },
@@ -136,15 +148,17 @@ const AppSidebar = () => {
             <SidebarGroupLabel>Rides</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation('/rides')}
-                    isActive={location.pathname === '/rides'}
-                  >
-                    <Car className="h-4 w-4" />
-                    <span>Book Ride</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {ridesMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path)}
+                      isActive={location.pathname === item.path}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -155,15 +169,17 @@ const AppSidebar = () => {
             <SidebarGroupLabel>Services</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation('/services')}
-                    isActive={location.pathname === '/services'}
-                  >
-                    <Wrench className="h-4 w-4" />
-                    <span>Find Services</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {servicesMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path)}
+                      isActive={location.pathname === item.path}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -174,15 +190,17 @@ const AppSidebar = () => {
             <SidebarGroupLabel>Real Estate</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation('/real-estate')}
-                    isActive={location.pathname === '/real-estate'}
-                  >
-                    <Building className="h-4 w-4" />
-                    <span>Browse Properties</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {realEstateMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path)}
+                      isActive={location.pathname === item.path}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
