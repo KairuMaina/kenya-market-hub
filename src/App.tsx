@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -27,6 +26,9 @@ import VendorDashboard from "./pages/VendorDashboard";
 import VendorAnalyticsPage from "./pages/VendorAnalyticsPage";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
+import DriverApp from "./pages/DriverApp";
+import VendorApp from "./pages/VendorApp";
+import PropertyOwnerApp from "./pages/PropertyOwnerApp";
 
 // Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
@@ -95,8 +97,16 @@ const App: React.FC = () => {
                     {/* User Routes */}
                     <Route path="/profile" element={<Profile />} />
                     
-                    {/* Vendor Routes */}
-                    <Route path="/vendor" element={<VendorDashboard />} />
+                    {/* Service Provider Applications Routes */}
+                    <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+                    
+                    {/* Dedicated Service Provider Apps */}
+                    <Route path="/driver/*" element={<DriverApp />} />
+                    <Route path="/vendor/*" element={<VendorApp />} />
+                    <Route path="/property-owner/*" element={<PropertyOwnerApp />} />
+                    
+                    {/* Legacy Vendor Routes (redirect to new structure) */}
+                    <Route path="/vendor" element={<VendorApp />} />
                     <Route path="/vendor/analytics" element={<VendorAnalyticsPage />} />
                     
                     {/* Admin Routes */}

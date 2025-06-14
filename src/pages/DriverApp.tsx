@@ -1,23 +1,22 @@
 
 import React from 'react';
-import MainLayout from '@/components/MainLayout';
+import DriverLayout from '@/components/layouts/DriverLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import DriverDashboard from '@/components/DriverDashboard';
+import ProtectedDriverRoute from '@/components/ProtectedDriverRoute';
 
 const DriverApp = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <MainLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-center animate-pulse">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading driver app...</p>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
@@ -26,9 +25,11 @@ const DriverApp = () => {
   }
 
   return (
-    <MainLayout>
-      <DriverDashboard />
-    </MainLayout>
+    <ProtectedDriverRoute>
+      <DriverLayout>
+        <DriverDashboard />
+      </DriverLayout>
+    </ProtectedDriverRoute>
   );
 };
 
