@@ -312,7 +312,7 @@ const AdminServiceProviders = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setRejectionDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsRejectionDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button 
