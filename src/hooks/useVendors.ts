@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -64,6 +65,22 @@ export const useVendorApplications = () => {
       console.log('🔍 Starting vendor applications fetch...');
       
       try {
+        // First, let's check the current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        console.log('👤 Current user:', user?.email || 'Not logged in');
+        console.log('👤 User error:', userError);
+
+        // Let's also check if we can access the table at all
+        console.log('🔧 Testing basic table access...');
+        const { data: testData, error: testError } = await supabase
+          .from('vendor_applications')
+          .select('count', { count: 'exact', head: true });
+        
+        console.log('🔧 Test count result:', testData);
+        console.log('🔧 Test count error:', testError);
+
+        // Now let's try the actual query with more detailed logging
+        console.log('📊 Executing main query...');
         const { data, error, count } = await supabase
           .from('vendor_applications')
           .select('*', { count: 'exact' })
@@ -71,9 +88,17 @@ export const useVendorApplications = () => {
         
         console.log('📊 Raw Supabase response:', { data, error, count });
         console.log('📊 Applications count from Supabase:', count);
+        console.log('📊 Data type:', typeof data);
+        console.log('📊 Data is array:', Array.isArray(data));
         
         if (error) {
           console.error('❌ Supabase query error:', error);
+          console.error('❌ Error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
           throw error;
         }
         
@@ -83,11 +108,20 @@ export const useVendorApplications = () => {
         }
         
         console.log('✅ Successfully fetched applications:', data.length);
-        console.log('📝 First application sample:', data[0]);
+        if (data.length > 0) {
+          console.log('📝 First application sample:', data[0]);
+          console.log('📝 All application IDs:', data.map(app => app.id));
+        }
         
         return data as VendorApplication[];
       } catch (err) {
         console.error('💥 Vendor applications fetch failed:', err);
+        console.error('💥 Error type:', typeof err);
+        console.error('💥 Error constructor:', err?.constructor?.name);
+        if (err instanceof Error) {
+          console.error('💥 Error message:', err.message);
+          console.error('💥 Error stack:', err.stack);
+        }
         throw err;
       }
     }

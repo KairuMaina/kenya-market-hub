@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
@@ -75,11 +74,12 @@ const NewAdminDashboard = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [searchParams] = useSearchParams();
   const [directQueryResult, setDirectQueryResult] = useState<any>(null);
+  const [detailedTestResult, setDetailedTestResult] = useState<any>(null);
   
   // Get the default tab from URL parameters
   const defaultTab = searchParams.get('tab') || 'products';
 
-  // Add direct database test function
+  // Enhanced direct database test function
   const testDirectQuery = async () => {
     console.log('🧪 Testing direct database query...');
     try {
@@ -104,6 +104,67 @@ const NewAdminDashboard = () => {
     } catch (err) {
       console.error('🧪 Direct query failed:', err);
       setDirectQueryResult({ error: err, timestamp: new Date().toISOString() });
+    }
+  };
+
+  // Comprehensive database test
+  const runDetailedTest = async () => {
+    console.log('🔬 Running detailed database test...');
+    const results: any = {};
+    
+    try {
+      // Test 1: Check if we can connect to Supabase at all
+      console.log('🔬 Test 1: Basic connection test...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      results.user = { user: user?.email, error: userError };
+      
+      // Test 2: Test table existence and permissions
+      console.log('🔬 Test 2: Table access test...');
+      const { data: schemaData, error: schemaError } = await supabase
+        .from('vendor_applications')
+        .select('count', { count: 'exact', head: true });
+      results.tableAccess = { data: schemaData, error: schemaError };
+      
+      // Test 3: Try different query approaches
+      console.log('🔬 Test 3: Different query approaches...');
+      
+      // Approach A: Simple select
+      const { data: dataA, error: errorA } = await supabase
+        .from('vendor_applications')
+        .select('*');
+      results.simpleSelect = { data: dataA, error: errorA, count: dataA?.length };
+      
+      // Approach B: Select with limit
+      const { data: dataB, error: errorB } = await supabase
+        .from('vendor_applications')
+        .select('*')
+        .limit(10);
+      results.limitedSelect = { data: dataB, error: errorB, count: dataB?.length };
+      
+      // Approach C: Select specific columns
+      const { data: dataC, error: errorC } = await supabase
+        .from('vendor_applications')
+        .select('id, business_name, status');
+      results.specificColumns = { data: dataC, error: errorC, count: dataC?.length };
+      
+      console.log('🔬 Detailed test results:', results);
+      setDetailedTestResult({ ...results, timestamp: new Date().toISOString() });
+      
+      // Show summary in toast
+      const totalFound = results.simpleSelect?.count || 0;
+      toast({
+        title: `Detailed test completed`,
+        description: `Found ${totalFound} records. Check console for full details.`
+      });
+      
+    } catch (err) {
+      console.error('🔬 Detailed test failed:', err);
+      setDetailedTestResult({ error: err, timestamp: new Date().toISOString() });
+      toast({
+        title: "Detailed test failed",
+        description: "Check console for error details",
+        variant: "destructive"
+      });
     }
   };
 
@@ -647,15 +708,25 @@ const NewAdminDashboard = () => {
                 <CardDescription>Review and manage vendor applications</CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Debug Panel */}
+                {/* Enhanced Debug Panel */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h4 className="font-medium mb-2">🔧 Debug Panel</h4>
                   <div className="space-y-2 text-sm">
                     <p><strong>Hook Data:</strong> {vendorApplications?.length || 0} applications</p>
                     <p><strong>Loading:</strong> {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
                     <p><strong>Error:</strong> {vendorApplicationsError ? 'Yes' : 'No'}</p>
+                    {vendorApplicationsError && (
+                      <p><strong>Error Message:</strong> {vendorApplicationsError.message}</p>
+                    )}
                     {directQueryResult && (
                       <p><strong>Direct Query:</strong> {directQueryResult.data?.length || 0} found at {directQueryResult.timestamp}</p>
+                    )}
+                    {detailedTestResult && (
+                      <div>
+                        <p><strong>Detailed Test:</strong> Run at {detailedTestResult.timestamp}</p>
+                        <p><strong>Simple Select:</strong> {detailedTestResult.simpleSelect?.count || 0} records</p>
+                        <p><strong>User:</strong> {detailedTestResult.user?.user || 'Not logged in'}</p>
+                      </div>
                     )}
                   </div>
                   <div className="flex gap-2 mt-3">
@@ -673,6 +744,13 @@ const NewAdminDashboard = () => {
                       variant="outline"
                     >
                       Test Direct Query
+                    </Button>
+                    <Button 
+                      onClick={runDetailedTest}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Run Detailed Test
                     </Button>
                   </div>
                 </div>
