@@ -1699,12 +1699,10 @@ export type Database = {
         }[]
       }
       has_role: {
-        Args:
-          | {
-              _user_id: string
-              _role: Database["public"]["Enums"]["user_role"]
-            }
-          | { user_id: number; role_name: string }
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
         Returns: boolean
       }
       update_product_rating: {
