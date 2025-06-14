@@ -14,7 +14,10 @@ import {
   Package,
   FileText,
   DollarSign,
-  Shield
+  Shield,
+  Search,
+  Bell,
+  TrendingUp
 } from 'lucide-react';
 
 export const menuItems = [
@@ -35,6 +38,11 @@ export const menuItems = [
         title: 'Products',
         url: '/products',
         icon: Package,
+      },
+      {
+        title: 'Advanced Search',
+        url: '/search',
+        icon: Search,
       },
       {
         title: 'Rides',
@@ -85,6 +93,11 @@ export const menuItems = [
         title: 'Vendor Dashboard',
         url: '/vendor-dashboard',
         icon: Briefcase,
+      },
+      {
+        title: 'Vendor Analytics',
+        url: '/vendor-analytics',
+        icon: TrendingUp,
       },
     ],
   },
