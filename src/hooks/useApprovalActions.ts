@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +5,52 @@ import { useToast } from '@/hooks/use-toast';
 export const useApprovalActions = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const approveVendorApplication = useMutation({
+    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
+      const { data, error } = await supabase.rpc('approve_vendor_application', {
+        application_id: applicationId
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      toast({ title: 'Vendor application approved successfully!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error approving vendor application',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const rejectVendorApplication = useMutation({
+    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
+      const { data, error } = await supabase.rpc('reject_vendor_application', {
+        application_id: applicationId,
+        rejection_notes: notes
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      toast({ title: 'Vendor application rejected' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error rejecting vendor application',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
 
   const approveVendor = useMutation({
     mutationFn: async ({ vendorId, notes }: { vendorId: string; notes?: string }) => {
@@ -158,6 +203,8 @@ export const useApprovalActions = () => {
   });
 
   return {
+    approveVendorApplication,
+    rejectVendorApplication,
     approveVendor,
     rejectVendor,
     approveDriver,

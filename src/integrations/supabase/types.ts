@@ -1672,6 +1672,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_vendor_application: {
+        Args: { application_id: string }
+        Returns: string
+      }
       calculate_coupon_discount: {
         Args: {
           p_coupon_code: string
@@ -1703,6 +1707,10 @@ export type Database = {
           _user_id: string
           _role: Database["public"]["Enums"]["user_role"]
         }
+        Returns: boolean
+      }
+      reject_vendor_application: {
+        Args: { application_id: string; rejection_notes?: string }
         Returns: boolean
       }
       update_product_rating: {
