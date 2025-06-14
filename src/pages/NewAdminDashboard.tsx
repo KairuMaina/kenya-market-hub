@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,6 +71,10 @@ const NewAdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [searchParams] = useSearchParams();
+  
+  // Get the default tab from URL parameters
+  const defaultTab = searchParams.get('tab') || 'products';
 
   if (loading) {
     return (
@@ -394,7 +398,7 @@ const NewAdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="products" className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>

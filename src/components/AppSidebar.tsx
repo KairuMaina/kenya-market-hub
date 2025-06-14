@@ -48,7 +48,7 @@ const AppSidebar = () => {
     { title: 'Products', url: '/admin/products', icon: Package },
     { title: 'Orders', url: '/admin/orders', icon: ShoppingCart },
     { title: 'Customers', url: '/admin/customers', icon: Users },
-    { title: 'Vendors', url: '/admin', icon: Store },
+    { title: 'Vendors', url: '/admin?tab=vendors', icon: Store },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
     { title: 'Reports', url: '/admin/reports', icon: FileText },
     { title: 'Settings', url: '/admin/settings', icon: Settings },
@@ -86,7 +86,7 @@ const AppSidebar = () => {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={location.pathname === item.url}
+                        isActive={location.pathname === item.url || (item.title === 'Vendors' && location.pathname === '/admin' && location.search.includes('tab=vendors'))}
                         className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-600 hover:scale-105 hover:shadow-sm"
                       >
                         <Link to={item.url} className="flex items-center space-x-3 min-w-0">
