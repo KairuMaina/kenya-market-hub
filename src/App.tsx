@@ -56,12 +56,12 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
-            <SEOHead />
             <PerformanceMonitor />
             <SoundEffects />
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <SEOHead />
               <Routes>
                 {/* Main Landing Page */}
                 <Route path="/" element={<Index />} />
