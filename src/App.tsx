@@ -1,3 +1,5 @@
+
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,90 +57,92 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+const App: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <PerformanceMonitor />
-            <BrowserRouter>
-              <div className="min-h-screen bg-gray-50">
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/email-confirmation" element={<EmailConfirmation />} />
-                  
-                  {/* Shop Routes */}
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/advanced-search" element={<AdvancedProductSearch />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  
-                  {/* Real Estate Routes */}
-                  <Route path="/real-estate" element={<RealEstate />} />
-                  <Route path="/real-estate/:id" element={<PropertyDetail />} />
-                  
-                  {/* Transportation Routes */}
-                  <Route path="/rides" element={<Rides />} />
-                  
-                  {/* Services Routes */}
-                  <Route path="/services" element={<Services />} />
-                  
-                  {/* User Routes */}
-                  <Route path="/profile" element={<Profile />} />
-                  
-                  {/* Vendor Routes */}
-                  <Route path="/vendor" element={<VendorDashboard />} />
-                  <Route path="/vendor/analytics" element={<VendorAnalyticsPage />} />
-                  
-                  {/* Admin Routes */}
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                  <Route path="/admin/reports" element={<AdminReports />} />
-                  <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/admin/notifications" element={<AdminNotifications />} />
-                  
-                  {/* Admin User Management */}
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/vendors" element={<AdminVendors />} />
-                  <Route path="/admin/drivers" element={<AdminDrivers />} />
-                  
-                  {/* Admin E-commerce */}
-                  <Route path="/admin/products" element={<AdminProducts />} />
-                  <Route path="/admin/orders" element={<AdminOrders />} />
-                  
-                  {/* Admin Real Estate */}
-                  <Route path="/admin/properties" element={<AdminProperties />} />
-                  <Route path="/admin/agents" element={<AdminAgents />} />
-                  <Route path="/admin/property-inquiries" element={<AdminPropertyInquiries />} />
-                  <Route path="/admin/property-viewings" element={<AdminPropertyViewings />} />
-                  
-                  {/* Admin Transportation */}
-                  <Route path="/admin/rides" element={<AdminRides />} />
-                  <Route path="/admin/ride-pricing" element={<AdminRidePricing />} />
-                  
-                  {/* Admin Services */}
-                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
-                  <Route path="/admin/service-bookings" element={<AdminServiceBookings />} />
-                  
-                  {/* Catch all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-              <Toaster />
-              <Sonner />
-            </BrowserRouter>
+            <TooltipProvider>
+              <BrowserRouter>
+                <PerformanceMonitor />
+                <div className="min-h-screen bg-gray-50">
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                    
+                    {/* Shop Routes */}
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/advanced-search" element={<AdvancedProductSearch />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    
+                    {/* Real Estate Routes */}
+                    <Route path="/real-estate" element={<RealEstate />} />
+                    <Route path="/real-estate/:id" element={<PropertyDetail />} />
+                    
+                    {/* Transportation Routes */}
+                    <Route path="/rides" element={<Rides />} />
+                    
+                    {/* Services Routes */}
+                    <Route path="/services" element={<Services />} />
+                    
+                    {/* User Routes */}
+                    <Route path="/profile" element={<Profile />} />
+                    
+                    {/* Vendor Routes */}
+                    <Route path="/vendor" element={<VendorDashboard />} />
+                    <Route path="/vendor/analytics" element={<VendorAnalyticsPage />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                    <Route path="/admin/reports" element={<AdminReports />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                    <Route path="/admin/notifications" element={<AdminNotifications />} />
+                    
+                    {/* Admin User Management */}
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/vendors" element={<AdminVendors />} />
+                    <Route path="/admin/drivers" element={<AdminDrivers />} />
+                    
+                    {/* Admin E-commerce */}
+                    <Route path="/admin/products" element={<AdminProducts />} />
+                    <Route path="/admin/orders" element={<AdminOrders />} />
+                    
+                    {/* Admin Real Estate */}
+                    <Route path="/admin/properties" element={<AdminProperties />} />
+                    <Route path="/admin/agents" element={<AdminAgents />} />
+                    <Route path="/admin/property-inquiries" element={<AdminPropertyInquiries />} />
+                    <Route path="/admin/property-viewings" element={<AdminPropertyViewings />} />
+                    
+                    {/* Admin Transportation */}
+                    <Route path="/admin/rides" element={<AdminRides />} />
+                    <Route path="/admin/ride-pricing" element={<AdminRidePricing />} />
+                    
+                    {/* Admin Services */}
+                    <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
+                    <Route path="/admin/service-bookings" element={<AdminServiceBookings />} />
+                    
+                    {/* Catch all route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
+                <Toaster />
+                <Sonner />
+              </BrowserRouter>
+            </TooltipProvider>
           </CartProvider>
         </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
