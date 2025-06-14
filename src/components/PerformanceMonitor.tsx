@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 const PerformanceMonitor = () => {
   useEffect(() => {
@@ -38,3 +38,4 @@ const PerformanceMonitor = () => {
 };
 
 export default PerformanceMonitor;
+
