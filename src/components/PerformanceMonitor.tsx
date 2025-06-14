@@ -1,5 +1,6 @@
 
-import { useEffect } from 'react';
+// Add "import React from 'react'" in addition to { useEffect } to ensure correct context
+import React, { useEffect } from 'react';
 
 const PerformanceMonitor = () => {
   useEffect(() => {
