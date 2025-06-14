@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Car, Eye, Edit, Plus } from 'lucide-react';
@@ -13,23 +13,53 @@ import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 
 const AdminRides = () => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Fetch rides
+  // Fetch rides without joins initially
   const { data: rides, isLoading: ridesLoading } = useQuery({
     queryKey: ['admin-rides'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rides')
-        .select(`
-          *,
-          user_profile:user_id (full_name, email),
-          driver_profile:driver_id (license_number, phone_number)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Rides fetch error:', error);
+        throw error;
+      }
+      return data || [];
+    }
+  });
+
+  // Fetch profiles separately to get user information
+  const { data: profiles } = useQuery({
+    queryKey: ['admin-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) {
+        console.error('Profiles fetch error:', error);
+        return [];
+      }
+      return data || [];
+    }
+  });
+
+  // Fetch drivers separately
+  const { data: drivers } = useQuery({
+    queryKey: ['admin-drivers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('*');
+      
+      if (error) {
+        console.error('Drivers fetch error:', error);
+        return [];
+      }
+      return data || [];
     }
   });
 
@@ -48,6 +78,17 @@ const AdminRides = () => {
       default:
         return 'outline';
     }
+  };
+
+  const getUserInfo = (userId: string) => {
+    const profile = profiles?.find(p => p.id === userId);
+    return profile ? (profile.full_name || profile.email || 'Unknown') : 'Unknown';
+  };
+
+  const getDriverInfo = (driverId: string) => {
+    if (!driverId) return 'Unassigned';
+    const driver = drivers?.find(d => d.id === driverId);
+    return driver ? (driver.license_number || 'Unknown Driver') : 'Unknown Driver';
   };
 
   return (
@@ -104,12 +145,8 @@ const AdminRides = () => {
                           className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200"
                         >
                           <TableCell className="font-mono text-sm">{ride.id.slice(0, 8)}...</TableCell>
-                          <TableCell>
-                            {ride.user_profile?.full_name || ride.user_profile?.email || 'Unknown'}
-                          </TableCell>
-                          <TableCell>
-                            {ride.driver_profile?.license_number || 'Unassigned'}
-                          </TableCell>
+                          <TableCell>{getUserInfo(ride.user_id)}</TableCell>
+                          <TableCell>{getDriverInfo(ride.driver_id)}</TableCell>
                           <TableCell className="max-w-32 truncate">{ride.pickup_address}</TableCell>
                           <TableCell className="max-w-32 truncate">{ride.destination_address}</TableCell>
                           <TableCell className="font-semibold text-green-600">
