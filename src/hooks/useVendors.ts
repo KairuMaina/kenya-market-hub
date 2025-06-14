@@ -58,6 +58,27 @@ export const useVendors = () => {
   });
 };
 
+export const useVendorApplications = () => {
+  return useQuery({
+    queryKey: ['vendor-applications'],
+    queryFn: async () => {
+      console.log('Fetching vendor applications...');
+      const { data, error } = await supabase
+        .from('vendor_applications')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching vendor applications:', error);
+        throw error;
+      }
+      
+      console.log('Vendor applications fetched:', data);
+      return data as VendorApplication[];
+    }
+  });
+};
+
 export const useVendorApplication = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

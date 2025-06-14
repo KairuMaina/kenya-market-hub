@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCircle } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
+import { useVendorApplications } from '@/hooks/useVendors';
 
 interface UserProfile {
   id: string;
@@ -183,19 +184,8 @@ const NewAdminDashboard = () => {
     }
   });
 
-  // Fetch vendor applications
-  const { data: vendorApplications, isLoading: vendorApplicationsLoading } = useQuery({
-    queryKey: ['admin-vendor-applications'],
-    queryFn: async (): Promise<VendorApplication[]> => {
-      const { data, error } = await supabase
-        .from('vendor_applications')
-        .select('*')
-        .order('submitted_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
+  // Use the new vendor applications hook
+  const { data: vendorApplications, isLoading: vendorApplicationsLoading, error: vendorApplicationsError } = useVendorApplications();
 
   // Fetch coupons
   const { data: coupons, isLoading: couponsLoading } = useQuery({
@@ -293,7 +283,7 @@ const NewAdminDashboard = () => {
       if (updateError) throw updateError;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
       toast({ 
         title: `Vendor application ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully` 
@@ -615,6 +605,16 @@ const NewAdminDashboard = () => {
               <CardContent>
                 {vendorApplicationsLoading ? (
                   <div>Loading vendor applications...</div>
+                ) : vendorApplicationsError ? (
+                  <div className="text-red-500">
+                    Error loading vendor applications: {vendorApplicationsError.message}
+                  </div>
+                ) : !vendorApplications || vendorApplications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No vendor applications</h3>
+                    <p className="text-gray-500">No vendor applications have been submitted yet.</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -628,7 +628,7 @@ const NewAdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {vendorApplications?.map((application) => (
+                      {vendorApplications.map((application) => (
                         <TableRow key={application.id}>
                           <TableCell className="font-medium">{application.business_name}</TableCell>
                           <TableCell>{application.business_email}</TableCell>
