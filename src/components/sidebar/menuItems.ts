@@ -1,46 +1,131 @@
 
-import { Home, Package, ShoppingCart, Heart, User, Settings, BarChart3, Car, Wrench, Building } from 'lucide-react';
+import { 
+  Home, 
+  ShoppingBag, 
+  Car, 
+  Building, 
+  Briefcase, 
+  User, 
+  Heart, 
+  ShoppingCart,
+  Settings,
+  BarChart3,
+  Users,
+  Package,
+  FileText,
+  DollarSign,
+  Shield
+} from 'lucide-react';
 
-export const mainMenuItems = [
-  { icon: Home, label: 'Home', path: '/' },
-];
-
-export const serviceItems = [
-  { icon: Package, label: 'Shop', path: '/shop' },
-  { icon: Car, label: 'Rides', path: '/rides' },
-  { icon: Wrench, label: 'Services', path: '/services' },
-  { icon: Building, label: 'Real Estate', path: '/real-estate' },
-];
-
-export const shopMenuItems = [
-  { icon: Package, label: 'Products', path: '/shop/products' },
-  { 
-    icon: ShoppingCart, 
-    label: 'Cart', 
-    path: '/shop/cart',
-    hasQuantityBadge: true
+export const menuItems = [
+  {
+    title: 'Main',
+    items: [
+      {
+        title: 'Dashboard',
+        url: '/',
+        icon: Home,
+      },
+      {
+        title: 'Shop',
+        url: '/shop',
+        icon: ShoppingBag,
+      },
+      {
+        title: 'Products',
+        url: '/products',
+        icon: Package,
+      },
+      {
+        title: 'Rides',
+        url: '/rides',
+        icon: Car,
+      },
+      {
+        title: 'Real Estate',
+        url: '/real-estate',
+        icon: Building,
+      },
+      {
+        title: 'Services',
+        url: '/services',
+        icon: Briefcase,
+      },
+    ],
   },
-  { icon: Heart, label: 'Wishlist', path: '/shop/wishlist' },
-];
-
-export const ridesMenuItems = [
-  { icon: Car, label: 'Book Ride', path: '/rides' },
-];
-
-export const servicesMenuItems = [
-  { icon: Wrench, label: 'Find Services', path: '/services' },
-];
-
-export const realEstateMenuItems = [
-  { icon: Building, label: 'Browse Properties', path: '/real-estate' },
-];
-
-export const accountMenuItems = [
-  { icon: User, label: 'Profile', path: '/profile' },
-];
-
-export const adminItems = [
-  { icon: BarChart3, label: 'Admin Dashboard', path: '/admin' },
-  { icon: Package, label: 'Manage Products', path: '/admin/products' },
-  { icon: Settings, label: 'Settings', path: '/admin/settings' },
+  {
+    title: 'Shopping',
+    items: [
+      {
+        title: 'Cart',
+        url: '/cart',
+        icon: ShoppingCart,
+      },
+      {
+        title: 'Wishlist',
+        url: '/wishlist',
+        icon: Heart,
+      },
+      {
+        title: 'Checkout',
+        url: '/checkout',
+        icon: DollarSign,
+      },
+    ],
+  },
+  {
+    title: 'Account',
+    items: [
+      {
+        title: 'Profile',
+        url: '/profile',
+        icon: User,
+      },
+      {
+        title: 'Vendor Dashboard',
+        url: '/vendor-dashboard',
+        icon: Briefcase,
+      },
+    ],
+  },
+  {
+    title: 'Admin',
+    items: [
+      {
+        title: 'Admin Dashboard',
+        url: '/admin',
+        icon: Shield,
+      },
+      {
+        title: 'Analytics',
+        url: '/admin/analytics',
+        icon: BarChart3,
+      },
+      {
+        title: 'Customers',
+        url: '/admin/customers',
+        icon: Users,
+      },
+      {
+        title: 'Products',
+        url: '/admin/products',
+        icon: Package,
+      },
+      {
+        title: 'Orders',
+        url: '/admin/orders',
+        icon: ShoppingCart,
+      },
+      {
+        title: 'Reports',
+        url: '/admin/reports',
+        icon: FileText,
+      },
+      {
+        title: 'Settings',
+        url: '/admin/settings',
+        icon: Settings,
+      },
+    ],
+  },
 ];

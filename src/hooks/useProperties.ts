@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -207,10 +208,19 @@ export const useScheduleViewing = () => {
 export const useIncrementPropertyViews = () => {
   return useMutation({
     mutationFn: async (propertyId: string) => {
-      // Update the views count directly in the properties table
+      // First get the current views count
+      const { data: property, error: selectError } = await supabase
+        .from('properties')
+        .select('views_count')
+        .eq('id', propertyId)
+        .single();
+      
+      if (selectError) throw selectError;
+      
+      // Then update with incremented value
       const { error } = await supabase
         .from('properties')
-        .update({ views_count: supabase.raw('views_count + 1') })
+        .update({ views_count: (property.views_count || 0) + 1 })
         .eq('id', propertyId);
       
       if (error) throw error;
