@@ -1,11 +1,14 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Wrench, Home, Zap, Paintbrush, Shield, Phone, Star, Clock, Car, Hammer, Camera, Scissors } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import ServicesAdvancedSearch from '@/components/services/ServicesAdvancedSearch';
 
 const Services = () => {
+  const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
+  const [searchFilters, setSearchFilters] = React.useState({});
+
   const serviceCategories = [
     {
       name: 'Home Repairs & Maintenance',
@@ -96,6 +99,11 @@ const Services = () => {
     }
   ];
 
+  const handleAdvancedFiltersChange = (filters: any) => {
+    setSearchFilters(filters);
+    console.log('Applied service filters:', filters);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-12">
@@ -125,6 +133,30 @@ const Services = () => {
               </Button>
             </div>
           </div>
+        </section>
+
+        {/* Advanced Search Section */}
+        <section className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div className="text-center flex-1">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Find Professional Services</h2>
+              <p className="text-gray-600">Search and filter to find the perfect service provider for your needs</p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className="ml-4"
+            >
+              {showAdvancedSearch ? 'Hide Search' : 'Advanced Search'}
+            </Button>
+          </div>
+          
+          {showAdvancedSearch && (
+            <ServicesAdvancedSearch 
+              onFiltersChange={handleAdvancedFiltersChange}
+              className="animate-fade-in"
+            />
+          )}
         </section>
 
         {/* Service Categories Grid */}

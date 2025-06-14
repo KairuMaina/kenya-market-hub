@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
@@ -16,6 +15,7 @@ import RealEstateHero from '@/components/real-estate/RealEstateHero';
 import PropertySearchBar from '@/components/real-estate/PropertySearchBar';
 import PropertyTypeCards from '@/components/real-estate/PropertyTypeCards';
 import PopularAreas from '@/components/real-estate/PopularAreas';
+import RealEstateAdvancedSearch from '@/components/real-estate/RealEstateAdvancedSearch';
 
 const RealEstate = () => {
   const navigate = useNavigate();
@@ -25,6 +25,7 @@ const RealEstate = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   const { data: properties = [], isLoading } = useProperties(filters);
   const { data: featuredProperties = [] } = useFeaturedProperties();
@@ -48,14 +49,36 @@ const RealEstate = () => {
     property.location_address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleAdvancedFiltersChange = (advancedFilters: any) => {
+    setFilters({ ...filters, ...advancedFilters });
+    console.log('Applied advanced filters:', advancedFilters);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-12">
         {/* Hero Section */}
         <RealEstateHero />
 
-        {/* Search and Filters */}
+        {/* Advanced Search Section */}
         <section className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Property Search</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+            >
+              {showAdvancedSearch ? 'Hide Advanced Search' : 'Advanced Search'}
+            </Button>
+          </div>
+          
+          {showAdvancedSearch && (
+            <RealEstateAdvancedSearch 
+              onFiltersChange={handleAdvancedFiltersChange}
+              className="animate-fade-in"
+            />
+          )}
+
           <PropertySearchBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}

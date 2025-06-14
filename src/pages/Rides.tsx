@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +8,15 @@ import EnhancedRideBooking from '@/components/EnhancedRideBooking';
 import { useEnhancedRides, useRideMatchingRequests } from '@/hooks/useEnhancedRides';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import RidesAdvancedSearch from '@/components/rides/RidesAdvancedSearch';
 
 const Rides = () => {
   const { user, loading } = useAuth();
   const { data: rides, isLoading } = useEnhancedRides();
   const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
   const { data: matchingRequests } = useRideMatchingRequests(selectedRideId || undefined);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({});
 
   if (loading) {
     return (
@@ -47,6 +49,11 @@ const Rides = () => {
     ).join(' ');
   };
 
+  const handleAdvancedFiltersChange = (filters: any) => {
+    setSearchFilters(filters);
+    console.log('Applied ride filters:', filters);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -62,6 +69,27 @@ const Rides = () => {
             </p>
           </div>
         </div>
+
+        {/* Advanced Search Section */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Find Your Ride</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              size="sm"
+            >
+              {showAdvancedSearch ? 'Hide Search' : 'Advanced Search'}
+            </Button>
+          </div>
+          
+          {showAdvancedSearch && (
+            <RidesAdvancedSearch 
+              onFiltersChange={handleAdvancedFiltersChange}
+              className="animate-fade-in"
+            />
+          )}
+        </section>
 
         <Tabs defaultValue="book" className="space-y-4">
           <TabsList className="grid w-full max-w-md grid-cols-2">

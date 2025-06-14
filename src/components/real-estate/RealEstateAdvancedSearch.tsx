@@ -224,7 +224,7 @@ const RealEstateAdvancedSearch = ({ onFiltersChange, className }: RealEstateAdva
               <Checkbox
                 id="furnished"
                 checked={furnished}
-                onCheckedChange={setFurnished}
+                onCheckedChange={(checked) => setFurnished(checked === true)}
               />
               <label htmlFor="furnished" className="text-sm">Furnished</label>
             </div>
@@ -232,7 +232,7 @@ const RealEstateAdvancedSearch = ({ onFiltersChange, className }: RealEstateAdva
               <Checkbox
                 id="parking"
                 checked={parking}
-                onCheckedChange={setParking}
+                onCheckedChange={(checked) => setParking(checked === true)}
               />
               <label htmlFor="parking" className="text-sm flex items-center">
                 <ParkingIcon className="h-3 w-3 mr-1" />
@@ -243,7 +243,7 @@ const RealEstateAdvancedSearch = ({ onFiltersChange, className }: RealEstateAdva
               <Checkbox
                 id="garden"
                 checked={garden}
-                onCheckedChange={setGarden}
+                onCheckedChange={(checked) => setGarden(checked === true)}
               />
               <label htmlFor="garden" className="text-sm">Garden</label>
             </div>
@@ -251,7 +251,7 @@ const RealEstateAdvancedSearch = ({ onFiltersChange, className }: RealEstateAdva
               <Checkbox
                 id="security"
                 checked={security}
-                onCheckedChange={setSecurity}
+                onCheckedChange={(checked) => setSecurity(checked === true)}
               />
               <label htmlFor="security" className="text-sm">24/7 Security</label>
             </div>
@@ -259,7 +259,7 @@ const RealEstateAdvancedSearch = ({ onFiltersChange, className }: RealEstateAdva
               <Checkbox
                 id="swimming"
                 checked={swimming}
-                onCheckedChange={setSwimming}
+                onCheckedChange={(checked) => setSwimming(checked === true)}
               />
               <label htmlFor="swimming" className="text-sm">Swimming Pool</label>
             </div>

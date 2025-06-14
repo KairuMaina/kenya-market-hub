@@ -97,7 +97,7 @@ const ServicesAdvancedSearch = ({ onFiltersChange, className }: ServicesAdvanced
             <Checkbox
               id="verified"
               checked={verified}
-              onCheckedChange={setVerified}
+              onCheckedChange={(checked) => setVerified(checked === true)}
             />
             <label htmlFor="verified" className="text-sm flex items-center">
               <Shield className="h-3 w-3 mr-1" />
@@ -108,7 +108,7 @@ const ServicesAdvancedSearch = ({ onFiltersChange, className }: ServicesAdvanced
             <Checkbox
               id="insured"
               checked={insured}
-              onCheckedChange={setInsured}
+              onCheckedChange={(checked) => setInsured(checked === true)}
             />
             <label htmlFor="insured" className="text-sm">Insured</label>
           </div>
@@ -116,7 +116,7 @@ const ServicesAdvancedSearch = ({ onFiltersChange, className }: ServicesAdvanced
             <Checkbox
               id="emergency"
               checked={emergency}
-              onCheckedChange={setEmergency}
+              onCheckedChange={(checked) => setEmergency(checked === true)}
             />
             <label htmlFor="emergency" className="text-sm">Emergency Services</label>
           </div>
@@ -124,7 +124,7 @@ const ServicesAdvancedSearch = ({ onFiltersChange, className }: ServicesAdvanced
             <Checkbox
               id="homeVisit"
               checked={homeVisit}
-              onCheckedChange={setHomeVisit}
+              onCheckedChange={(checked) => setHomeVisit(checked === true)}
             />
             <label htmlFor="homeVisit" className="text-sm">Home/Office Visit</label>
           </div>

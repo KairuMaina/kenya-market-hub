@@ -106,7 +106,7 @@ const RidesAdvancedSearch = ({ onFiltersChange, className }: RidesAdvancedSearch
             <Checkbox
               id="instantBooking"
               checked={instantBooking}
-              onCheckedChange={setInstantBooking}
+              onCheckedChange={(checked) => setInstantBooking(checked === true)}
             />
             <label htmlFor="instantBooking" className="text-sm">Instant Booking</label>
           </div>
@@ -114,7 +114,7 @@ const RidesAdvancedSearch = ({ onFiltersChange, className }: RidesAdvancedSearch
             <Checkbox
               id="verifiedDrivers"
               checked={verifiedDrivers}
-              onCheckedChange={setVerifiedDrivers}
+              onCheckedChange={(checked) => setVerifiedDrivers(checked === true)}
             />
             <label htmlFor="verifiedDrivers" className="text-sm">Verified Drivers Only</label>
           </div>
@@ -122,7 +122,7 @@ const RidesAdvancedSearch = ({ onFiltersChange, className }: RidesAdvancedSearch
             <Checkbox
               id="airConditioned"
               checked={airConditioned}
-              onCheckedChange={setAirConditioned}
+              onCheckedChange={(checked) => setAirConditioned(checked === true)}
             />
             <label htmlFor="airConditioned" className="text-sm">Air Conditioned</label>
           </div>

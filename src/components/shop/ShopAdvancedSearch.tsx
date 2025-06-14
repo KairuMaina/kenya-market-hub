@@ -97,7 +97,7 @@ const ShopAdvancedSearch = ({ onFiltersChange, onSearch, className }: ShopAdvanc
             <Checkbox
               id="inStock"
               checked={inStock}
-              onCheckedChange={setInStock}
+              onCheckedChange={(checked) => setInStock(checked === true)}
             />
             <label htmlFor="inStock" className="text-sm">In Stock Only</label>
           </div>
@@ -105,7 +105,7 @@ const ShopAdvancedSearch = ({ onFiltersChange, onSearch, className }: ShopAdvanc
             <Checkbox
               id="freeShipping"
               checked={freeShipping}
-              onCheckedChange={setFreeShipping}
+              onCheckedChange={(checked) => setFreeShipping(checked === true)}
             />
             <label htmlFor="freeShipping" className="text-sm flex items-center">
               <Truck className="h-3 w-3 mr-1" />
@@ -116,7 +116,7 @@ const ShopAdvancedSearch = ({ onFiltersChange, onSearch, className }: ShopAdvanc
             <Checkbox
               id="hasDiscount"
               checked={hasDiscount}
-              onCheckedChange={setHasDiscount}
+              onCheckedChange={(checked) => setHasDiscount(checked === true)}
             />
             <label htmlFor="hasDiscount" className="text-sm flex items-center">
               <Tag className="h-3 w-3 mr-1" />

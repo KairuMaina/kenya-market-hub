@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -8,11 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, Star, Truck, Shield, Heart, Search } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useProducts } from '@/hooks/useProducts';
+import ShopAdvancedSearch from '@/components/shop/ShopAdvancedSearch';
 
 const Shop = () => {
   const { user } = useAuth();
   const { data: products } = useProducts();
   const featuredProducts = products?.slice(0, 6) || [];
+  const [searchFilters, setSearchFilters] = React.useState({});
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
 
   const heroImages = [
     'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
@@ -28,6 +31,16 @@ const Shop = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
+
+  const handleFiltersChange = (filters: any) => {
+    setSearchFilters(filters);
+    console.log('Applied filters:', filters);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    console.log('Search query:', query);
+  };
 
   return (
     <MainLayout>
@@ -93,6 +106,28 @@ const Shop = () => {
               />
             ))}
           </div>
+        </section>
+
+        {/* Advanced Search Section */}
+        <section className="animate-slide-in-up">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Find What You're Looking For</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className="text-sm"
+            >
+              {showAdvancedSearch ? 'Hide Filters' : 'Advanced Search'}
+            </Button>
+          </div>
+          
+          {showAdvancedSearch && (
+            <ShopAdvancedSearch 
+              onFiltersChange={handleFiltersChange}
+              onSearch={handleSearch}
+              className="animate-fade-in"
+            />
+          )}
         </section>
 
         {/* Features Section */}
