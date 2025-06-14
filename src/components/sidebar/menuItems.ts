@@ -17,7 +17,8 @@ import {
   Shield,
   Search,
   Bell,
-  TrendingUp
+  TrendingUp,
+  Filter
 } from 'lucide-react';
 
 export const menuItems = [
@@ -40,9 +41,14 @@ export const menuItems = [
         icon: Package,
       },
       {
-        title: 'Advanced Search',
+        title: 'Search',
         url: '/search',
         icon: Search,
+      },
+      {
+        title: 'Advanced Search',
+        url: '/advanced-search',
+        icon: Filter,
       },
       {
         title: 'Rides',
