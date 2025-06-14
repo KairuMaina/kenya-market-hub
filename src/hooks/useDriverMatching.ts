@@ -16,6 +16,13 @@ export interface DriverRequest {
   responded_at?: string;
   expires_at: string;
   created_at: string;
+  rides: {
+    id: string;
+    pickup_address: string;
+    destination_address: string;
+    estimated_fare: number;
+    vehicle_type: 'taxi' | 'motorbike';
+  };
 }
 
 export interface NearbyDriver {
@@ -73,7 +80,7 @@ export const useSendRideRequests = () => {
         driver_id: request.driver_id,
         distance_km: request.distance_km,
         estimated_pickup_minutes: request.estimated_pickup_minutes,
-        expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString() // 2 minutes from now
+        expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString()
       }));
 
       const { data, error } = await supabase
@@ -110,7 +117,6 @@ export const useDriverRideRequests = () => {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      // First get the driver record for this user
       const { data: driver, error: driverError } = await supabase
         .from('drivers')
         .select('id')
@@ -140,7 +146,7 @@ export const useDriverRideRequests = () => {
       return data as DriverRequest[];
     },
     enabled: !!user,
-    refetchInterval: 3000, // Refresh every 3 seconds
+    refetchInterval: 3000,
   });
 };
 
@@ -159,7 +165,6 @@ export const useRespondToRideRequest = () => {
       response: 'accepted' | 'declined';
       rideId: string;
     }) => {
-      // Update the driver request status
       const { error: requestError } = await supabase
         .from('driver_ride_requests')
         .update({
@@ -171,7 +176,6 @@ export const useRespondToRideRequest = () => {
       if (requestError) throw requestError;
 
       if (response === 'accepted') {
-        // Get driver info
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
@@ -183,7 +187,6 @@ export const useRespondToRideRequest = () => {
 
         if (driverError) throw driverError;
 
-        // Update the ride status and assign driver
         const { error: rideError } = await supabase
           .from('rides')
           .update({
@@ -195,7 +198,6 @@ export const useRespondToRideRequest = () => {
 
         if (rideError) throw rideError;
 
-        // Mark other pending requests for this ride as expired
         const { error: expireError } = await supabase
           .from('driver_ride_requests')
           .update({ status: 'expired' })
@@ -270,4 +272,135 @@ export const useRideStatusUpdates = (rideId?: string) => {
       supabase.removeChannel(channel);
     };
   }, [rideId, queryClient]);
+};
+
+// Phase 2: Commission & Driver Earnings hooks
+export interface DriverEarnings {
+  driver_id: string;
+  total_trips: number;
+  total_gross_earnings: number;
+  total_commission: number;
+  total_net_earnings: number;
+  today_trips: number;
+  today_gross_earnings: number;
+  today_commission: number;
+  today_net_earnings: number;
+  week_trips: number;
+  week_gross_earnings: number;
+  week_commission: number;
+  week_net_earnings: number;
+}
+
+export const useDriverEarnings = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['driver-earnings', user?.id],
+    queryFn: async (): Promise<DriverEarnings> => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (driverError) throw driverError;
+      if (!driver) throw new Error('Driver profile not found');
+
+      // Get completed rides for this driver
+      const { data: rides, error: ridesError } = await supabase
+        .from('rides')
+        .select('actual_fare, completed_at')
+        .eq('driver_id', driver.id)
+        .eq('status', 'completed')
+        .not('actual_fare', 'is', null);
+
+      if (ridesError) throw ridesError;
+
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      let totalGross = 0, todayGross = 0, weekGross = 0;
+      let totalTrips = 0, todayTrips = 0, weekTrips = 0;
+
+      rides?.forEach(ride => {
+        const fare = Number(ride.actual_fare);
+        const completedAt = new Date(ride.completed_at!);
+        
+        totalGross += fare;
+        totalTrips++;
+
+        if (completedAt >= todayStart) {
+          todayGross += fare;
+          todayTrips++;
+        }
+
+        if (completedAt >= weekStart) {
+          weekGross += fare;
+          weekTrips++;
+        }
+      });
+
+      const commissionRate = 0.05; // 5%
+      
+      return {
+        driver_id: driver.id,
+        total_trips: totalTrips,
+        total_gross_earnings: totalGross,
+        total_commission: totalGross * commissionRate,
+        total_net_earnings: totalGross * (1 - commissionRate),
+        today_trips: todayTrips,
+        today_gross_earnings: todayGross,
+        today_commission: todayGross * commissionRate,
+        today_net_earnings: todayGross * (1 - commissionRate),
+        week_trips: weekTrips,
+        week_gross_earnings: weekGross,
+        week_commission: weekGross * commissionRate,
+        week_net_earnings: weekGross * (1 - commissionRate),
+      };
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+};
+
+export const useDriverStatus = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const updateStatus = useMutation({
+    mutationFn: async (status: 'available' | 'busy' | 'offline') => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          status,
+          availability_status: status === 'available' ? 'online' : 'offline'
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return status;
+    },
+    onSuccess: (status) => {
+      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+      toast({
+        title: 'Status Updated',
+        description: `You are now ${status}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to update status',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  return updateStatus;
 };

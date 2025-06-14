@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +14,7 @@ export interface EnhancedRide {
   pickup_location: { lat: number; lng: number };
   destination_location: { lat: number; lng: number };
   vehicle_type: 'taxi' | 'motorbike';
-  estimated_fare?: number;
+  estimated_fare: number;
   actual_fare?: number;
   distance_km?: number;
   duration_minutes?: number;
@@ -60,6 +61,7 @@ export const useEnhancedRides = () => {
       
       return data.map(ride => ({
         ...ride,
+        estimated_fare: ride.estimated_fare || 0,
         pickup_location: ride.pickup_location ? 
           { lat: (ride.pickup_location as any).y, lng: (ride.pickup_location as any).x } : 
           { lat: 0, lng: 0 },
@@ -69,7 +71,7 @@ export const useEnhancedRides = () => {
       })) as EnhancedRide[];
     },
     enabled: !!user,
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    refetchInterval: 5000,
   });
 };
 
@@ -90,7 +92,6 @@ export const useBookEnhancedRide = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Get fare calculation
       const { data: fareData, error: fareError } = await supabase
         .from('fare_calculations')
         .select('*')
@@ -100,11 +101,9 @@ export const useBookEnhancedRide = () => {
 
       if (fareError) throw fareError;
 
-      // Calculate estimated distance (simplified - in production would use routing API)
-      const estimatedDistance = 5; // km
+      const estimatedDistance = 5;
       const estimatedFare = fareData.base_fare + (estimatedDistance * fareData.per_km_rate);
 
-      // Create the ride
       const { data: ride, error } = await supabase
         .from('rides')
         .insert({
@@ -122,7 +121,6 @@ export const useBookEnhancedRide = () => {
 
       if (error) throw error;
 
-      // Find nearby drivers
       const nearbyDrivers = await findDrivers.mutateAsync({
         pickupLat: rideData.pickupLocation.lat,
         pickupLng: rideData.pickupLocation.lng,
@@ -130,7 +128,6 @@ export const useBookEnhancedRide = () => {
       });
 
       if (nearbyDrivers.length > 0) {
-        // Send ride requests to nearby drivers
         await sendRequests.mutateAsync({
           rideId: ride.id,
           driverRequests: nearbyDrivers.map(driver => ({
@@ -187,6 +184,42 @@ export const useRideMatchingRequests = (rideId?: string) => {
       return data as RideMatchingRequest[];
     },
     enabled: !!rideId,
-    refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
+    refetchInterval: 3000,
+  });
+};
+
+// Commission calculation hook
+export const useCalculateCommission = () => {
+  return useMutation({
+    mutationFn: async ({ 
+      rideId, 
+      actualFare 
+    }: { 
+      rideId: string; 
+      actualFare: number;
+    }) => {
+      const commissionRate = 0.05; // 5%
+      const commission = actualFare * commissionRate;
+      const driverEarnings = actualFare - commission;
+
+      // Update the ride with actual fare and commission details
+      const { error } = await supabase
+        .from('rides')
+        .update({ 
+          actual_fare: actualFare,
+          completed_at: new Date().toISOString(),
+          status: 'completed'
+        })
+        .eq('id', rideId);
+
+      if (error) throw error;
+
+      return {
+        actualFare,
+        commission,
+        driverEarnings,
+        commissionRate
+      };
+    }
   });
 };
