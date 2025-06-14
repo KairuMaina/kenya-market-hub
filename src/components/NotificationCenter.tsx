@@ -10,12 +10,13 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
+  user_id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: string; // Changed from union type to string to match database
   is_read: boolean;
   created_at: string;
-  action_url?: string;
+  action_url?: string | null;
   metadata?: any;
 }
 
@@ -123,7 +124,7 @@ const NotificationCenter = () => {
   };
 
   const getNotificationIcon = (type: string) => {
-    switch (type) {
+    switch (type?.toLowerCase()) {
       case 'success': return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'warning': return <Clock className="h-5 w-5 text-yellow-600" />;
       case 'error': return <XCircle className="h-5 w-5 text-red-600" />;
