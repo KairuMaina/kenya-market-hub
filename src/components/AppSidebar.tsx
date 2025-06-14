@@ -1,4 +1,3 @@
-
 import {
   Sidebar,
   SidebarContent,
@@ -49,6 +48,7 @@ const AppSidebar = () => {
     { title: 'Products', url: '/admin/products', icon: Package },
     { title: 'Orders', url: '/admin/orders', icon: ShoppingCart },
     { title: 'Customers', url: '/admin/customers', icon: Users },
+    { title: 'Vendors', url: '/admin', icon: Store },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
     { title: 'Reports', url: '/admin/reports', icon: FileText },
     { title: 'Settings', url: '/admin/settings', icon: Settings },
