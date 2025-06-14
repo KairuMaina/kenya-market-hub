@@ -61,19 +61,35 @@ export const useVendorApplications = () => {
   return useQuery({
     queryKey: ['vendor-applications'],
     queryFn: async () => {
-      console.log('Fetching vendor applications...');
-      const { data, error } = await supabase
-        .from('vendor_applications')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+      console.log('🔍 Starting vendor applications fetch...');
       
-      if (error) {
-        console.error('Error fetching vendor applications:', error);
-        throw error;
+      try {
+        const { data, error, count } = await supabase
+          .from('vendor_applications')
+          .select('*', { count: 'exact' })
+          .order('submitted_at', { ascending: false });
+        
+        console.log('📊 Raw Supabase response:', { data, error, count });
+        console.log('📊 Applications count from Supabase:', count);
+        
+        if (error) {
+          console.error('❌ Supabase query error:', error);
+          throw error;
+        }
+        
+        if (!data) {
+          console.warn('⚠️ No data returned from Supabase');
+          return [];
+        }
+        
+        console.log('✅ Successfully fetched applications:', data.length);
+        console.log('📝 First application sample:', data[0]);
+        
+        return data as VendorApplication[];
+      } catch (err) {
+        console.error('💥 Vendor applications fetch failed:', err);
+        throw err;
       }
-      
-      console.log('Vendor applications fetched:', data);
-      return data as VendorApplication[];
     }
   });
 };

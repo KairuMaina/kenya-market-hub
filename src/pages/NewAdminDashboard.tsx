@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
@@ -9,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCircle } from 'lucide-react';
+import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
 import { useVendorApplications } from '@/hooks/useVendors';
@@ -73,9 +74,38 @@ const NewAdminDashboard = () => {
   const queryClient = useQueryClient();
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [searchParams] = useSearchParams();
+  const [directQueryResult, setDirectQueryResult] = useState<any>(null);
   
   // Get the default tab from URL parameters
   const defaultTab = searchParams.get('tab') || 'products';
+
+  // Add direct database test function
+  const testDirectQuery = async () => {
+    console.log('🧪 Testing direct database query...');
+    try {
+      const { data, error, count } = await supabase
+        .from('vendor_applications')
+        .select('*', { count: 'exact' });
+      
+      console.log('🧪 Direct query result:', { data, error, count });
+      setDirectQueryResult({ data, error, count, timestamp: new Date().toISOString() });
+      
+      if (data && data.length > 0) {
+        toast({ 
+          title: `Found ${data.length} applications in direct query`,
+          description: "Check console for details"
+        });
+      } else {
+        toast({ 
+          title: "No applications found in direct query",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error('🧪 Direct query failed:', err);
+      setDirectQueryResult({ error: err, timestamp: new Date().toISOString() });
+    }
+  };
 
   if (loading) {
     return (
@@ -189,9 +219,11 @@ const NewAdminDashboard = () => {
 
   // Add console logging to debug the vendor applications data
   useEffect(() => {
-    console.log('Vendor applications data:', vendorApplications);
-    console.log('Vendor applications loading:', vendorApplicationsLoading);
-    console.log('Vendor applications error:', vendorApplicationsError);
+    console.log('🔄 Admin Dashboard - Vendor applications data changed:');
+    console.log('📊 Applications:', vendorApplications);
+    console.log('⏳ Loading:', vendorApplicationsLoading);
+    console.log('❌ Error:', vendorApplicationsError);
+    console.log('📏 Length:', vendorApplications?.length || 0);
   }, [vendorApplications, vendorApplicationsLoading, vendorApplicationsError]);
 
   // Fetch coupons
@@ -615,6 +647,36 @@ const NewAdminDashboard = () => {
                 <CardDescription>Review and manage vendor applications</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Debug Panel */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">🔧 Debug Panel</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Hook Data:</strong> {vendorApplications?.length || 0} applications</p>
+                    <p><strong>Loading:</strong> {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
+                    <p><strong>Error:</strong> {vendorApplicationsError ? 'Yes' : 'No'}</p>
+                    {directQueryResult && (
+                      <p><strong>Direct Query:</strong> {directQueryResult.data?.length || 0} found at {directQueryResult.timestamp}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Refresh Hook
+                    </Button>
+                    <Button 
+                      onClick={testDirectQuery}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Test Direct Query
+                    </Button>
+                  </div>
+                </div>
+
                 {vendorApplicationsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
@@ -641,11 +703,11 @@ const NewAdminDashboard = () => {
                     <p className="text-gray-500 mb-4">
                       No vendor applications have been submitted yet.
                     </p>
-                    <div className="text-sm text-gray-400">
-                      <p>Debug info:</p>
-                      <p>Applications count: {vendorApplications?.length || 0}</p>
+                    <div className="text-sm text-gray-400 space-y-1">
+                      <p><strong>Debug info:</strong></p>
+                      <p>Applications array: {JSON.stringify(vendorApplications)}</p>
                       <p>Loading: {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
-                      <p>Error: {vendorApplicationsError ? 'Yes' : 'No'}</p>
+                      <p>Error: {vendorApplicationsError ? vendorApplicationsError.message : 'No'}</p>
                     </div>
                   </div>
                 ) : (
