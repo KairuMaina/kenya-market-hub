@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MapPin, Clock, Car, CheckCircle, AlertCircle } from 'lucide-react';
 import { useRideStatusUpdates } from '@/hooks/useDriverMatching';
+import LiveRideTracker from './LiveRideTracker';
 
 interface RideStatusTrackerProps {
   ride: {
@@ -22,6 +24,7 @@ interface RideStatusTrackerProps {
 
 const RideStatusTracker: React.FC<RideStatusTrackerProps> = ({ ride }) => {
   const [timeElapsed, setTimeElapsed] = useState(0);
+  const [showLiveTracker, setShowLiveTracker] = useState(false);
   
   // Enable real-time updates for this ride
   useRideStatusUpdates(ride.id);
@@ -84,6 +87,11 @@ const RideStatusTracker: React.FC<RideStatusTrackerProps> = ({ ride }) => {
 
   const statusInfo = getStatusInfo();
 
+  // Show live tracker for accepted or in-progress rides
+  if ((ride.status === 'accepted' || ride.status === 'in_progress') && showLiveTracker) {
+    return <LiveRideTracker rideId={ride.id} />;
+  }
+
   return (
     <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
       <CardHeader className="pb-3">
@@ -137,6 +145,17 @@ const RideStatusTracker: React.FC<RideStatusTrackerProps> = ({ ride }) => {
             <p className="font-bold text-purple-700">{formatTime(timeElapsed)}</p>
           </div>
         </div>
+
+        {/* Live Tracking Button */}
+        {(ride.status === 'accepted' || ride.status === 'in_progress') && (
+          <Button 
+            onClick={() => setShowLiveTracker(!showLiveTracker)}
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          >
+            <Car className="h-4 w-4 mr-2" />
+            {showLiveTracker ? 'Hide Live Tracking' : 'Show Live Tracking'}
+          </Button>
+        )}
 
         {/* Live Updates Notice */}
         {(ride.status === 'requested' || ride.status === 'accepted') && (

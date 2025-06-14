@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,29 +30,33 @@ const RideHistoryTab = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-        <span className="ml-2">Loading your ride history...</span>
-      </div>
+      <TabsContent value="history" className="p-6 pt-0">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          <span className="ml-2">Loading your ride history...</span>
+        </div>
+      </TabsContent>
     );
   }
 
   if (!rides || rides.length === 0) {
     return (
-      <Card className="shadow-lg">
-        <CardContent className="text-center py-12">
-          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Calendar className="h-8 w-8 text-gray-400" />
-          </div>
-          <p className="text-gray-600 font-medium mb-2">No rides yet</p>
-          <p className="text-sm text-gray-500">Your ride history will appear here once you book your first ride</p>
-        </CardContent>
-      </Card>
+      <TabsContent value="history" className="p-6 pt-0">
+        <Card className="shadow-lg">
+          <CardContent className="text-center py-12">
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Calendar className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-gray-600 font-medium mb-2">No rides yet</p>
+            <p className="text-sm text-gray-500">Your ride history will appear here once you book your first ride</p>
+          </CardContent>
+        </Card>
+      </TabsContent>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <TabsContent value="history" className="p-6 pt-0 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Your Ride History</h2>
         <Badge variant="secondary" className="bg-orange-100 text-orange-800">
@@ -201,7 +206,7 @@ const RideHistoryTab = () => {
           </CardContent>
         </Card>
       ))}
-    </div>
+    </TabsContent>
   );
 };
 

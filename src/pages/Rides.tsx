@@ -71,7 +71,7 @@ const Rides = () => {
               </div>
 
               <RideBookingTab onRideBooked={handleRideBooked} />
-              <RideHistoryTab rides={rides} isLoading={isLoading} />
+              <RideHistoryTab />
             </Tabs>
           </CardContent>
         </Card>
