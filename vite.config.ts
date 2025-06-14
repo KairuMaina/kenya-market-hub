@@ -21,5 +21,9 @@ export default defineConfig(({ mode }) => ({
       'react-dom': path.resolve('./node_modules/react-dom'),
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom']
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom']
+  }
 }));

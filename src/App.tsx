@@ -58,11 +58,11 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <ErrorBoundary>
-    <PerformanceMonitor />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
+            <PerformanceMonitor />
             <BrowserRouter>
               <div className="min-h-screen bg-gray-50">
                 <Routes>
