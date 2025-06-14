@@ -247,7 +247,7 @@ const AdminVendors = () => {
           </Card>
         </div>
       </AdminLayout>
-    </ProtectedAdmin​Route>
+    </ProtectedAdminRoute>
   );
 };
 
