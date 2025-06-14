@@ -1,0 +1,29 @@
+
+{
+  "name": "Soko Smart - Kenya's Marketplace",
+  "short_name": "Soko Smart",
+  "description": "Discover amazing products, services, rides, and real estate in Kenya",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#fb923c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "marketplace", "business"],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}
