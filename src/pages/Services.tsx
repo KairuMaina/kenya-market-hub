@@ -37,45 +37,29 @@ const Services = () => {
     },
   ];
 
-  const featuredProviders = [
-    {
-      name: 'John Kimani',
-      service: 'Plumbing',
-      rating: 4.8,
-      reviews: 127,
-      price: 'KSh 800/hour',
-    },
-    {
-      name: 'Grace Wanjiku',
-      service: 'Hair Styling',
-      rating: 4.9,
-      reviews: 89,
-      price: 'KSh 1,200/session',
-    },
-    {
-      name: 'Peter Ochieng',
-      service: 'Electronics Repair',
-      rating: 4.7,
-      reviews: 156,
-      price: 'KSh 500/hour',
-    },
-  ];
-
   return (
     <MainLayout>
       <div className="space-y-12">
-        {/* Hero Section */}
-        <section className="text-center py-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            Soko Smart Services
-          </h1>
-          <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-            Connect with skilled professionals for all your service needs in Kenya
-          </p>
-          <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8 py-3">
-            <Wrench className="mr-2 h-5 w-5" />
-            Find Services
-          </Button>
+        {/* Hero Section with Background */}
+        <section className="relative text-center py-24 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-20"
+            style={{
+              backgroundImage: 'url(https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)'
+            }}
+          />
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Soko Smart Services
+            </h1>
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              Connect with skilled professionals for all your service needs in Kenya
+            </p>
+            <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8 py-3">
+              <Wrench className="mr-2 h-5 w-5" />
+              Find Services
+            </Button>
+          </div>
         </section>
 
         {/* Service Categories */}
@@ -105,41 +89,6 @@ const Services = () => {
                   </div>
                   <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600">
                     Browse {category.name}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Featured Service Providers */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Top-Rated Providers</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredProviders.map((provider, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="font-bold text-green-600">{provider.name.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{provider.name}</CardTitle>
-                      <CardDescription>{provider.service}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="font-medium">{provider.rating}</span>
-                      <span className="text-gray-600">({provider.reviews})</span>
-                    </div>
-                    <span className="font-bold text-green-600">{provider.price}</span>
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600">
-                    Book Now
                   </Button>
                 </CardContent>
               </Card>

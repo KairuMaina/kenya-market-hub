@@ -31,7 +31,6 @@ const Rides = () => {
 
   const handleBookRide = () => {
     if (!user) {
-      // Redirect to auth or show login modal
       window.location.href = '/auth';
       return;
     }
@@ -41,18 +40,26 @@ const Rides = () => {
   return (
     <MainLayout>
       <div className="space-y-12">
-        {/* Hero Section */}
-        <section className="text-center py-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Soko Smart Rides
-          </h1>
-          <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-            Get around Kenya safely and affordably with our ride-hailing service
-          </p>
-          <Button size="lg" onClick={handleBookRide} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-3">
-            <MapPin className="mr-2 h-5 w-5" />
-            Book a Ride Now
-          </Button>
+        {/* Hero Section with Background */}
+        <section className="relative text-center py-24 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-20"
+            style={{
+              backgroundImage: 'url(https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)'
+            }}
+          />
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Soko Smart Rides
+            </h1>
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              Get around Kenya safely and affordably with our ride-hailing service
+            </p>
+            <Button size="lg" onClick={handleBookRide} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-3">
+              <MapPin className="mr-2 h-5 w-5" />
+              Book a Ride Now
+            </Button>
+          </div>
         </section>
 
         {/* Vehicle Types */}
@@ -109,7 +116,7 @@ const Rides = () => {
           </section>
         )}
 
-        {/* Coming Soon Notice - Show only if not fully functional */}
+        {/* Coming Soon Notice */}
         <section className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-12 rounded-2xl">
           <h2 className="text-3xl font-bold mb-4">Ride Matching Coming Soon!</h2>
           <p className="text-lg mb-6 opacity-90">
