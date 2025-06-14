@@ -87,17 +87,11 @@ export const useBookEnhancedRide = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Calculate estimated fare with surge pricing
-      const { data: fareData, error: fareError } = await supabase
-        .rpc('calculate_enhanced_fare', {
-          vehicle_type: rideData.vehicleType,
-          pickup_lat: rideData.pickupLocation.lat,
-          pickup_lng: rideData.pickupLocation.lng,
-          dest_lat: rideData.destinationLocation.lat,
-          dest_lng: rideData.destinationLocation.lng,
-        });
-
-      if (fareError) throw fareError;
+      // For now, calculate a simple estimated fare based on distance
+      const estimatedDistance = 5; // km - in production this would be calculated from map data
+      const baseRate = rideData.vehicleType === 'taxi' ? 150 : 80;
+      const perKmRate = rideData.vehicleType === 'taxi' ? 50 : 30;
+      const estimatedFare = baseRate + (estimatedDistance * perKmRate);
 
       const { data, error } = await supabase
         .from('rides')
@@ -108,7 +102,7 @@ export const useBookEnhancedRide = () => {
           pickup_location: `POINT(${rideData.pickupLocation.lng} ${rideData.pickupLocation.lat})`,
           destination_location: `POINT(${rideData.destinationLocation.lng} ${rideData.destinationLocation.lat})`,
           vehicle_type: rideData.vehicleType,
-          estimated_fare: fareData?.estimated_fare || 0,
+          estimated_fare: estimatedFare,
           status: 'requested',
         })
         .select()

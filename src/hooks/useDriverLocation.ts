@@ -54,12 +54,22 @@ export const useNearbyDrivers = (userLocation?: { lat: number; lng: number }, ra
     queryFn: async () => {
       if (!userLocation) return [];
 
-      // Using PostGIS for geographical queries
-      const { data, error } = await supabase.rpc('get_nearby_drivers', {
-        user_lat: userLocation.lat,
-        user_lng: userLocation.lng,
-        radius_km: radiusKm
-      });
+      // For now, let's use a simple query until we can add the RPC function
+      const { data, error } = await supabase
+        .from('driver_locations')
+        .select(`
+          *,
+          drivers (
+            id,
+            phone_number,
+            vehicle_type,
+            vehicle_make,
+            vehicle_model,
+            license_plate,
+            rating
+          )
+        `)
+        .eq('is_active', true);
 
       if (error) {
         console.error('Error fetching nearby drivers:', error);
