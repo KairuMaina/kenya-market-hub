@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,21 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProductImages, useUploadProductImages } from '@/hooks/useProductImages';
+import ImageUpload from './ImageUpload';
+import { Trash2 } from 'lucide-react';
 
 const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
   const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('');
-  const [originalPrice, setOriginalPrice] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('');
-  const [inStock, setInStock] = useState(true);
-  const [description, setDescription] = useState('');
-  const [condition, setCondition] = useState('new');
-  const [location, setLocation] = useState('');
-  const [brand, setBrand] = useState('');
-  const [vendor, setVendor] = useState('');
-
+  const { data: productImages } = useProductImages(product?.id);
+  const uploadImages = useUploadProductImages();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
   useEffect(() => {
     if (product) {
       setName(product.name || '');
@@ -62,9 +56,19 @@ const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
         .eq('id', product.id);
       
       if (error) throw error;
+
+      // Upload new images if any were selected
+      if (selectedFiles.length > 0) {
+        await uploadImages.mutateAsync({
+          productId: product.id,
+          files: selectedFiles,
+          isPrimary: !productImages || productImages.length === 0
+        });
+      }
     },
     onSuccess: () => {
       toast({ title: 'Product updated successfully' });
+      setSelectedFiles([]);
       onSuccess();
     },
     onError: (error) => {
@@ -76,9 +80,30 @@ const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
     },
   });
 
+  const deleteImage = useMutation({
+    mutationFn: async (imageId: string) => {
+      const { error } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('id', imageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Image deleted successfully' });
+    }
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     updateProduct.mutate();
+  };
+
+  const handleFilesSelected = (files: File[]) => {
+    setSelectedFiles(files);
+    toast({
+      title: `${files.length} image(s) selected`,
+      description: "Images will be uploaded when you save the product"
+    });
   };
 
   const categories = [
@@ -188,6 +213,52 @@ const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
               className="cursor-pointer"
             />
             <Label htmlFor="inStock" className="cursor-pointer">In Stock</Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Current Images</Label>
+            {productImages && productImages.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {productImages.map((image) => (
+                  <div key={image.id} className="relative group">
+                    <img 
+                      src={image.image_url} 
+                      alt="Product" 
+                      className="w-full h-20 object-cover rounded border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 h-6 w-6"
+                      onClick={() => deleteImage.mutate(image.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                    {image.is_primary && (
+                      <span className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
+                        Primary
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No images uploaded</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Add New Images</Label>
+            <ImageUpload 
+              onFilesSelected={handleFilesSelected}
+              maxFiles={5}
+            />
+            {selectedFiles.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {selectedFiles.length} new image(s) selected
+              </p>
+            )}
           </div>
 
           <DialogFooter>

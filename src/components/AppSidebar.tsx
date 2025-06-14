@@ -1,173 +1,110 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { Home, ShoppingBag, ShoppingCart, CreditCard, User, Package, Users, BarChart3, Settings, FileText, Shield, Store } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+
+import React from 'react';
+import { Home, Package, ShoppingCart, Heart, User, Settings, BarChart3 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import CartQuantityBadge from './CartQuantityBadge';
+
 const AppSidebar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const {
-    user
-  } = useAuth();
-  const isAdmin = user?.email === 'gmaina424@gmail.com';
-  
-  const customerItems = [{
-    title: 'Home',
-    url: '/',
-    icon: Home
-  }, {
-    title: 'Products',
-    url: '/products',
-    icon: ShoppingBag
-  }, {
-    title: 'Cart',
-    url: '/cart',
-    icon: ShoppingCart
-  }, {
-    title: 'Checkout',
-    url: '/checkout',
-    icon: CreditCard
-  }];
-  const vendorItems = [{
-    title: 'Vendor Dashboard',
-    url: '/vendor',
-    icon: Store
-  }];
-  const adminItems = [{
-    title: 'Dashboard',
-    url: '/admin',
-    icon: BarChart3
-  }, {
-    title: 'Products',
-    url: '/admin/products',
-    icon: Package
-  }, {
-    title: 'Orders',
-    url: '/admin/orders',
-    icon: ShoppingCart
-  }, {
-    title: 'Customers',
-    url: '/admin/customers',
-    icon: Users
-  }, {
-    title: 'Vendors',
-    url: '/admin?tab=vendors',
-    icon: Store
-  }, {
-    title: 'Analytics',
-    url: '/admin/analytics',
-    icon: BarChart3
-  }, {
-    title: 'Reports',
-    url: '/admin/reports',
-    icon: FileText
-  }, {
-    title: 'Settings',
-    url: '/admin/settings',
-    icon: Settings
-  }];
-  return <Sidebar className="border-r border-gray-200 bg-white/95 backdrop-blur-sm">
-      <SidebarHeader className="border-b border-gray-100 p-3 sm:p-4">
-        <div className="flex items-center space-x-2 sm:space-x-3 animate-fade-in">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 overflow-hidden flex-shrink-0">
-            <img alt="Soko Smart Logo" className="w-full h-full object-contain" src="/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent truncate">
-              Soko Smart
-            </h1>
-            <p className="text-xs text-gray-600 truncate">
-              {isAdmin ? 'Admin Panel' : 'Marketplace'}
-            </p>
-          </div>
+  const { user, isAdmin } = useAuth();
+
+  const menuItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: Package, label: 'Products', path: '/products' },
+    { 
+      icon: ShoppingCart, 
+      label: 'Cart', 
+      path: '/cart',
+      hasQuantityBadge: true
+    },
+    { icon: Heart, label: 'Wishlist', path: '/wishlist' },
+  ];
+
+  const adminItems = [
+    { icon: BarChart3, label: 'Admin Dashboard', path: '/admin' },
+    { icon: Package, label: 'Manage Products', path: '/admin/products' },
+    { icon: Settings, label: 'Settings', path: '/admin/settings' },
+  ];
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <div className="px-4 py-2">
+          <h2 className="text-lg font-semibold text-gray-900">Soko Smart</h2>
         </div>
       </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.path)}
+                    isActive={location.pathname === item.path}
+                    className="relative"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                    {item.hasQuantityBadge && <CartQuantityBadge />}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-      <SidebarContent className="px-2 py-4">
-        {isAdmin ? <>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
-                <Shield className="h-3 w-3" />
-                <span>Admin Panel</span>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">
-                  {adminItems.map(item => <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={location.pathname === item.url || item.title === 'Vendors' && location.pathname === '/admin' && location.search.includes('tab=vendors')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-600 hover:scale-105 hover:shadow-sm">
-                        <Link to={item.url} className="flex items-center space-x-3 min-w-0">
-                          <item.icon className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            
-            <SidebarGroup className="mt-6">
-              <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
-                <span>Customer View</span>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 hover:scale-105 hover:shadow-sm">
-                      <Link to="/" className="flex items-center space-x-3 min-w-0">
-                        <Home className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">View Store</span>
-                      </Link>
+        {user && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Account</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation('/profile')}
+                    isActive={location.pathname === '/profile'}
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path)}
+                      isActive={location.pathname === item.path}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </> : <>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
-                <span>Marketplace</span>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">
-                  {customerItems.map(item => <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={location.pathname === item.url} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 hover:scale-105 hover:shadow-sm">
-                        <Link to={item.url} className="flex items-center space-x-3 min-w-0">
-                          <item.icon className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {user && <SidebarGroup className="mt-6">
-                <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
-                  <span>Sell With Us</span>
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu className="space-y-1">
-                    {vendorItems.map(item => <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild isActive={location.pathname === item.url} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-600 hover:scale-105 hover:shadow-sm">
-                          <Link to={item.url} className="flex items-center space-x-3 min-w-0">
-                            <item.icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>)}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>}
-          </>}
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-gray-100 p-3 sm:p-4">
-        <div className="flex items-center space-x-2 text-xs text-gray-500">
-          {user ? <div className="flex items-center space-x-2 min-w-0">
-              <User className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">
-                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
-              </span>
-            </div> : <span>Not signed in</span>}
-        </div>
-      </SidebarFooter>
-    </Sidebar>;
+    </Sidebar>
+  );
 };
+
 export default AppSidebar;

@@ -1,13 +1,14 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAddToRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProductImages } from '@/hooks/useProductImages';
 import ProductReviews from './ProductReviews';
 import WishlistButton from './WishlistButton';
 
@@ -22,6 +23,8 @@ const ProductDetailModal = ({ open, onOpenChange, product }: ProductDetailModalP
   const { toast } = useToast();
   const { user } = useAuth();
   const addToRecentlyViewed = useAddToRecentlyViewed();
+  const { data: productImages } = useProductImages(product?.id);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (open && product && user) {
@@ -29,17 +32,36 @@ const ProductDetailModal = ({ open, onOpenChange, product }: ProductDetailModalP
     }
   }, [open, product, user]);
 
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [product?.id]);
+
   if (!product) return null;
+
+  // Get images - use product_images if available, fallback to product.image_url
+  const images = productImages && productImages.length > 0 
+    ? productImages.map(img => img.image_url)
+    : product.image_url 
+      ? [product.image_url]
+      : ['/placeholder.svg'];
 
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
       name: product.name,
       price: Number(product.price),
-      image: product.image_url || '/placeholder.svg',
+      image: images[0],
       vendor: product.vendor || 'Unknown Vendor'
     });
     toast({ title: "Added to cart", description: `${product.name} has been added to your cart.` });
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
@@ -51,13 +73,62 @@ const ProductDetailModal = ({ open, onOpenChange, product }: ProductDetailModalP
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
               <img 
-                src={product.image_url || '/placeholder.svg'} 
+                src={images[currentImageIndex]} 
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
+              
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
+            
+            {images.length > 1 && (
+              <div className="flex space-x-2 overflow-x-auto">
+                {images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
+                      index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
+                    }`}
+                  >
+                    <img 
+                      src={image} 
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="space-y-4">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
+import { useUploadProductImages } from '@/hooks/useProductImages';
+import ImageUpload from './ImageUpload';
 
 interface AddProductModalProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface AddProductModalProps {
 
 const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps) => {
   const { toast } = useToast();
+  const uploadImages = useUploadProductImages();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -48,12 +51,33 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
 
   const addProduct = useMutation({
     mutationFn: async (productData: any) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('products')
-        .insert([productData]);
+        .insert([productData])
+        .select()
+        .single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: async (newProduct) => {
+      // Upload images if any were selected
+      if (selectedFiles.length > 0) {
+        try {
+          await uploadImages.mutateAsync({
+            productId: newProduct.id,
+            files: selectedFiles,
+            isPrimary: true
+          });
+        } catch (error) {
+          console.error('Error uploading images:', error);
+          toast({
+            title: "Product added but image upload failed",
+            description: "You can add images later by editing the product",
+            variant: "destructive"
+          });
+        }
+      }
+      
       toast({ title: "Product added successfully!" });
       onSuccess();
       setFormData({
@@ -71,6 +95,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
         model: '',
         year: ''
       });
+      setSelectedFiles([]);
     },
     onError: (error: any) => {
       toast({ 
@@ -97,6 +122,14 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilesSelected = (files: File[]) => {
+    setSelectedFiles(files);
+    toast({
+      title: `${files.length} image(s) selected`,
+      description: "Images will be uploaded when you save the product"
+    });
   };
 
   return (
@@ -243,6 +276,19 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
               onChange={(e) => handleInputChange('year', e.target.value)}
               placeholder="2024"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Product Images</Label>
+            <ImageUpload 
+              onFilesSelected={handleFilesSelected}
+              maxFiles={5}
+            />
+            {selectedFiles.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {selectedFiles.length} image(s) selected
+              </p>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
