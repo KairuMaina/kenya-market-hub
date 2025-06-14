@@ -14,6 +14,14 @@ interface PropertyMapViewProps {
   center?: [number, number];
 }
 
+interface MapMarker {
+  id: string;
+  coordinates: [number, number];
+  title: string;
+  color: string;
+  onClick: () => void;
+}
+
 const PropertyMapView: React.FC<PropertyMapViewProps> = ({
   properties,
   onPropertySelect,
@@ -45,9 +53,9 @@ const PropertyMapView: React.FC<PropertyMapViewProps> = ({
   };
 
   // Convert properties to map markers
-  const markers = properties.map(property => {
+  const markers: MapMarker[] = properties.map(property => {
     const coordinates = property.location_coordinates 
-      ? [(property.location_coordinates as any).x || center[0], (property.location_coordinates as any).y || center[1]]
+      ? [property.location_coordinates.x || center[0], property.location_coordinates.y || center[1]]
       : [center[0] + (Math.random() - 0.5) * 0.1, center[1] + (Math.random() - 0.5) * 0.1]; // Random offset if no coordinates
 
     return {
@@ -63,7 +71,7 @@ const PropertyMapView: React.FC<PropertyMapViewProps> = ({
   });
 
   // Group nearby properties for clustering
-  const clusterMarkers = (markers: typeof markers) => {
+  const clusterMarkers = (markers: MapMarker[]) => {
     const clustered = [];
     const processed = new Set();
     

@@ -16,6 +16,10 @@ export interface Property {
   bathrooms?: number;
   area_sqm?: number;
   location_address: string;
+  location_coordinates?: {
+    x: number;
+    y: number;
+  };
   county?: string;
   city?: string;
   amenities?: string[];

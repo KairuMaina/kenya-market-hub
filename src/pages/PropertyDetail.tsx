@@ -1,46 +1,30 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Bed, 
-  Bath, 
-  Square, 
-  Heart, 
-  Share2, 
-  Phone, 
-  Mail,
-  Calculator,
-  Calendar,
-  Eye,
-  Star
-} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, MapPin, Bed, Bath, Square, Eye, Phone, Mail, Calendar, ExternalLink } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import MapBox from '@/components/MapBox';
 import PropertyInquiryModal from '@/components/PropertyInquiryModal';
+import MapBox from '@/components/MapBox';
 import { useProperty, useIncrementPropertyViews } from '@/hooks/useProperties';
-import { useEffect } from 'react';
+import { Property } from '@/hooks/useProperties';
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [showMortgageCalculator, setShowMortgageCalculator] = useState(false);
-
-  const { data: property, isLoading } = useProperty(id || '');
+  const [showInquiryModal, setShowInquiryModal] = React.useState(false);
+  
+  const { data: property, isLoading, error } = useProperty(id!);
   const incrementViews = useIncrementPropertyViews();
 
   useEffect(() => {
-    if (property?.id) {
+    if (property) {
       incrementViews.mutate(property.id);
     }
-  }, [property?.id]);
+  }, [property, incrementViews]);
 
   const formatPrice = (price: number, type: string) => {
     const formatted = new Intl.NumberFormat('en-KE', {
@@ -66,326 +50,284 @@ const PropertyDetail = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex justify-center items-center min-h-screen">
           <div className="text-lg">Loading property details...</div>
         </div>
       </MainLayout>
     );
   }
 
-  if (!property) {
+  if (error || !property) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Property Not Found</h2>
-            <Button onClick={() => navigate('/real-estate')}>
-              Back to Properties
-            </Button>
-          </div>
+        <div className="flex flex-col justify-center items-center min-h-screen space-y-4">
+          <div className="text-lg text-red-600">Property not found</div>
+          <Button onClick={() => navigate('/real-estate')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Properties
+          </Button>
         </div>
       </MainLayout>
     );
   }
 
-  const propertyLocation = property.location_coordinates ? {
-    lat: (property.location_coordinates as any).y || -1.2921,
-    lng: (property.location_coordinates as any).x || 36.8219
-  } : { lat: -1.2921, lng: 36.8219 };
+  // Prepare map data
+  const mapCenter: [number, number] = property.location_coordinates 
+    ? [property.location_coordinates.x, property.location_coordinates.y]
+    : [36.8219, -1.2921]; // Default to Nairobi
 
-  const propertyMarkers = [{
+  const mapMarkers = [{
     id: property.id,
-    coordinates: [propertyLocation.lng, propertyLocation.lat] as [number, number],
+    coordinates: mapCenter,
     title: property.title,
-    color: '#9333ea'
+    color: '#9333ea',
+    onClick: () => {}
   }];
-
-  const nearbyAmenities = [
-    { name: 'Nairobi Hospital', distance: '2.5 km', type: 'hospital' },
-    { name: 'Village Market', distance: '1.8 km', type: 'shopping' },
-    { name: 'International School of Kenya', distance: '3.2 km', type: 'school' },
-    { name: 'Karura Forest', distance: '4.1 km', type: 'recreation' }
-  ];
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/real-estate')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/real-estate')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
             Back to Properties
           </Button>
+          <div className="flex items-center text-sm text-gray-500">
+            <Eye className="h-4 w-4 mr-1" />
+            <span>{property.views_count} views</span>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* Property Images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="aspect-video">
+            <img 
+              src={property.images?.[0] || '/placeholder.svg'} 
+              alt={property.title}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {property.images?.slice(1, 5).map((image, index) => (
+              <div key={index} className="aspect-square">
+                <img 
+                  src={image} 
+                  alt={`${property.title} ${index + 2}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="relative">
-                  <img 
-                    src={property.images?.[selectedImageIndex] || '/placeholder.svg'} 
-                    alt={property.title}
-                    className="w-full h-96 object-cover rounded-t-lg"
-                  />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-purple-600">
-                      {getPropertyTypeLabel(property.property_type)}
-                    </Badge>
-                    <Badge variant="outline" className="bg-white/90">
-                      For {property.listing_type === 'sale' ? 'Sale' : 'Rent'}
-                    </Badge>
-                    {property.is_featured && (
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                        Featured
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <Button size="sm" variant="ghost" className="bg-white/80">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="bg-white/80">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                {property.images && property.images.length > 1 && (
-                  <div className="flex gap-2 p-4 overflow-x-auto">
-                    {property.images.map((image, index) => (
-                      <img
-                        key={index}
-                        src={image}
-                        alt={`${property.title} ${index + 1}`}
-                        className={`w-20 h-20 object-cover rounded cursor-pointer ${
-                          selectedImageIndex === index ? 'ring-2 ring-purple-500' : ''
-                        }`}
-                        onClick={() => setSelectedImageIndex(index)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Property Info */}
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
+                    <div className="flex gap-2 mb-2">
+                      <Badge className="bg-purple-600">
+                        {getPropertyTypeLabel(property.property_type)}
+                      </Badge>
+                      <Badge variant="outline">
+                        For {property.listing_type === 'sale' ? 'Sale' : 'Rent'}
+                      </Badge>
+                      {property.is_featured && (
+                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                          Featured
+                        </Badge>
+                      )}
+                    </div>
                     <CardTitle className="text-2xl mb-2">{property.title}</CardTitle>
-                    <div className="flex items-center text-gray-600 mb-4">
+                    <div className="flex items-center text-gray-600">
                       <MapPin className="h-4 w-4 mr-1" />
                       <span>{property.location_address}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">
+                    <div className="text-3xl font-bold text-purple-600">
                       {formatPrice(property.price, property.listing_type)}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Eye className="h-4 w-4 mr-1" />
-                      <span>{property.views_count} views</span>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-6 text-sm text-gray-600">
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-6">
                   {property.bedrooms && (
-                    <div className="flex items-center">
-                      <Bed className="h-4 w-4 mr-1" />
-                      <span>{property.bedrooms} bed{property.bedrooms > 1 ? 's' : ''}</span>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Bed className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                      <div className="font-semibold">{property.bedrooms}</div>
+                      <div className="text-sm text-gray-600">Bedrooms</div>
                     </div>
                   )}
                   {property.bathrooms && (
-                    <div className="flex items-center">
-                      <Bath className="h-4 w-4 mr-1" />
-                      <span>{property.bathrooms} bath{property.bathrooms > 1 ? 's' : ''}</span>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Bath className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                      <div className="font-semibold">{property.bathrooms}</div>
+                      <div className="text-sm text-gray-600">Bathrooms</div>
                     </div>
                   )}
                   {property.area_sqm && (
-                    <div className="flex items-center">
-                      <Square className="h-4 w-4 mr-1" />
-                      <span>{property.area_sqm}m²</span>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Square className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                      <div className="font-semibold">{property.area_sqm}m²</div>
+                      <div className="text-sm text-gray-600">Area</div>
                     </div>
                   )}
                 </div>
-              </CardHeader>
-            </Card>
 
-            {/* Tabs for Details */}
-            <Tabs defaultValue="description" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="features">Features</TabsTrigger>
-                <TabsTrigger value="location">Location</TabsTrigger>
-                <TabsTrigger value="mortgage">Mortgage</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="description" className="space-y-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-3">About This Property</h3>
-                    <p className="text-gray-700">
-                      {property.description || 'No description available for this property.'}
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="features" className="space-y-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {property.amenities && property.amenities.length > 0 && (
-                        <div>
-                          <h3 className="font-semibold mb-3">Amenities</h3>
-                          <ul className="space-y-2">
-                            {property.amenities.map((amenity, index) => (
-                              <li key={index} className="flex items-center">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                                {amenity}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {property.features && property.features.length > 0 && (
-                        <div>
-                          <h3 className="font-semibold mb-3">Features</h3>
-                          <ul className="space-y-2">
-                            {property.features.map((feature, index) => (
-                              <li key={index} className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                {feature}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="location" className="space-y-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Location & Neighborhood</h3>
-                    <div className="mb-6">
-                      <MapBox
-                        center={[propertyLocation.lng, propertyLocation.lat]}
-                        zoom={15}
-                        markers={propertyMarkers}
-                        className="w-full h-80 rounded-lg"
-                      />
-                    </div>
-                    
+                {property.description && (
+                  <>
+                    <Separator className="my-4" />
                     <div>
-                      <h4 className="font-medium mb-3">Nearby Amenities</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        {nearbyAmenities.map((amenity, index) => (
-                          <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span className="font-medium">{amenity.name}</span>
-                            <span className="text-sm text-gray-600">{amenity.distance}</span>
-                          </div>
+                      <h3 className="text-lg font-semibold mb-2">Description</h3>
+                      <p className="text-gray-700 leading-relaxed">{property.description}</p>
+                    </div>
+                  </>
+                )}
+
+                {property.amenities && property.amenities.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Amenities</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {property.amenities.map((amenity, index) => (
+                          <Badge key={index} variant="secondary">{amenity}</Badge>
                         ))}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </>
+                )}
 
-              <TabsContent value="mortgage" className="space-y-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Mortgage Calculator</h3>
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm text-blue-800 mb-2">
-                        Calculate your monthly mortgage payments for this property
-                      </p>
-                      <Button className="bg-blue-600 hover:bg-blue-700">
-                        <Calculator className="h-4 w-4 mr-2" />
-                        Open Calculator
-                      </Button>
+                {property.features && property.features.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Features</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {property.features.map((feature, index) => (
+                          <Badge key={index} variant="outline">{feature}</Badge>
+                        ))}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Card */}
+            {/* Map */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Agent</CardTitle>
+                <CardTitle>Location</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  {property.contact_phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <span>{property.contact_phone}</span>
-                    </div>
-                  )}
-                  {property.contact_email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <span>{property.contact_email}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600"
-                    onClick={() => setShowInquiryModal(true)}
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Contact Agent
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Viewing
-                  </Button>
+              <CardContent>
+                <div className="h-64 rounded-lg overflow-hidden">
+                  <MapBox
+                    center={mapCenter}
+                    zoom={15}
+                    markers={mapMarkers}
+                    className="w-full h-full"
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Property Stats */}
+            {/* Virtual Tour */}
+            {property.virtual_tour_url && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Virtual Tour</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => window.open(property.virtual_tour_url, '_blank')}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Take Virtual Tour
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {property.contact_phone && (
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-purple-600" />
+                    <span>{property.contact_phone}</span>
+                  </div>
+                )}
+                {property.contact_email && (
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 mr-2 text-purple-600" />
+                    <span>{property.contact_email}</span>
+                  </div>
+                )}
+                {property.available_from && (
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-purple-600" />
+                    <span>Available from {new Date(property.available_from).toLocaleDateString()}</span>
+                  </div>
+                )}
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600"
+                  onClick={() => setShowInquiryModal(true)}
+                >
+                  <Phone className="mr-2 h-4 w-4" />
+                  Send Inquiry
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Property Details */}
             <Card>
               <CardHeader>
                 <CardTitle>Property Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Property Type</span>
-                  <span className="font-medium">{getPropertyTypeLabel(property.property_type)}</span>
+                  <span className="text-gray-600">Property ID:</span>
+                  <span className="font-medium">{property.id.slice(0, 8)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Listing Type</span>
-                  <span className="font-medium">For {property.listing_type === 'sale' ? 'Sale' : 'Rent'}</span>
+                  <span className="text-gray-600">Status:</span>
+                  <Badge variant="outline">{property.status}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <Badge variant="default" className="bg-green-500">Available</Badge>
+                  <span className="text-gray-600">Listed:</span>
+                  <span className="font-medium">
+                    {new Date(property.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-                {property.available_from && (
+                {property.county && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Available From</span>
-                    <span className="font-medium">{new Date(property.available_from).toLocaleDateString()}</span>
+                    <span className="text-gray-600">County:</span>
+                    <span className="font-medium">{property.county}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Listed</span>
-                  <span className="font-medium">{new Date(property.created_at).toLocaleDateString()}</span>
-                </div>
+                {property.city && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">City:</span>
+                    <span className="font-medium">{property.city}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

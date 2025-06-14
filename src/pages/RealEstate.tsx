@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Home, MapPin, Phone, Map, Grid3X3 } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType } from '@/hooks/useProperties';
 import PropertyCard from '@/components/PropertyCard';
@@ -10,9 +9,13 @@ import PropertyFilters from '@/components/PropertyFilters';
 import PropertyInquiryModal from '@/components/PropertyInquiryModal';
 import PropertyMapView from '@/components/PropertyMapView';
 import { Property } from '@/hooks/useProperties';
-import { Input } from '@/components/ui/input';
-import { Search, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// Import new components
+import RealEstateHero from '@/components/real-estate/RealEstateHero';
+import PropertySearchBar from '@/components/real-estate/PropertySearchBar';
+import PropertyTypeCards from '@/components/real-estate/PropertyTypeCards';
+import PopularAreas from '@/components/real-estate/PopularAreas';
 
 const RealEstate = () => {
   const navigate = useNavigate();
@@ -26,34 +29,6 @@ const RealEstate = () => {
   const { data: properties = [], isLoading } = useProperties(filters);
   const { data: featuredProperties = [] } = useFeaturedProperties();
 
-  const propertyTypes = [
-    {
-      type: 'Apartments',
-      icon: Building,
-      count: '2,500+',
-      priceRange: 'KSh 15K - 80K/month',
-      description: 'Modern apartments in prime locations',
-    },
-    {
-      type: 'Houses',
-      icon: Home,
-      count: '1,200+',
-      priceRange: 'KSh 25K - 150K/month',
-      description: 'Family homes with gardens and parking',
-    },
-    {
-      type: 'Commercial',
-      icon: Building,
-      count: '800+',
-      priceRange: 'KSh 30K - 200K/month',
-      description: 'Office spaces and retail locations',
-    },
-  ];
-
-  const popularAreas = [
-    'Kilimani', 'Karen', 'Westlands', 'Parklands', 'Lavington', 'Kileleshwa'
-  ];
-
   const handlePropertyInquiry = (property: Property) => {
     setSelectedProperty(property);
     setShowInquiryModal(true);
@@ -61,6 +36,10 @@ const RealEstate = () => {
 
   const handleViewDetails = (property: Property) => {
     navigate(`/property/${property.id}`);
+  };
+
+  const handleAreaSelect = (area: string) => {
+    setFilters({ ...filters, city: area });
   };
 
   const filteredProperties = properties.filter(property =>
@@ -72,69 +51,19 @@ const RealEstate = () => {
   return (
     <MainLayout>
       <div className="space-y-12">
-        {/* Hero Section with Background */}
-        <section className="relative text-center py-24 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-20"
-            style={{
-              backgroundImage: 'url(https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)'
-            }}
-          />
-          <div className="relative z-10">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Soko Smart Properties
-            </h1>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              Find your perfect home or investment property in Kenya's prime locations
-            </p>
-            <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-8 py-3">
-              <Building className="mr-2 h-5 w-5" />
-              Browse Properties
-            </Button>
-          </div>
-        </section>
+        {/* Hero Section */}
+        <RealEstateHero />
 
         {/* Search and Filters */}
         <section className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Search by location or property name..."
-                className="pl-10 h-12"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="h-12 px-6"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
-              <div className="flex border rounded-lg">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-r-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'map' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('map')}
-                  className="rounded-l-none border-l"
-                >
-                  <Map className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <PropertySearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
 
           {showFilters && (
             <PropertyFilters
@@ -204,53 +133,10 @@ const RealEstate = () => {
         </section>
 
         {/* Property Types - Only show in grid mode */}
-        {viewMode === 'grid' && (
-          <section>
-            <h2 className="text-3xl font-bold text-center mb-8">Property Types</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {propertyTypes.map((type, index) => (
-                <Card key={index} className="hover:shadow-lg transition-all duration-300">
-                  <CardHeader className="text-center">
-                    <div className="p-3 bg-purple-100 rounded-xl w-fit mx-auto mb-4">
-                      <type.icon className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <CardTitle className="text-xl">{type.type}</CardTitle>
-                    <CardDescription>{type.count} properties</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <p className="text-gray-600 mb-4">{type.description}</p>
-                    <p className="font-bold text-purple-600 mb-4">{type.priceRange}</p>
-                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600">
-                      Browse {type.type}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
+        {viewMode === 'grid' && <PropertyTypeCards />}
 
         {/* Popular Areas - Only show in grid mode */}
-        {viewMode === 'grid' && (
-          <section>
-            <h2 className="text-3xl font-bold text-center mb-8">Popular Areas</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {popularAreas.map((area, index) => (
-                <Button 
-                  key={index} 
-                  variant="outline" 
-                  className="p-4 h-auto"
-                  onClick={() => setFilters({ ...filters, city: area })}
-                >
-                  <div className="text-center">
-                    <MapPin className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                    <span className="font-medium">{area}</span>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </section>
-        )}
+        {viewMode === 'grid' && <PopularAreas onAreaSelect={handleAreaSelect} />}
 
         {/* Coming Soon Notice - Only show in grid mode */}
         {viewMode === 'grid' && (
