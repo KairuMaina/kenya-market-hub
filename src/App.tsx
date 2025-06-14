@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import SoundEffects from "@/components/SoundEffects";
 import Index from "./pages/Index";
+import Shop from "./pages/Shop";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
@@ -25,6 +26,9 @@ import AdminReports from "./pages/AdminReports";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import Rides from "./pages/Rides";
+import Services from "./pages/Services";
+import RealEstate from "./pages/RealEstate";
 
 const queryClient = new QueryClient();
 
@@ -38,22 +42,29 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Main Landing Page */}
               <Route path="/" element={<Index />} />
               
               {/* Shop Routes */}
-              <Route path="/shop" element={<div>Shop</div>} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/products" element={<Products />} />
+              <Route path="/shop/cart" element={<Cart />} />
+              <Route path="/shop/checkout" element={<Checkout />} />
+              <Route path="/shop/wishlist" element={<Wishlist />} />
+              
+              {/* Legacy routes for backward compatibility */}
               <Route path="/products" element={<Products />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               
               {/* New Service Routes */}
-              <Route path="/rides" element={<div>Rides</div>} />
-              <Route path="/services" element={<div>Services</div>} />
-              <Route path="/real-estate" element={<div>RealEstate</div>} />
+              <Route path="/rides" element={<Rides />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/real-estate" element={<RealEstate />} />
               
               {/* User Routes */}
               <Route path="/auth" element={<Auth />} />
-              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/vendor" element={<VendorDashboard />} />
               <Route path="/confirm" element={<EmailConfirmation />} />

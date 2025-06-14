@@ -23,14 +23,14 @@ const AppSidebar = () => {
   ];
 
   const shopMenuItems = [
-    { icon: Package, label: 'Products', path: '/products' },
+    { icon: Package, label: 'Products', path: '/shop/products' },
     { 
       icon: ShoppingCart, 
       label: 'Cart', 
-      path: '/cart',
+      path: '/shop/cart',
       hasQuantityBadge: true
     },
-    { icon: Heart, label: 'Wishlist', path: '/wishlist' },
+    { icon: Heart, label: 'Wishlist', path: '/shop/wishlist' },
   ];
 
   const adminItems = [
@@ -47,7 +47,12 @@ const AppSidebar = () => {
   const isOnShopSection = location.pathname.startsWith('/shop') || 
                          location.pathname.startsWith('/products') || 
                          location.pathname.startsWith('/cart') || 
-                         location.pathname.startsWith('/wishlist');
+                         location.pathname.startsWith('/wishlist') ||
+                         location.pathname.startsWith('/checkout');
+
+  const isOnRidesSection = location.pathname.startsWith('/rides');
+  const isOnServicesSection = location.pathname.startsWith('/services');
+  const isOnRealEstateSection = location.pathname.startsWith('/real-estate');
 
   return (
     <Sidebar>
@@ -85,7 +90,11 @@ const AppSidebar = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     onClick={() => handleNavigation(item.path)}
-                    isActive={location.pathname === item.path}
+                    isActive={location.pathname === item.path || 
+                             (item.path === '/shop' && isOnShopSection) ||
+                             (item.path === '/rides' && isOnRidesSection) ||
+                             (item.path === '/services' && isOnServicesSection) ||
+                             (item.path === '/real-estate' && isOnRealEstateSection)}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.label}</span>
@@ -105,7 +114,10 @@ const AppSidebar = () => {
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       onClick={() => handleNavigation(item.path)}
-                      isActive={location.pathname === item.path}
+                      isActive={location.pathname === item.path ||
+                               (item.path === '/shop/products' && location.pathname === '/products') ||
+                               (item.path === '/shop/cart' && location.pathname === '/cart') ||
+                               (item.path === '/shop/wishlist' && location.pathname === '/wishlist')}
                       className="relative"
                     >
                       <item.icon className="h-4 w-4" />
@@ -114,6 +126,63 @@ const AppSidebar = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isOnRidesSection && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Rides</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation('/rides')}
+                    isActive={location.pathname === '/rides'}
+                  >
+                    <Car className="h-4 w-4" />
+                    <span>Book Ride</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isOnServicesSection && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Services</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation('/services')}
+                    isActive={location.pathname === '/services'}
+                  >
+                    <Wrench className="h-4 w-4" />
+                    <span>Find Services</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isOnRealEstateSection && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Real Estate</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation('/real-estate')}
+                    isActive={location.pathname === '/real-estate'}
+                  >
+                    <Building className="h-4 w-4" />
+                    <span>Browse Properties</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
