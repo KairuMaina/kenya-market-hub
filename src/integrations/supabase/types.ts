@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -289,6 +313,44 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_status: Database["public"]["Enums"]["order_status_type"]
+          notes: string | null
+          old_status: Database["public"]["Enums"]["order_status_type"] | null
+          order_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status: Database["public"]["Enums"]["order_status_type"]
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["order_status_type"] | null
+          order_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status?: Database["public"]["Enums"]["order_status_type"]
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["order_status_type"] | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -686,6 +748,72 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_coupon_requests: {
+        Row: {
+          admin_notes: string | null
+          coupon_type: string
+          created_at: string
+          discount_value: number
+          generated_coupon_id: string | null
+          id: string
+          minimum_order_amount: number | null
+          requested_by: string
+          requested_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          usage_limit: number | null
+          vendor_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          coupon_type?: string
+          created_at?: string
+          discount_value: number
+          generated_coupon_id?: string | null
+          id?: string
+          minimum_order_amount?: number | null
+          requested_by: string
+          requested_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          usage_limit?: number | null
+          vendor_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          coupon_type?: string
+          created_at?: string
+          discount_value?: number
+          generated_coupon_id?: string | null
+          id?: string
+          minimum_order_amount?: number | null
+          requested_by?: string
+          requested_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          usage_limit?: number | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_coupon_requests_generated_coupon_id_fkey"
+            columns: ["generated_coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_coupon_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
           banner_url: string | null
@@ -801,6 +929,16 @@ export type Database = {
       }
     }
     Enums: {
+      order_status_type:
+        | "pending"
+        | "confirmed"
+        | "processing"
+        | "packed"
+        | "shipped"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
+        | "refunded"
       user_role: "admin" | "customer"
     }
     CompositeTypes: {
@@ -917,6 +1055,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      order_status_type: [
+        "pending",
+        "confirmed",
+        "processing",
+        "packed",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+        "refunded",
+      ],
       user_role: ["admin", "customer"],
     },
   },
