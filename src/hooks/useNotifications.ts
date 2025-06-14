@@ -33,7 +33,7 @@ export const useNotifications = () => {
         .limit(50);
 
       if (error) throw error;
-      return data as Notification[];
+      return data || [];
     },
     enabled: !!user
   });
@@ -99,7 +99,6 @@ export const useNotifications = () => {
         },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          // You could add a toast notification here
           console.log('New notification received:', payload.new);
         }
       )

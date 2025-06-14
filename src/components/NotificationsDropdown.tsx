@@ -8,7 +8,6 @@ import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuHeader,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -71,7 +70,7 @@ const NotificationsDropdown = () => {
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuHeader className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-4">
           <h3 className="font-semibold">Notifications</h3>
           <div className="flex gap-2">
             {unreadCount > 0 && (
@@ -85,7 +84,7 @@ const NotificationsDropdown = () => {
               </Button>
             )}
           </div>
-        </DropdownMenuHeader>
+        </div>
         
         <Separator />
         
