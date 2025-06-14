@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { WifiOff } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import UserNav from './UserNav';
+import GlobalSearch from './GlobalSearch';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 interface MainLayoutProps {
@@ -19,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <AppSidebar />
         <main className="flex-1">
           <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 py-3 shadow-sm">
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600" />
               <div className="flex items-center space-x-2 sm:space-x-3 lg:hidden">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
@@ -33,6 +34,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   <h1 className="text-sm sm:text-lg font-bold text-gray-900">Soko Smart</h1>
                   <p className="text-xs text-gray-600 hidden sm:block">Kenya's Marketplace</p>
                 </div>
+              </div>
+              
+              {/* Global Search - Hidden on small screens */}
+              <div className="hidden md:flex flex-1 max-w-2xl">
+                <GlobalSearch />
               </div>
             </div>
             <UserNav />

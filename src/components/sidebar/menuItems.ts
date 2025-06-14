@@ -2,149 +2,57 @@
 import { 
   Home, 
   ShoppingBag, 
-  Car, 
+  Package, 
+  ShoppingCart, 
+  Heart, 
   Building, 
+  Car, 
   Briefcase, 
   User, 
-  Heart, 
-  ShoppingCart,
   Settings,
+  Store,
   BarChart3,
   Users,
-  Package,
   FileText,
-  DollarSign,
-  Shield,
-  Search,
-  Bell,
-  TrendingUp,
-  Filter
+  Bell
 } from 'lucide-react';
 
 export const menuItems = [
   {
     title: 'Main',
     items: [
-      {
-        title: 'Dashboard',
-        url: '/',
-        icon: Home,
-      },
-      {
-        title: 'Shop',
-        url: '/shop',
-        icon: ShoppingBag,
-      },
-      {
-        title: 'Products',
-        url: '/products',
-        icon: Package,
-      },
-      {
-        title: 'Search',
-        url: '/search',
-        icon: Search,
-      },
-      {
-        title: 'Advanced Search',
-        url: '/advanced-search',
-        icon: Filter,
-      },
-      {
-        title: 'Rides',
-        url: '/rides',
-        icon: Car,
-      },
-      {
-        title: 'Real Estate',
-        url: '/real-estate',
-        icon: Building,
-      },
-      {
-        title: 'Services',
-        url: '/services',
-        icon: Briefcase,
-      },
-    ],
+      { title: 'Home', url: '/', icon: Home },
+      { title: 'Shop', url: '/shop', icon: ShoppingBag },
+      { title: 'Real Estate', url: '/real-estate', icon: Building },
+      { title: 'Rides', url: '/rides', icon: Car },
+      { title: 'Services', url: '/services', icon: Briefcase },
+    ]
   },
   {
     title: 'Shopping',
     items: [
-      {
-        title: 'Cart',
-        url: '/cart',
-        icon: ShoppingCart,
-      },
-      {
-        title: 'Wishlist',
-        url: '/wishlist',
-        icon: Heart,
-      },
-      {
-        title: 'Checkout',
-        url: '/checkout',
-        icon: DollarSign,
-      },
-    ],
+      { title: 'Products', url: '/products', icon: Package },
+      { title: 'Cart', url: '/cart', icon: ShoppingCart },
+      { title: 'Wishlist', url: '/wishlist', icon: Heart },
+    ]
   },
   {
     title: 'Account',
     items: [
-      {
-        title: 'Profile',
-        url: '/profile',
-        icon: User,
-      },
-      {
-        title: 'Vendor Dashboard',
-        url: '/vendor-dashboard',
-        icon: Briefcase,
-      },
-      {
-        title: 'Vendor Analytics',
-        url: '/vendor-analytics',
-        icon: TrendingUp,
-      },
-    ],
+      { title: 'Profile', url: '/profile', icon: User },
+      { title: 'Vendor Dashboard', url: '/vendor', icon: Store },
+    ]
   },
   {
     title: 'Admin',
     items: [
-      {
-        title: 'Admin Dashboard',
-        url: '/admin',
-        icon: Shield,
-      },
-      {
-        title: 'Analytics',
-        url: '/admin/analytics',
-        icon: BarChart3,
-      },
-      {
-        title: 'Customers',
-        url: '/admin/customers',
-        icon: Users,
-      },
-      {
-        title: 'Products',
-        url: '/admin/products',
-        icon: Package,
-      },
-      {
-        title: 'Orders',
-        url: '/admin/orders',
-        icon: ShoppingCart,
-      },
-      {
-        title: 'Reports',
-        url: '/admin/reports',
-        icon: FileText,
-      },
-      {
-        title: 'Settings',
-        url: '/admin/settings',
-        icon: Settings,
-      },
-    ],
-  },
+      { title: 'Dashboard', url: '/admin', icon: BarChart3 },
+      { title: 'Users', url: '/admin/users', icon: Users },
+      { title: 'Products', url: '/admin/products', icon: Package },
+      { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
+      { title: 'Reports', url: '/admin/reports', icon: FileText },
+      { title: 'Settings', url: '/admin/settings', icon: Settings },
+      { title: 'Notifications', url: '/admin/notifications', icon: Bell },
+    ]
+  }
 ];
