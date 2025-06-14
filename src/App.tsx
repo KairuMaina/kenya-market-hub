@@ -37,6 +37,12 @@ import AdminProperties from "./pages/admin/AdminProperties";
 import AdminRides from "./pages/admin/AdminRides";
 import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminServiceProviders from "./pages/admin/AdminServiceProviders";
+import AdminAgents from "./pages/admin/AdminAgents";
+import AdminPropertyInquiries from "./pages/admin/AdminPropertyInquiries";
+import AdminPropertyViewings from "./pages/admin/AdminPropertyViewings";
+import AdminRidePricing from "./pages/admin/AdminRidePricing";
+import AdminServiceBookings from "./pages/admin/AdminServiceBookings";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminReports from "./pages/AdminReports";
 import AdminSettings from "./pages/AdminSettings";
@@ -93,17 +99,33 @@ const App = () => (
                   
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/products" element={<AdminProducts />} />
-                  <Route path="/admin/orders" element={<AdminOrders />} />
-                  <Route path="/admin/vendors" element={<AdminVendors />} />
-                  <Route path="/admin/properties" element={<AdminProperties />} />
-                  <Route path="/admin/rides" element={<AdminRides />} />
-                  <Route path="/admin/drivers" element={<AdminDrivers />} />
-                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
                   <Route path="/admin/analytics" element={<AdminAnalytics />} />
                   <Route path="/admin/reports" element={<AdminReports />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
+                  <Route path="/admin/notifications" element={<AdminNotifications />} />
+                  
+                  {/* Admin User Management */}
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/vendors" element={<AdminVendors />} />
+                  <Route path="/admin/drivers" element={<AdminDrivers />} />
+                  
+                  {/* Admin E-commerce */}
+                  <Route path="/admin/products" element={<AdminProducts />} />
+                  <Route path="/admin/orders" element={<AdminOrders />} />
+                  
+                  {/* Admin Real Estate */}
+                  <Route path="/admin/properties" element={<AdminProperties />} />
+                  <Route path="/admin/agents" element={<AdminAgents />} />
+                  <Route path="/admin/property-inquiries" element={<AdminPropertyInquiries />} />
+                  <Route path="/admin/property-viewings" element={<AdminPropertyViewings />} />
+                  
+                  {/* Admin Transportation */}
+                  <Route path="/admin/rides" element={<AdminRides />} />
+                  <Route path="/admin/ride-pricing" element={<AdminRidePricing />} />
+                  
+                  {/* Admin Services */}
+                  <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
+                  <Route path="/admin/service-bookings" element={<AdminServiceBookings />} />
                   
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />

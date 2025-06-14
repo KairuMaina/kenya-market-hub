@@ -29,7 +29,9 @@ import {
   UserCheck,
   Eye,
   Bell,
-  Truck
+  Truck,
+  MessageSquare,
+  Calendar
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -65,7 +67,7 @@ const AdminSidebar = () => {
       items: [
         { title: 'Properties', url: '/admin/properties', icon: Building },
         { title: 'Agents', url: '/admin/agents', icon: UserCheck },
-        { title: 'Inquiries', url: '/admin/property-inquiries', icon: Eye },
+        { title: 'Inquiries', url: '/admin/property-inquiries', icon: MessageSquare },
         { title: 'Viewings', url: '/admin/property-viewings', icon: Eye },
       ]
     },
@@ -80,14 +82,14 @@ const AdminSidebar = () => {
       title: 'Services',
       items: [
         { title: 'Service Providers', url: '/admin/service-providers', icon: Briefcase },
-        { title: 'Service Bookings', url: '/admin/service-bookings', icon: Bell },
+        { title: 'Service Bookings', url: '/admin/service-bookings', icon: Calendar },
       ]
     },
     {
       title: 'System',
       items: [
-        { title: 'Settings', url: '/admin/settings', icon: Settings },
         { title: 'Notifications', url: '/admin/notifications', icon: Bell },
+        { title: 'Settings', url: '/admin/settings', icon: Settings },
       ]
     }
   ];
