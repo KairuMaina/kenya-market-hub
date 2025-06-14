@@ -58,12 +58,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="property-type">Property Type</Label>
-            <Select value={filters.property_type || ''} onValueChange={(value) => handleFilterChange('property_type', value)}>
+            <Select value={filters.property_type || 'all'} onValueChange={(value) => handleFilterChange('property_type', value === 'all' ? undefined : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Type</SelectItem>
+                <SelectItem value="all">Any Type</SelectItem>
                 <SelectItem value="house">House</SelectItem>
                 <SelectItem value="apartment">Apartment</SelectItem>
                 <SelectItem value="land">Land</SelectItem>
@@ -75,12 +75,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
 
           <div>
             <Label htmlFor="listing-type">Listing Type</Label>
-            <Select value={filters.listing_type || ''} onValueChange={(value) => handleFilterChange('listing_type', value)}>
+            <Select value={filters.listing_type || 'all'} onValueChange={(value) => handleFilterChange('listing_type', value === 'all' ? undefined : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sale or Rent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="sale">For Sale</SelectItem>
                 <SelectItem value="rent">For Rent</SelectItem>
               </SelectContent>
@@ -115,12 +115,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="bedrooms">Bedrooms</Label>
-            <Select value={filters.bedrooms?.toString() || ''} onValueChange={(value) => handleFilterChange('bedrooms', value ? Number(value) : undefined)}>
+            <Select value={filters.bedrooms?.toString() || 'all'} onValueChange={(value) => handleFilterChange('bedrooms', value === 'all' ? undefined : Number(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="1">1+</SelectItem>
                 <SelectItem value="2">2+</SelectItem>
                 <SelectItem value="3">3+</SelectItem>
@@ -132,12 +132,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
 
           <div>
             <Label htmlFor="bathrooms">Bathrooms</Label>
-            <Select value={filters.bathrooms?.toString() || ''} onValueChange={(value) => handleFilterChange('bathrooms', value ? Number(value) : undefined)}>
+            <Select value={filters.bathrooms?.toString() || 'all'} onValueChange={(value) => handleFilterChange('bathrooms', value === 'all' ? undefined : Number(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="1">1+</SelectItem>
                 <SelectItem value="2">2+</SelectItem>
                 <SelectItem value="3">3+</SelectItem>
@@ -150,12 +150,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="county">County</Label>
-            <Select value={filters.county || ''} onValueChange={(value) => handleFilterChange('county', value)}>
+            <Select value={filters.county || 'all'} onValueChange={(value) => handleFilterChange('county', value === 'all' ? undefined : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any County" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any County</SelectItem>
+                <SelectItem value="all">Any County</SelectItem>
                 {counties.map(county => (
                   <SelectItem key={county} value={county}>{county}</SelectItem>
                 ))}
@@ -165,12 +165,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
 
           <div>
             <Label htmlFor="city">City/Area</Label>
-            <Select value={filters.city || ''} onValueChange={(value) => handleFilterChange('city', value)}>
+            <Select value={filters.city || 'all'} onValueChange={(value) => handleFilterChange('city', value === 'all' ? undefined : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any City" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any City</SelectItem>
+                <SelectItem value="all">Any City</SelectItem>
                 {cities.map(city => (
                   <SelectItem key={city} value={city}>{city}</SelectItem>
                 ))}

@@ -69,12 +69,12 @@ const AdvancedSearch = () => {
             {/* Category Filter */}
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
+              <Select value={filters.category} onValueChange={(value) => updateFilter('category', value === 'all' ? '' : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -87,12 +87,12 @@ const AdvancedSearch = () => {
             {/* Brand Filter */}
             <div className="space-y-2">
               <Label>Brand</Label>
-              <Select value={filters.brand} onValueChange={(value) => updateFilter('brand', value)}>
+              <Select value={filters.brand} onValueChange={(value) => updateFilter('brand', value === 'all' ? '' : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Brands" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Brands</SelectItem>
+                  <SelectItem value="all">All Brands</SelectItem>
                   {brands.map((brand) => (
                     <SelectItem key={brand} value={brand}>
                       {brand}
