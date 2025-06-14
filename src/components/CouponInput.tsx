@@ -31,8 +31,11 @@ const CouponInput = ({
       orderAmount
     }, {
       onSuccess: (data) => {
-        if (data.valid) {
-          onCouponApplied(data);
+        // Parse the response if it's a string, otherwise use as-is
+        const response = typeof data === 'string' ? JSON.parse(data) : data;
+        
+        if (response.valid) {
+          onCouponApplied(response);
           setCouponCode('');
         }
       }

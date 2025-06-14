@@ -25,6 +25,15 @@ export interface Coupon {
   updated_at: string;
 }
 
+interface CouponValidationResponse {
+  valid: boolean;
+  error?: string;
+  discount_amount?: number;
+  coupon_id?: string;
+  coupon_name?: string;
+  minimum_amount?: number;
+}
+
 export const useActiveCoupons = () => {
   return useQuery({
     queryKey: ['active-coupons'],
@@ -55,7 +64,7 @@ export const useValidateCoupon = () => {
       code: string; 
       orderAmount: number; 
       productCategories?: string[] 
-    }) => {
+    }): Promise<CouponValidationResponse> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -67,7 +76,9 @@ export const useValidateCoupon = () => {
       });
       
       if (error) throw error;
-      return data;
+      
+      // Parse the response if it's a string, otherwise return as-is
+      return typeof data === 'string' ? JSON.parse(data) : data;
     },
     onError: (error: any) => {
       toast({
