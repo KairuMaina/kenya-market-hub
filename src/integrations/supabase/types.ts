@@ -9,6 +9,111 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          id: string
+          order_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          applicable_categories: string[] | null
+          applicable_products: string[] | null
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id: string
+          is_active: boolean | null
+          maximum_discount_amount: number | null
+          minimum_order_amount: number | null
+          name: string
+          start_date: string
+          updated_at: string
+          usage_count: number | null
+          usage_limit: number | null
+          user_usage_limit: number | null
+        }
+        Insert: {
+          applicable_categories?: string[] | null
+          applicable_products?: string[] | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          maximum_discount_amount?: number | null
+          minimum_order_amount?: number | null
+          name: string
+          start_date: string
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+          user_usage_limit?: number | null
+        }
+        Update: {
+          applicable_categories?: string[] | null
+          applicable_products?: string[] | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          maximum_discount_amount?: number | null
+          minimum_order_amount?: number | null
+          name?: string
+          start_date?: string
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+          user_usage_limit?: number | null
+        }
+        Relationships: []
+      }
       delivery_schedules: {
         Row: {
           created_at: string
@@ -52,6 +157,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_campaigns: {
+        Row: {
+          audience_segments: Json | null
+          clicked_count: number | null
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          opened_count: number | null
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          target_audience: string | null
+          template_type: string | null
+          total_recipients: number | null
+          updated_at: string
+        }
+        Insert: {
+          audience_segments?: Json | null
+          clicked_count?: number | null
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          opened_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          target_audience?: string | null
+          template_type?: string | null
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Update: {
+          audience_segments?: Json | null
+          clicked_count?: number | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          opened_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          target_audience?: string | null
+          template_type?: string | null
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_subscribers: {
+        Row: {
+          email: string
+          id: string
+          is_subscribed: boolean | null
+          subscribed_at: string
+          subscription_source: string | null
+          tags: string[] | null
+          unsubscribed_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          is_subscribed?: boolean | null
+          subscribed_at?: string
+          subscription_source?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          is_subscribed?: boolean | null
+          subscribed_at?: string
+          subscription_source?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -100,7 +295,9 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_id: string | null
           created_at: string | null
+          discount_amount: number | null
           id: string
           payment_method: string | null
           payment_status: string | null
@@ -111,7 +308,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coupon_id?: string | null
           created_at?: string | null
+          discount_amount?: number | null
           id?: string
           payment_method?: string | null
           payment_status?: string | null
@@ -122,7 +321,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coupon_id?: string | null
           created_at?: string | null
+          discount_amount?: number | null
           id?: string
           payment_method?: string | null
           payment_status?: string | null
@@ -132,7 +333,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -156,6 +365,7 @@ export type Database = {
           tags: string[] | null
           updated_at: string | null
           vendor: string | null
+          vendor_id: string | null
           year: number | null
         }
         Insert: {
@@ -179,6 +389,7 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string | null
           vendor?: string | null
+          vendor_id?: string | null
           year?: number | null
         }
         Update: {
@@ -202,9 +413,18 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string | null
           vendor?: string | null
+          vendor_id?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -374,6 +594,120 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_applications: {
+        Row: {
+          admin_notes: string | null
+          bank_details: Json | null
+          business_address: string
+          business_description: string
+          business_email: string
+          business_license: string | null
+          business_name: string
+          business_phone: string
+          documents: Json | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string
+          tax_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          bank_details?: Json | null
+          business_address: string
+          business_description: string
+          business_email: string
+          business_license?: string | null
+          business_name: string
+          business_phone: string
+          documents?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string
+          tax_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          bank_details?: Json | null
+          business_address?: string
+          business_description?: string
+          business_email?: string
+          business_license?: string | null
+          business_name?: string
+          business_phone?: string
+          documents?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string
+          tax_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          banner_url: string | null
+          business_address: string | null
+          business_description: string | null
+          business_email: string | null
+          business_name: string
+          business_phone: string | null
+          commission_rate: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          social_media: Json | null
+          updated_at: string
+          user_id: string
+          verification_status: string | null
+          website_url: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          business_address?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name: string
+          business_phone?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          social_media?: Json | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          business_address?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name?: string
+          business_phone?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          social_media?: Json | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       wishlist: {
         Row: {
           created_at: string
@@ -408,6 +742,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_coupon_discount: {
+        Args: {
+          p_coupon_code: string
+          p_order_amount: number
+          p_user_id: string
+          p_product_categories?: string[]
+        }
+        Returns: Json
+      }
       has_role: {
         Args:
           | {

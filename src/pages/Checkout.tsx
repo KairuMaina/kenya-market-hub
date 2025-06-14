@@ -1,234 +1,269 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Smartphone, Building2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/MainLayout';
-
-import { cartItems, shippingCost, counties } from '@/utils/checkoutData';
+import CouponInput from '@/components/CouponInput';
 
 const Checkout = () => {
-  const [paymentMethod, setPaymentMethod] = useState('mpesa');
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { items, getTotalPrice, clearCart } = useCart();
+  const { toast } = useToast();
   
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = shippingCost;
-  const total = subtotal + shipping;
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [shippingInfo, setShippingInfo] = useState({
+    fullName: '',
+    address: '',
+    city: '',
+    phone: '',
+    email: user?.email || '',
+    specialInstructions: ''
+  });
+
+  const subtotal = getTotalPrice();
+  const shippingCost = 500; // Fixed shipping cost
+  const discount = appliedCoupon?.discount_amount || 0;
+  const total = subtotal + shippingCost - discount;
+
+  const handleCouponApplied = (couponData: any) => {
+    setAppliedCoupon(couponData);
+    toast({ title: 'Coupon applied successfully!' });
+  };
+
+  const handleCouponRemoved = () => {
+    setAppliedCoupon(null);
+    toast({ title: 'Coupon removed' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: 'Please log in to complete your order',
+        variant: 'destructive'
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: 'Your cart is empty',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Create order in database
+      const orderData = {
+        user_id: user.id,
+        total_amount: total,
+        shipping_address: shippingInfo,
+        status: 'pending',
+        payment_status: 'pending',
+        coupon_id: appliedCoupon?.coupon_id || null,
+        discount_amount: discount
+      };
+
+      // Here you would typically integrate with a payment processor
+      // For now, we'll simulate a successful order
+      
+      clearCart();
+      toast({ title: 'Order placed successfully!' });
+      navigate('/');
+      
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      toast({
+        title: 'Error placing order',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  if (!user) {
+    return (
+      <MainLayout>
+        <div className="max-w-2xl mx-auto text-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Please Log In</h1>
+          <p className="text-muted-foreground mb-6">
+            You need to be logged in to complete your checkout.
+          </p>
+          <Button onClick={() => navigate('/auth')}>
+            Log In
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <MainLayout>
+        <div className="max-w-2xl mx-auto text-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Your Cart is Empty</h1>
+          <p className="text-muted-foreground mb-6">
+            Add some items to your cart before checking out.
+          </p>
+          <Button onClick={() => navigate('/products')}>
+            Continue Shopping
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <div className="space-y-8">
-        {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h2>
-          <p className="text-gray-600">Complete your order</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Checkout Form */}
-          <div className="space-y-6">
-            {/* Shipping Information */}
-            <Card className="bg-white border-gray-200">
-              <CardHeader>
-                <CardTitle>Shipping Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="John" />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Doe" />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" />
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="+254 700 123 456" />
-                </div>
-                
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" placeholder="123 Main Street" />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" placeholder="Nairobi" />
-                  </div>
-                  <div>
-                    <Label htmlFor="county">County</Label>
-                    <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select county" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {counties.map((county) => (
-                        <SelectItem key={county.value} value={county.value}>
-                          {county.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Method */}
-            <Card className="bg-white border-gray-200">
-              <CardHeader>
-                <CardTitle>Payment Method</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div 
-                    className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer ${
-                      paymentMethod === 'mpesa' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('mpesa')}
-                  >
-                    <input
-                      type="radio"
-                      checked={paymentMethod === 'mpesa'}
-                      onChange={() => setPaymentMethod('mpesa')}
-                      className="text-blue-600"
-                    />
-                    <Smartphone className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="font-medium">M-Pesa</p>
-                      <p className="text-sm text-gray-600">Pay with your M-Pesa mobile money</p>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer ${
-                      paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('card')}
-                  >
-                    <input
-                      type="radio"
-                      checked={paymentMethod === 'card'}
-                      onChange={() => setPaymentMethod('card')}
-                      className="text-blue-600"
-                    />
-                    <CreditCard className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <p className="font-medium">Credit/Debit Card</p>
-                      <p className="text-sm text-gray-600">Visa, Mastercard accepted</p>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer ${
-                      paymentMethod === 'bank' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('bank')}
-                  >
-                    <input
-                      type="radio"
-                      checked={paymentMethod === 'bank'}
-                      onChange={() => setPaymentMethod('bank')}
-                      className="text-blue-600"
-                    />
-                    <Building2 className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <p className="font-medium">Bank Transfer</p>
-                      <p className="text-sm text-gray-600">Direct bank transfer</p>
-                    </div>
-                  </div>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold">Checkout</h1>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Shipping Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping Information</CardTitle>
+              <CardDescription>Enter your delivery details</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Input
+                    id="fullName"
+                    value={shippingInfo.fullName}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                    required
+                  />
                 </div>
 
-                {paymentMethod === 'mpesa' && (
-                  <div className="mt-4">
-                    <Label htmlFor="mpesaNumber">M-Pesa Number</Label>
-                    <Input id="mpesaNumber" placeholder="+254 700 123 456" />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={shippingInfo.email}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                {paymentMethod === 'card' && (
-                  <div className="mt-4 space-y-4">
-                    <div>
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiry">Expiry Date</Label>
-                        <Input id="expiry" placeholder="MM/YY" />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv">CVV</Label>
-                        <Input id="cvv" placeholder="123" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    value={shippingInfo.phone}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address *</Label>
+                  <Textarea
+                    id="address"
+                    value={shippingInfo.address}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, address: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    value={shippingInfo.city}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, city: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instructions">Special Instructions</Label>
+                  <Textarea
+                    id="instructions"
+                    value={shippingInfo.specialInstructions}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, specialInstructions: e.target.value }))}
+                    placeholder="Any special delivery instructions..."
+                  />
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
           {/* Order Summary */}
-          <div>
-            <Card className="bg-white border-gray-200 sticky top-6">
+          <div className="space-y-6">
+            <Card>
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Order Items */}
-                <div className="space-y-3">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-xs text-gray-600">{item.vendor}</p>
-                        <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
-                      </div>
-                      <p className="font-medium">KSh {(item.price * item.quantity).toLocaleString()}</p>
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between">
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                  ))}
-                </div>
+                    <p className="font-medium">
+                      KSH {(Number(item.price) * item.quantity).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
 
                 <Separator />
 
-                {/* Totals */}
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">KSh {subtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="font-medium">KSh {shipping.toLocaleString()}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-lg font-semibold">Total</span>
-                    <span className="text-lg font-bold">KSh {total.toLocaleString()}</span>
-                  </div>
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>KSH {subtotal.toLocaleString()}</span>
                 </div>
 
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 mt-6">
-                  Complete Order
-                </Button>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>KSH {shippingCost.toLocaleString()}</span>
+                </div>
 
-                <p className="text-xs text-gray-600 text-center mt-4">
-                  By placing this order, you agree to our Terms of Service and Privacy Policy
-                </p>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-KSH {discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <Separator />
+
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>KSH {total.toLocaleString()}</span>
+                </div>
               </CardContent>
             </Card>
+
+            <CouponInput
+              orderAmount={subtotal}
+              onCouponApplied={handleCouponApplied}
+              onCouponRemoved={handleCouponRemoved}
+              appliedCoupon={appliedCoupon}
+            />
+
+            <Button 
+              onClick={handleSubmit} 
+              size="lg" 
+              className="w-full"
+            >
+              Place Order - KSH {total.toLocaleString()}
+            </Button>
           </div>
         </div>
       </div>

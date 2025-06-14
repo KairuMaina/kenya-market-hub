@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Plus, Users, Package, BarChart3 } from 'lucide-react';
+import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCircle } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
 
@@ -40,6 +39,31 @@ interface TransactionData {
   status: string;
   created_at: string;
   order_id: string;
+}
+
+interface VendorApplication {
+  id: string;
+  user_id: string;
+  business_name: string;
+  business_description: string;
+  business_address: string;
+  business_phone: string;
+  business_email: string;
+  status: string;
+  submitted_at: string;
+}
+
+interface Coupon {
+  id: string;
+  code: string;
+  name: string;
+  discount_type: string;
+  discount_value: number;
+  usage_count: number;
+  usage_limit?: number;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
 }
 
 const NewAdminDashboard = () => {
@@ -155,6 +179,34 @@ const NewAdminDashboard = () => {
     }
   });
 
+  // Fetch vendor applications
+  const { data: vendorApplications, isLoading: vendorApplicationsLoading } = useQuery({
+    queryKey: ['admin-vendor-applications'],
+    queryFn: async (): Promise<VendorApplication[]> => {
+      const { data, error } = await supabase
+        .from('vendor_applications')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch coupons
+  const { data: coupons, isLoading: couponsLoading } = useQuery({
+    queryKey: ['admin-coupons'],
+    queryFn: async (): Promise<Coupon[]> => {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   // Delete user mutation
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
@@ -192,6 +244,62 @@ const NewAdminDashboard = () => {
         title: "Error deleting product", 
         description: error.message,
         variant: "destructive"
+      });
+    }
+  });
+
+  // Approve/reject vendor application
+  const handleVendorApplication = useMutation({
+    mutationFn: async ({ applicationId, action }: { applicationId: string; action: 'approve' | 'reject' }) => {
+      const { data: application, error: fetchError } = await supabase
+        .from('vendor_applications')
+        .select('*')
+        .eq('id', applicationId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+
+      if (action === 'approve') {
+        // Create vendor profile
+        const { error: vendorError } = await supabase
+          .from('vendors')
+          .insert({
+            user_id: application.user_id,
+            business_name: application.business_name,
+            business_description: application.business_description,
+            business_address: application.business_address,
+            business_phone: application.business_phone,
+            business_email: application.business_email,
+            verification_status: 'approved'
+          });
+        
+        if (vendorError) throw vendorError;
+      }
+
+      // Update application status
+      const { error: updateError } = await supabase
+        .from('vendor_applications')
+        .update({
+          status: action === 'approve' ? 'approved' : 'rejected',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id
+        })
+        .eq('id', applicationId);
+      
+      if (updateError) throw updateError;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      toast({ 
+        title: `Vendor application ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully` 
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Error processing application', 
+        description: error.message,
+        variant: 'destructive'
       });
     }
   });
@@ -234,7 +342,7 @@ const NewAdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -273,6 +381,17 @@ const NewAdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Vendor Applications</CardTitle>
+              <Store className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {vendorApplications?.filter(app => app.status === 'pending').length || 0}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="products" className="space-y-4">
@@ -281,6 +400,8 @@ const NewAdminDashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="vendors">Vendors</TabsTrigger>
+            <TabsTrigger value="coupons">Coupons</TabsTrigger>
           </TabsList>
           
           <TabsContent value="products" className="space-y-4">
@@ -472,6 +593,138 @@ const NewAdminDashboard = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="vendors" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Vendor Applications</CardTitle>
+                <CardDescription>Review and manage vendor applications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {vendorApplicationsLoading ? (
+                  <div>Loading vendor applications...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Business Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Submitted</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {vendorApplications?.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="font-medium">{application.business_name}</TableCell>
+                          <TableCell>{application.business_email}</TableCell>
+                          <TableCell>{application.business_phone}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(application.status)}>
+                              {application.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{new Date(application.submitted_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            {application.status === 'pending' && (
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleVendorApplication.mutate({ 
+                                    applicationId: application.id, 
+                                    action: 'approve' 
+                                  })}
+                                  disabled={handleVendorApplication.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleVendorApplication.mutate({ 
+                                    applicationId: application.id, 
+                                    action: 'reject' 
+                                  })}
+                                  disabled={handleVendorApplication.isPending}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="coupons" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Coupon Management</CardTitle>
+                    <CardDescription>Manage discount coupons and promotions</CardDescription>
+                  </div>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Coupon
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {couponsLoading ? (
+                  <div>Loading coupons...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Code</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead>Usage</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {coupons?.map((coupon) => (
+                        <TableRow key={coupon.id}>
+                          <TableCell className="font-mono">{coupon.code}</TableCell>
+                          <TableCell>{coupon.name}</TableCell>
+                          <TableCell className="capitalize">{coupon.discount_type}</TableCell>
+                          <TableCell>
+                            {coupon.discount_type === 'percentage' 
+                              ? `${coupon.discount_value}%` 
+                              : `KSH ${coupon.discount_value}`}
+                          </TableCell>
+                          <TableCell>
+                            {coupon.usage_count}/{coupon.usage_limit || '∞'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
+                              {coupon.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
