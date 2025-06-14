@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -87,15 +86,36 @@ export const useVendorApplication = () => {
     mutationFn: async (applicationData: Omit<VendorApplication, 'id' | 'user_id' | 'status' | 'submitted_at'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+      
+      // Ensure all required fields are passed
+      if (
+        !applicationData.business_name ||
+        !applicationData.business_description ||
+        !applicationData.business_address ||
+        !applicationData.business_phone ||
+        !applicationData.business_email
+      ) {
+        throw new Error("One or more required fields are missing.");
+      }
 
-      const { error } = await supabase
+      // Insert and log the result
+      const { data, error } = await supabase
         .from('vendor_applications')
         .insert({
           ...applicationData,
-          user_id: user.id
+          user_id: user.id,
+          status: 'pending', // explicit
+          submitted_at: new Date().toISOString() // explicit for visibility
         });
-      
-      if (error) throw error;
+
+      if (error) {
+        console.error("Vendor application insert error:", error);
+        throw error;
+      } else {
+        console.log("Vendor application insert result:", data);
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
