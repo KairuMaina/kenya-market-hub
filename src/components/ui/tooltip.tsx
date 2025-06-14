@@ -4,7 +4,9 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-const TooltipProvider = React.memo(TooltipPrimitive.Provider)
+// ❌ Don't memoize: const TooltipProvider = React.memo(TooltipPrimitive.Provider)
+// ✅ Use as-is:
+const TooltipProvider = TooltipPrimitive.Provider
 
 const Tooltip = TooltipPrimitive.Root
 
@@ -27,3 +29,4 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+
