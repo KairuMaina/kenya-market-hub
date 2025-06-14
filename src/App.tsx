@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import Wishlist from "./pages/Wishlist";
 import Profile from "./pages/Profile";
 import VendorDashboard from "./pages/VendorDashboard";
+import VendorAnalyticsPage from "./pages/VendorAnalyticsPage";
 import NewAdminDashboard from "./pages/NewAdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
@@ -29,6 +30,7 @@ import NotFound from "./pages/NotFound";
 import Rides from "./pages/Rides";
 import Services from "./pages/Services";
 import RealEstate from "./pages/RealEstate";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,9 @@ const App = () => (
             <Routes>
               {/* Main Landing Page */}
               <Route path="/" element={<Index />} />
+              
+              {/* Search Route */}
+              <Route path="/search" element={<Search />} />
               
               {/* Shop Routes */}
               <Route path="/shop" element={<Shop />} />
@@ -66,7 +71,8 @@ const App = () => (
               {/* User Routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/vendor" element={<VendorDashboard />} />
+              <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+              <Route path="/vendor-analytics" element={<VendorAnalyticsPage />} />
               <Route path="/confirm" element={<EmailConfirmation />} />
               
               {/* Admin Routes */}

@@ -2,14 +2,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, X, Star } from 'lucide-react';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import { Search, Filter, X, Star } from 'lucide-react';
 
 const AdvancedSearch = () => {
   const {
@@ -23,32 +23,50 @@ const AdvancedSearch = () => {
     totalResults
   } = useAdvancedSearch();
 
+  const handlePriceChange = (values: number[], type: 'min' | 'max') => {
+    if (type === 'min') {
+      updateFilter('minPrice', values[0]);
+    } else {
+      updateFilter('maxPrice', values[0]);
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${i < rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+      />
+    ));
+  };
+
   return (
     <div className="space-y-6">
-      {/* Search Header */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Advanced Product Search
+            <Filter className="h-5 w-5" />
+            Advanced Search Filters
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Main Search */}
+          {/* Search Query */}
           <div className="space-y-2">
-            <Label htmlFor="search">Search Products</Label>
-            <Input
-              id="search"
-              placeholder="Search by name, description, brand, or tags..."
-              value={filters.query}
-              onChange={(e) => updateFilter('query', e.target.value)}
-              className="text-base"
-            />
+            <Label htmlFor="search-query">Search Query</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="search-query"
+                placeholder="Search products, brands, descriptions..."
+                value={filters.query}
+                onChange={(e) => updateFilter('query', e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
 
-          {/* Filter Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Category Filter */}
             <div className="space-y-2">
               <Label>Category</Label>
               <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
@@ -57,14 +75,16 @@ const AdvancedSearch = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Categories</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Brand */}
+            {/* Brand Filter */}
             <div className="space-y-2">
               <Label>Brand</Label>
               <Select value={filters.brand} onValueChange={(value) => updateFilter('brand', value)}>
@@ -73,157 +93,183 @@ const AdvancedSearch = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Brands</SelectItem>
-                  {brands.map(brand => (
-                    <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand} value={brand}>
+                      {brand}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Condition */}
+            {/* Location Filter */}
             <div className="space-y-2">
-              <Label>Condition</Label>
-              <Select value={filters.condition} onValueChange={(value) => updateFilter('condition', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any Condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Any Condition</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="used">Used</SelectItem>
-                  <SelectItem value="refurbished">Refurbished</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Sort By */}
-            <div className="space-y-2">
-              <Label>Sort By</Label>
-              <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="created_at">Newest First</SelectItem>
-                  <SelectItem value="price">Price</SelectItem>
-                  <SelectItem value="rating">Rating</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                placeholder="Enter location..."
+                value={filters.location}
+                onChange={(e) => updateFilter('location', e.target.value)}
+              />
             </div>
           </div>
 
           {/* Price Range */}
-          <div className="space-y-3">
-            <Label>Price Range: KSh {filters.minPrice.toLocaleString()} - KSh {filters.maxPrice.toLocaleString()}</Label>
-            <div className="px-2">
-              <Slider
-                value={[filters.minPrice, filters.maxPrice]}
-                onValueChange={([min, max]) => {
-                  updateFilter('minPrice', min);
-                  updateFilter('maxPrice', max);
-                }}
-                max={1000000}
-                step={1000}
-                className="w-full"
-              />
+          <div className="space-y-4">
+            <Label>Price Range</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm text-gray-600">Min Price: KSh {filters.minPrice.toLocaleString()}</Label>
+                <Slider
+                  value={[filters.minPrice]}
+                  onValueChange={(values) => handlePriceChange(values, 'min')}
+                  max={filters.maxPrice}
+                  min={0}
+                  step={100}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-gray-600">Max Price: KSh {filters.maxPrice.toLocaleString()}</Label>
+                <Slider
+                  value={[filters.maxPrice]}
+                  onValueChange={(values) => handlePriceChange(values, 'max')}
+                  max={1000000}
+                  min={filters.minPrice}
+                  step={100}
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Additional Filters */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="in-stock"
-                checked={filters.inStock}
-                onCheckedChange={(checked) => updateFilter('inStock', checked)}
-              />
-              <Label htmlFor="in-stock">In Stock Only</Label>
+          {/* Rating Filter */}
+          <div className="space-y-2">
+            <Label>Minimum Rating</Label>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((rating) => (
+                <button
+                  key={rating}
+                  onClick={() => updateFilter('rating', rating === filters.rating ? 0 : rating)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full border ${
+                    filters.rating >= rating
+                      ? 'bg-yellow-100 border-yellow-300 text-yellow-800'
+                      : 'bg-gray-100 border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <Star className={`h-4 w-4 ${filters.rating >= rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                  <span>{rating}+</span>
+                </button>
+              ))}
             </div>
-            
-            <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2">
-              <X className="h-4 w-4" />
+          </div>
+
+          {/* Sort Options */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Sort By</Label>
+              <Select value={filters.sortBy} onValueChange={(value: any) => updateFilter('sortBy', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created_at">Date Added</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sort Order</Label>
+              <Select value={filters.sortOrder} onValueChange={(value: any) => updateFilter('sortOrder', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">Descending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Stock Filter */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="in-stock"
+              checked={filters.inStock}
+              onCheckedChange={(checked) => updateFilter('inStock', checked)}
+            />
+            <Label htmlFor="in-stock">Only show items in stock</Label>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button onClick={resetFilters} variant="outline">
+              <X className="h-4 w-4 mr-2" />
               Reset Filters
             </Button>
-          </div>
-
-          {/* Results Summary */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <Badge variant="secondary" className="text-sm">
-              {isLoading ? 'Searching...' : `${totalResults} products found`}
-            </Badge>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-500">Advanced filters applied</span>
-            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Search Results */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {isLoading ? (
-          Array.from({ length: 8 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <div className="h-48 bg-gray-200 rounded-t-lg"></div>
-              <CardContent className="p-4">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          results.map((product) => (
-            <Card key={product.id} className="group hover:shadow-lg transition-all duration-300">
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}
-                  alt={product.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <Badge className="absolute top-2 right-2 bg-green-500">
-                  {product.condition || 'New'}
-                </Badge>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-1 line-clamp-1">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
-                
-                <div className="flex items-center gap-1 mb-2">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{product.rating}</span>
-                  <span className="text-xs text-gray-500">({product.reviews_count})</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-xl font-bold text-green-600">
-                    KSh {Number(product.price).toLocaleString()}
-                  </span>
-                  <Badge variant="outline">{product.category}</Badge>
-                </div>
-                
-                {product.brand && (
-                  <div className="mt-2">
-                    <Badge variant="secondary" className="text-xs">{product.brand}</Badge>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {!isLoading && results.length === 0 && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Search className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold mb-2">No products found</h3>
-            <p className="text-gray-600 mb-4">Try adjusting your search criteria or filters</p>
-            <Button onClick={resetFilters}>Reset All Filters</Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Results */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Search Results</span>
+            <Badge variant="secondary">{totalResults} products found</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Searching products...</p>
+            </div>
+          ) : results.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No products found matching your criteria.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {results.map((product) => (
+                <Card key={product.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                      <img
+                        src={product.image_url || '/placeholder.svg'}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1">{product.name}</h3>
+                    <p className="text-gray-600 text-xs mb-2 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-orange-600">KSh {product.price.toLocaleString()}</span>
+                      {product.rating && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex">
+                            {renderStars(Math.round(product.rating))}
+                          </div>
+                          <span className="text-xs text-gray-500">({product.rating})</span>
+                        </div>
+                      )}
+                    </div>
+                    {product.brand && (
+                      <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
+                    )}
+                    {product.location && (
+                      <p className="text-xs text-gray-500">Location: {product.location}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
