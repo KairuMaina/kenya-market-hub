@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,18 +6,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useProductImages, useUploadProductImages } from '@/hooks/useProductImages';
 import ImageUpload from './ImageUpload';
 import { Trash2 } from 'lucide-react';
 
-const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
+interface EditProductModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  product: any;
+  onSuccess: () => void;
+}
+
+const EditProductModal = ({ open, onOpenChange, product, onSuccess }: EditProductModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: productImages } = useProductImages(product?.id);
   const uploadImages = useUploadProductImages();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
+  // Form state
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('');
+  const [price, setPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [stockQuantity, setStockQuantity] = useState('');
+  const [inStock, setInStock] = useState(true);
+  const [description, setDescription] = useState('');
+  const [condition, setCondition] = useState('new');
+  const [location, setLocation] = useState('');
+  const [brand, setBrand] = useState('');
+  const [vendor, setVendor] = useState('');
   
   useEffect(() => {
     if (product) {
@@ -69,9 +91,11 @@ const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
     onSuccess: () => {
       toast({ title: 'Product updated successfully' });
       setSelectedFiles([]);
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       onSuccess();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: 'Error updating product',
         description: error.message,
@@ -90,10 +114,11 @@ const EditProductModal = ({ open, onOpenChange, product, onSuccess }) => {
     },
     onSuccess: () => {
       toast({ title: 'Image deleted successfully' });
+      queryClient.invalidateQueries({ queryKey: ['product-images', product?.id] });
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateProduct.mutate();
   };
