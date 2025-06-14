@@ -1,8 +1,14 @@
 
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 export const useSidebarLogic = () => {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggle = () => {
+    setIsOpen(!isOpen);
+  };
 
   const isOnShopSection = location.pathname.startsWith('/shop') || 
                          location.pathname.startsWith('/products') || 
@@ -32,6 +38,8 @@ export const useSidebarLogic = () => {
   };
 
   return {
+    isOpen,
+    toggle,
     isOnShopSection,
     isOnRidesSection,
     isOnServicesSection,
