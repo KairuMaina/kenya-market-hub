@@ -13,6 +13,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import Wishlist from "./pages/Wishlist";
+import Profile from "./pages/Profile";
 import VendorDashboard from "./pages/VendorDashboard";
 import NewAdminDashboard from "./pages/NewAdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/vendor" element={<VendorDashboard />} />
               <Route path="/confirm" element={<EmailConfirmation />} />
               <Route 

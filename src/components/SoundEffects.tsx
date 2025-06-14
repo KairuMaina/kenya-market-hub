@@ -83,7 +83,11 @@ const SoundEffects = () => {
 
     const handleHover = (e: Event) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.closest('button')) {
+      // Only play hover sound for actual buttons, not navigation links or other elements
+      if ((target.tagName === 'BUTTON' || (target.closest && target.closest('button'))) && 
+          !target.closest('nav') && 
+          !target.closest('[role="menuitem"]') &&
+          !target.closest('a')) {
         playHoverSound();
       }
     };
