@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -7,14 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useMyVendorProfile } from '@/hooks/useVendors';
-import { Store, Package, BarChart3, Settings } from 'lucide-react';
+import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
+import ServiceProviderRegistration from '@/components/ServiceProviderRegistration';
 import MainLayout from '@/components/MainLayout';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
 
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
   const { data: vendorProfile, isLoading } = useMyVendorProfile();
+  const { data: driverProfile } = useServiceProviderProfile('driver');
+  const { data: propertyProfile } = useServiceProviderProfile('property_owner');
   const [showApplication, setShowApplication] = useState(false);
+  const [showServiceRegistration, setShowServiceRegistration] = useState(false);
+  const [selectedServiceType, setSelectedServiceType] = useState<'driver' | 'property_owner'>('driver');
 
   if (loading || isLoading) {
     return (
@@ -30,20 +34,48 @@ const VendorDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!vendorProfile) {
+  // Check if user has any approved profiles
+  const hasApprovedProfile = vendorProfile?.verification_status === 'approved' ||
+                           driverProfile?.verification_status === 'approved' ||
+                           propertyProfile?.verification_status === 'approved';
+
+  if (!vendorProfile && !driverProfile && !propertyProfile) {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center space-y-4">
             <Store className="h-16 w-16 mx-auto text-gray-400" />
-            <h1 className="text-3xl font-bold">Become a Vendor</h1>
+            <h1 className="text-3xl font-bold">Become a Service Provider</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join our marketplace and start selling your products to thousands of customers. 
-              Apply now to become a verified vendor.
+              Join our platform and start offering your services. Choose from product sales, 
+              ride services, or property listings.
             </p>
-            <Button onClick={() => setShowApplication(true)} size="lg">
-              Apply Now
-            </Button>
+            
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button onClick={() => setShowApplication(true)} size="lg">
+                Product Vendor
+              </Button>
+              <Button 
+                onClick={() => {
+                  setSelectedServiceType('driver');
+                  setShowServiceRegistration(true);
+                }} 
+                variant="outline" 
+                size="lg"
+              >
+                Ride Driver
+              </Button>
+              <Button 
+                onClick={() => {
+                  setSelectedServiceType('property_owner');
+                  setShowServiceRegistration(true);
+                }} 
+                variant="outline" 
+                size="lg"
+              >
+                Property Owner
+              </Button>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mt-12">
@@ -89,6 +121,24 @@ const VendorDashboard = () => {
           open={showApplication} 
           onOpenChange={setShowApplication} 
         />
+        
+        {showServiceRegistration && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute -top-2 -right-2 z-10"
+                onClick={() => setShowServiceRegistration(false)}
+              >
+                ×
+              </Button>
+              <ServiceProviderRegistration
+                onRegistered={() => setShowServiceRegistration(false)}
+              />
+            </div>
+          </div>
+        )}
       </MainLayout>
     );
   }
@@ -107,35 +157,73 @@ const VendorDashboard = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{vendorProfile.business_name}</h1>
-            <p className="text-muted-foreground">Vendor Dashboard</p>
+            <h1 className="text-3xl font-bold">Service Provider Dashboard</h1>
+            <p className="text-muted-foreground">Manage your services and track performance</p>
           </div>
-          <Badge variant={getStatusColor(vendorProfile.verification_status)}>
-            {vendorProfile.verification_status}
-          </Badge>
         </div>
 
-        {vendorProfile.verification_status === 'pending' && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="pt-6">
-              <p className="text-yellow-800">
-                Your vendor application is currently under review. You'll be notified once it's approved.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Service Provider Status Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {vendorProfile && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="h-5 w-5" />
+                  Product Vendor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={getStatusColor(vendorProfile.verification_status)}>
+                  {vendorProfile.verification_status}
+                </Badge>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {vendorProfile.business_name}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
-        {vendorProfile.verification_status === 'rejected' && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-800">
-                Your vendor application was rejected. Please contact support for more information.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+          {driverProfile && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Car className="h-5 w-5" />
+                  Ride Driver
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={getStatusColor(driverProfile.verification_status)}>
+                  {driverProfile.verification_status}
+                </Badge>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {driverProfile.business_name}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
-        {vendorProfile.verification_status === 'approved' && (
+          {propertyProfile && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Home className="h-5 w-5" />
+                  Property Owner
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={getStatusColor(propertyProfile.verification_status)}>
+                  {propertyProfile.verification_status}
+                </Badge>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {propertyProfile.business_name}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Show analytics only for approved vendors */}
+        {hasApprovedProfile && (
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -235,6 +323,17 @@ const VendorDashboard = () => {
               </Card>
             </TabsContent>
           </Tabs>
+        )}
+
+        {!hasApprovedProfile && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardContent className="pt-6">
+              <p className="text-yellow-800">
+                Your service provider applications are under review. You'll get access to 
+                full dashboard features once approved.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </MainLayout>

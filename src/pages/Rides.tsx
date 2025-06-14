@@ -1,138 +1,189 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Car, MapPin, Clock, Shield, Star, Phone } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import RideBookingModal from '@/components/RideBookingModal';
-import RideHistory from '@/components/RideHistory';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Car, Clock, MapPin, Star, Navigation } from 'lucide-react';
+import EnhancedRideBooking from '@/components/EnhancedRideBooking';
+import { useEnhancedRides, useRideMatchingRequests } from '@/hooks/useEnhancedRides';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const Rides = () => {
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const { data: rides, isLoading } = useEnhancedRides();
+  const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
+  const { data: matchingRequests } = useRideMatchingRequests(selectedRideId || undefined);
 
-  const vehicleTypes = [
-    {
-      type: 'Taxi',
-      icon: Car,
-      price: 'KSh 150',
-      time: '5-10 min',
-      description: 'Comfortable rides for daily commuting'
-    },
-    {
-      type: 'Motorbike',
-      icon: Car,
-      price: 'KSh 80',
-      time: '3-8 min',
-      description: 'Quick rides through traffic'
-    }
-  ];
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">Loading...</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
-  const handleBookRide = () => {
-    if (!user) {
-      window.location.href = '/auth';
-      return;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'default';
+      case 'in_progress': return 'secondary';
+      case 'accepted': return 'secondary';
+      case 'requested': return 'outline';
+      case 'cancelled': return 'destructive';
+      default: return 'outline';
     }
-    setIsBookingModalOpen(true);
+  };
+
+  const formatStatus = (status: string) => {
+    return status.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
   };
 
   return (
     <MainLayout>
-      <div className="space-y-12">
-        {/* Hero Section with Background */}
-        <section className="relative text-center py-24 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-20"
-            style={{
-              backgroundImage: 'url(https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)'
-            }}
-          />
-          <div className="relative z-10">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Soko Smart Rides
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Navigation className="h-8 w-8" />
+              Ride Services
             </h1>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              Get around Kenya safely and affordably with our ride-hailing service
+            <p className="text-muted-foreground">
+              Book rides across Kenya with our network of verified drivers
             </p>
-            <Button size="lg" onClick={handleBookRide} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-3">
-              <MapPin className="mr-2 h-5 w-5" />
-              Book a Ride Now
-            </Button>
           </div>
-        </section>
+        </div>
 
-        {/* Vehicle Types */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Choose Your Ride</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {vehicleTypes.map((vehicle, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-blue-100 rounded-xl">
-                      <vehicle.icon className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">{vehicle.type}</CardTitle>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <span>From {vehicle.price}</span>
-                        <span>•</span>
-                        <span>{vehicle.time}</span>
+        <Tabs defaultValue="book" className="space-y-4">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="book">Book a Ride</TabsTrigger>
+            <TabsTrigger value="history">My Rides</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="book" className="space-y-4">
+            <EnhancedRideBooking 
+              onRideBooked={(rideId) => {
+                setSelectedRideId(rideId);
+                // Optionally switch to history tab
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading your rides...</div>
+            ) : rides && rides.length > 0 ? (
+              <div className="grid gap-4">
+                {rides.map((ride) => (
+                  <Card key={ride.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Car className="h-5 w-5" />
+                          {ride.vehicle_type === 'taxi' ? 'Taxi Ride' : 'Motorbike Ride'}
+                        </CardTitle>
+                        <Badge variant={getStatusColor(ride.status)}>
+                          {formatStatus(ride.status)}
+                        </Badge>
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="mb-4">{vehicle.description}</CardDescription>
-                  <Button onClick={handleBookRide} className="w-full bg-gradient-to-r from-blue-500 to-indigo-600">
-                    Select {vehicle.type}
-                  </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Route Information */}
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-green-600 mt-1" />
+                          <div>
+                            <p className="font-medium text-sm">From</p>
+                            <p className="text-sm text-muted-foreground">{ride.pickup_address}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-red-600 mt-1" />
+                          <div>
+                            <p className="font-medium text-sm">To</p>
+                            <p className="text-sm text-muted-foreground">{ride.destination_address}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ride Details */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Fare</p>
+                          <p className="font-medium">
+                            KSh {(ride.actual_fare || ride.estimated_fare || 0).toLocaleString()}
+                          </p>
+                        </div>
+                        {ride.distance_km && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">Distance</p>
+                            <p className="font-medium">{ride.distance_km.toFixed(1)} km</p>
+                          </div>
+                        )}
+                        {ride.duration_minutes && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">Duration</p>
+                            <p className="font-medium flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {ride.duration_minutes} min
+                            </p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs text-muted-foreground">Date</p>
+                          <p className="font-medium">
+                            {new Date(ride.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Rating (for completed rides) */}
+                      {ride.status === 'completed' && ride.rating && (
+                        <div className="flex items-center gap-2 pt-2 border-t">
+                          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-medium">{ride.rating}/5</span>
+                          {ride.review && (
+                            <span className="text-sm text-muted-foreground">- {ride.review}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Driver Matching Status (for requested rides) */}
+                      {ride.status === 'requested' && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-sm font-medium text-blue-900">Finding Driver...</p>
+                          <p className="text-xs text-blue-700">
+                            We're looking for available drivers in your area
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Car className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-muted-foreground">No rides yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Book your first ride to get started
+                  </p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { icon: Shield, title: 'Safe & Secure', desc: 'Verified drivers and secure payments' },
-            { icon: Clock, title: 'Fast Booking', desc: 'Get a ride in minutes, not hours' },
-            { icon: Star, title: 'Rated Drivers', desc: 'All our drivers are highly rated' }
-          ].map((feature, index) => (
-            <Card key={index} className="text-center p-6">
-              <feature.icon className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-              <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.desc}</p>
-            </Card>
-          ))}
-        </section>
-
-        {/* User's Ride History - Only show if logged in */}
-        {user && (
-          <section>
-            <RideHistory />
-          </section>
-        )}
-
-        {/* Coming Soon Notice */}
-        <section className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-12 rounded-2xl">
-          <h2 className="text-3xl font-bold mb-4">Ride Matching Coming Soon!</h2>
-          <p className="text-lg mb-6 opacity-90">
-            You can book rides now, but driver matching is still in development. We'll notify you when it's ready!
-          </p>
-          <Button variant="secondary" size="lg" className="px-8 py-3">
-            <Phone className="mr-2 h-5 w-5" />
-            Get Notified
-          </Button>
-        </section>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <RideBookingModal 
-        isOpen={isBookingModalOpen} 
-        onClose={() => setIsBookingModalOpen(false)} 
-      />
     </MainLayout>
   );
 };

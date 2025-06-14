@@ -182,13 +182,57 @@ export type Database = {
           },
         ]
       }
+      driver_locations: {
+        Row: {
+          accuracy: number | null
+          driver_id: string
+          heading: number | null
+          id: string
+          is_active: boolean | null
+          location: unknown
+          speed: number | null
+          timestamp: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          driver_id: string
+          heading?: number | null
+          id?: string
+          is_active?: boolean | null
+          location: unknown
+          speed?: number | null
+          timestamp?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          driver_id?: string
+          heading?: number | null
+          id?: string
+          is_active?: boolean | null
+          location?: unknown
+          speed?: number | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
+          availability_status: string | null
           created_at: string | null
           current_location: unknown | null
+          documents: Json | null
           id: string
           is_active: boolean | null
           is_verified: boolean | null
+          last_location_update: string | null
           license_number: string
           license_plate: string
           phone_number: string
@@ -203,11 +247,14 @@ export type Database = {
           vehicle_year: number | null
         }
         Insert: {
+          availability_status?: string | null
           created_at?: string | null
           current_location?: unknown | null
+          documents?: Json | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          last_location_update?: string | null
           license_number: string
           license_plate: string
           phone_number: string
@@ -222,11 +269,14 @@ export type Database = {
           vehicle_year?: number | null
         }
         Update: {
+          availability_status?: string | null
           created_at?: string | null
           current_location?: unknown | null
+          documents?: Json | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          last_location_update?: string | null
           license_number?: string
           license_plate?: string
           phone_number?: string
@@ -1011,6 +1061,57 @@ export type Database = {
           },
         ]
       }
+      ride_matching_requests: {
+        Row: {
+          created_at: string | null
+          distance_km: number | null
+          driver_id: string
+          estimated_time_minutes: number | null
+          expires_at: string
+          id: string
+          responded_at: string | null
+          ride_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id: string
+          estimated_time_minutes?: number | null
+          expires_at: string
+          id?: string
+          responded_at?: string | null
+          ride_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id?: string
+          estimated_time_minutes?: number | null
+          expires_at?: string
+          id?: string
+          responded_at?: string | null
+          ride_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_matching_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_matching_requests_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_requests: {
         Row: {
           created_at: string | null
@@ -1139,6 +1240,99 @@ export type Database = {
           },
         ]
       }
+      service_provider_profiles: {
+        Row: {
+          business_description: string | null
+          business_name: string | null
+          created_at: string | null
+          documents: Json | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          location_address: string | null
+          location_coordinates: unknown | null
+          phone_number: string | null
+          provider_type: string
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          business_description?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          documents?: Json | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_address?: string | null
+          location_coordinates?: unknown | null
+          phone_number?: string | null
+          provider_type: string
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          business_description?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          documents?: Json | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_address?: string | null
+          location_coordinates?: unknown | null
+          phone_number?: string | null
+          provider_type?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
+      surge_pricing: {
+        Row: {
+          created_at: string | null
+          days_of_week: number[] | null
+          end_time: string | null
+          id: string
+          is_active: boolean | null
+          location_bounds: Json
+          location_name: string
+          start_time: string | null
+          surge_multiplier: number
+          updated_at: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_bounds: Json
+          location_name: string
+          start_time?: string | null
+          surge_multiplier?: number
+          updated_at?: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Update: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_bounds?: Json
+          location_name?: string
+          start_time?: string | null
+          surge_multiplier?: number
+          updated_at?: string | null
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1218,6 +1412,7 @@ export type Database = {
           id: string
           reviewed_at: string | null
           reviewed_by: string | null
+          service_type: string | null
           status: string | null
           submitted_at: string
           tax_id: string | null
@@ -1236,6 +1431,7 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_type?: string | null
           status?: string | null
           submitted_at?: string
           tax_id?: string | null
@@ -1254,6 +1450,7 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_type?: string | null
           status?: string | null
           submitted_at?: string
           tax_id?: string | null
@@ -1462,7 +1659,13 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
-      user_role: "admin" | "customer"
+      user_role:
+        | "admin"
+        | "customer"
+        | "vendor"
+        | "driver"
+        | "property_owner"
+        | "rider"
       vehicle_type: "taxi" | "motorbike"
     }
     CompositeTypes: {
@@ -1601,7 +1804,14 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
-      user_role: ["admin", "customer"],
+      user_role: [
+        "admin",
+        "customer",
+        "vendor",
+        "driver",
+        "property_owner",
+        "rider",
+      ],
       vehicle_type: ["taxi", "motorbike"],
     },
   },
