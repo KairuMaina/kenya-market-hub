@@ -310,6 +310,7 @@ export type Database = {
           template_type: string | null
           total_recipients: number | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           audience_segments?: Json | null
@@ -328,6 +329,7 @@ export type Database = {
           template_type?: string | null
           total_recipients?: number | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           audience_segments?: Json | null
@@ -346,6 +348,7 @@ export type Database = {
           template_type?: string | null
           total_recipients?: number | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1632,6 +1635,10 @@ export type Database = {
             }
           | { user_id: number; role_name: string }
         Returns: boolean
+      }
+      update_product_rating: {
+        Args: { product_id: number; rating: number }
+        Returns: undefined
       }
       upsert_recently_viewed: {
         Args: { p_user_id: string; p_product_id: string }
