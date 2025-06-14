@@ -22,7 +22,8 @@ import {
   BarChart3,
   Settings,
   FileText,
-  Shield
+  Shield,
+  Store
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +38,10 @@ const AppSidebar = () => {
     { title: 'Products', url: '/products', icon: ShoppingBag },
     { title: 'Cart', url: '/cart', icon: ShoppingCart },
     { title: 'Checkout', url: '/checkout', icon: CreditCard },
+  ];
+
+  const vendorItems = [
+    { title: 'Vendor Dashboard', url: '/vendor', icon: Store },
   ];
 
   const adminItems = [
@@ -117,29 +122,57 @@ const AppSidebar = () => {
             </SidebarGroup>
           </>
         ) : (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
-              <span>Marketplace</span>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
-                {customerItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={location.pathname === item.url}
-                      className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 hover:scale-105 hover:shadow-sm"
-                    >
-                      <Link to={item.url} className="flex items-center space-x-3 min-w-0">
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
+                <span>Marketplace</span>
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {customerItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={location.pathname === item.url}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 hover:scale-105 hover:shadow-sm"
+                      >
+                        <Link to={item.url} className="flex items-center space-x-3 min-w-0">
+                          <item.icon className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {user && (
+              <SidebarGroup className="mt-6">
+                <SidebarGroupLabel className="text-gray-500 font-semibold text-xs uppercase tracking-wider mb-2">
+                  <span>Sell With Us</span>
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu className="space-y-1">
+                    {vendorItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={location.pathname === item.url}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-600 hover:scale-105 hover:shadow-sm"
+                        >
+                          <Link to={item.url} className="flex items-center space-x-3 min-w-0">
+                            <item.icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </>
         )}
       </SidebarContent>
 
