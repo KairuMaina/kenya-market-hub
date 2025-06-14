@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,16 +44,12 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <Toaster />
-            <Sonner />
-            <SoundEffects />
-            <PerformanceMonitor />
-            <BrowserRouter>
-              <ErrorBoundary>
+            <TooltipProvider>
+              <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
@@ -82,12 +79,16 @@ function App() {
                   <Route path="/email-confirmation" element={<EmailConfirmation />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </ErrorBoundary>
-            </BrowserRouter>
+              </BrowserRouter>
+              <Toaster />
+              <Sonner />
+              <SoundEffects />
+              <PerformanceMonitor />
+            </TooltipProvider>
           </CartProvider>
         </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
