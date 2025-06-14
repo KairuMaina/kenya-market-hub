@@ -2,282 +2,209 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { Download, FileText, TrendingUp, Users, ShoppingCart, Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import MainLayout from '@/components/MainLayout';
+import { DatePickerWithRange } from '@/components/ui/date-picker';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { FileText, Download, Calendar, Filter, TrendingUp, Users, DollarSign } from 'lucide-react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { DateRange } from 'react-day-picker';
 
 const AdminReports = () => {
-  const [dateRange, setDateRange] = useState<{from?: Date, to?: Date}>({});
   const [reportType, setReportType] = useState('sales');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const reportTypes = [
-    { value: 'sales', label: 'Sales Report', icon: TrendingUp },
-    { value: 'users', label: 'User Analytics', icon: Users },
-    { value: 'orders', label: 'Order Summary', icon: ShoppingCart },
-    { value: 'products', label: 'Product Performance', icon: FileText },
-  ];
+  // Fetch report data
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['admin-reports', reportType, dateRange],
+    queryFn: async () => {
+      let query = supabase.from('orders').select('*');
+      
+      if (dateRange?.from) {
+        query = query.gte('created_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte('created_at', dateRange.to.toISOString());
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      return data || [];
+    }
+  });
 
-  const savedReports = [
-    {
-      id: 1,
-      name: 'Monthly Sales Report - May 2024',
-      type: 'Sales',
-      generatedAt: '2024-05-31',
-      status: 'Ready',
-      size: '2.3 MB'
-    },
-    {
-      id: 2,
-      name: 'User Activity Report - Q1 2024',
-      type: 'Users',
-      generatedAt: '2024-04-01',
-      status: 'Ready',
-      size: '1.8 MB'
-    },
-    {
-      id: 3,
-      name: 'Product Performance - April 2024',
-      type: 'Products',
-      generatedAt: '2024-04-30',
-      status: 'Processing',
-      size: 'Pending'
-    },
-  ];
-
-  const quickStats = [
-    { label: 'Reports Generated', value: '45', change: '+12%' },
-    { label: 'Data Points Analyzed', value: '12.5K', change: '+8%' },
-    { label: 'Export Downloads', value: '128', change: '+25%' },
-    { label: 'Scheduled Reports', value: '8', change: '+3%' },
-  ];
-
-  const handleGenerateReport = async () => {
-    setIsGenerating(true);
-    // Simulate report generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      alert('Report generated successfully!');
-    }, 2000);
+  const generateReport = () => {
+    if (!reportData) return;
+    
+    const csvContent = [
+      ['Order ID', 'User ID', 'Total Amount', 'Status', 'Payment Status', 'Created At'],
+      ...reportData.map(order => [
+        order.id,
+        order.user_id,
+        order.total_amount,
+        order.status,
+        order.payment_status,
+        new Date(order.created_at).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
+  // Calculate summary statistics
+  const totalRevenue = reportData?.reduce((sum, order) => sum + Number(order.total_amount || 0), 0) || 0;
+  const totalOrders = reportData?.length || 0;
+  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
   return (
-    <MainLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Reports & Analytics</h1>
-          <p className="text-gray-600">Generate comprehensive reports and export data</p>
-        </div>
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <FileText className="h-8 w-8" />
+              Reports & Analytics
+            </h1>
+            <p className="text-green-100 mt-2">Generate and download detailed business reports</p>
+          </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {quickStats.map((stat, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                  </div>
-                  <div className="text-xs text-green-600 font-medium">
-                    {stat.change}
-                  </div>
+          {/* Report Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Report Filters
+              </CardTitle>
+              <CardDescription>Configure report parameters and date ranges</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Report Type</label>
+                  <Select value={reportType} onValueChange={setReportType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select report type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sales">Sales Report</SelectItem>
+                      <SelectItem value="orders">Orders Report</SelectItem>
+                      <SelectItem value="users">Users Report</SelectItem>
+                      <SelectItem value="products">Products Report</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Tabs defaultValue="generate" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="generate">Generate Report</TabsTrigger>
-            <TabsTrigger value="saved">Saved Reports</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled Reports</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="generate" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Generate New Report</CardTitle>
-                <CardDescription>Configure and generate custom reports</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Report Type</label>
-                      <Select value={reportType} onValueChange={setReportType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select report type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {reportTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              <div className="flex items-center">
-                                <type.icon className="h-4 w-4 mr-2" />
-                                {type.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Date Range</label>
-                      <div className="flex space-x-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="flex-1">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {dateRange.from ? format(dateRange.from, 'MMM dd, yyyy') : 'From date'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={dateRange.from}
-                              onSelect={(date) => setDateRange(prev => ({ ...prev, from: date }))}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="flex-1">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {dateRange.to ? format(dateRange.to, 'MMM dd, yyyy') : 'To date'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={dateRange.to}
-                              onSelect={(date) => setDateRange(prev => ({ ...prev, to: date }))}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Report Name</label>
-                      <Input placeholder="Enter report name" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Export Format</label>
-                      <Select defaultValue="excel">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="excel">Excel (.xlsx)</SelectItem>
-                          <SelectItem value="pdf">PDF (.pdf)</SelectItem>
-                          <SelectItem value="csv">CSV (.csv)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Include Filters</label>
-                      <div className="space-y-2">
-                        <label className="flex items-center space-x-2">
-                          <input type="checkbox" className="rounded" defaultChecked />
-                          <span className="text-sm">Include charts and graphs</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input type="checkbox" className="rounded" defaultChecked />
-                          <span className="text-sm">Include summary statistics</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input type="checkbox" className="rounded" />
-                          <span className="text-sm">Include raw data</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Date Range</label>
+                  <DatePickerWithRange date={dateRange} setDate={setDateRange} />
                 </div>
-
-                <div className="flex space-x-4">
-                  <Button 
-                    onClick={handleGenerateReport} 
-                    disabled={isGenerating}
-                    className="flex-1"
-                  >
-                    {isGenerating ? 'Generating...' : 'Generate Report'}
-                  </Button>
-                  <Button variant="outline">
+                
+                <div className="flex items-end">
+                  <Button onClick={generateReport} disabled={isLoading} className="w-full">
                     <Download className="h-4 w-4 mr-2" />
-                    Schedule
+                    Generate Report
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="saved" className="space-y-6">
+          {/* Summary Statistics */}
+          <div className="grid gap-4 md:grid-cols-3">
             <Card>
-              <CardHeader>
-                <CardTitle>Saved Reports</CardTitle>
-                <CardDescription>Download and manage your generated reports</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {savedReports.map((report) => (
-                    <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{report.name}</h4>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                          <span>Type: {report.type}</span>
-                          <span>Generated: {report.generatedAt}</span>
-                          <span>Size: {report.size}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={report.status === 'Ready' ? 'default' : 'secondary'}>
-                          {report.status}
-                        </Badge>
-                        {report.status === 'Ready' && (
-                          <Button size="sm" variant="outline">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-2xl font-bold text-green-600">
+                  KSH {totalRevenue.toLocaleString()}
                 </div>
+                <p className="text-xs text-muted-foreground">From selected period</p>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="scheduled" className="space-y-6">
+            
             <Card>
-              <CardHeader>
-                <CardTitle>Scheduled Reports</CardTitle>
-                <CardDescription>Manage automated report generation</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <TrendingUp className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Scheduled Reports</h3>
-                  <p className="text-gray-600 mb-4">Set up automated reports to be generated regularly</p>
-                  <Button>Create Scheduled Report</Button>
-                </div>
+                <div className="text-2xl font-bold text-blue-600">{totalOrders}</div>
+                <p className="text-xs text-muted-foreground">Orders in period</p>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </MainLayout>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+                <Users className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  KSH {averageOrderValue.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Average per order</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Reports */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Reports</CardTitle>
+              <CardDescription>Previously generated reports and scheduled reports</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <h4 className="font-medium">Sales Report - Monthly</h4>
+                    <p className="text-sm text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <h4 className="font-medium">User Activity Report</h4>
+                    <p className="text-sm text-gray-600">Generated on {new Date(Date.now() - 86400000).toLocaleDateString()}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <h4 className="font-medium">Product Performance Report</h4>
+                    <p className="text-sm text-gray-600">Generated on {new Date(Date.now() - 172800000).toLocaleDateString()}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
+    </ProtectedAdminRoute>
   );
 };
 

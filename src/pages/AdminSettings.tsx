@@ -1,281 +1,279 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Settings, 
-  Save, 
-  Upload, 
-  Globe, 
-  Bell,
-  Shield,
-  Palette,
-  Database,
-  Mail
-} from 'lucide-react';
-import MainLayout from '@/components/MainLayout';
+import { Settings, Save, Bell, Shield, Globe, Palette } from 'lucide-react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 
 const AdminSettings = () => {
-  const { user, loading } = useAuth();
   const { toast } = useToast();
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [settings, setSettings] = useState({
     siteName: 'Soko Smart',
-    siteDescription: 'Kenya\'s Premier Digital Marketplace',
-    heroImages: [] as File[],
-    emailNotifications: true,
-    orderNotifications: true,
+    siteDescription: 'Your one-stop marketplace for everything',
     maintenanceMode: false,
     allowRegistration: true,
-    commission: 5,
-    currency: 'KSH',
-    timezone: 'Africa/Nairobi'
+    emailNotifications: true,
+    smsNotifications: false,
+    orderNotifications: true,
+    maxFileSize: 10,
+    supportEmail: 'support@sokosmart.com',
+    supportPhone: '+254 700 000 000'
   });
 
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  if (!user || user.email !== 'gmaina424@gmail.com') {
-    return <Navigate to="/" replace />;
-  }
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  // Fetch current settings
+  const { data: currentSettings, isLoading } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*');
       
-      // Here you would normally save to your backend/database
-      console.log('Saving settings:', settings);
-      
-      // Update localStorage for demo purposes
-      localStorage.setItem('sokoSmartSettings', JSON.stringify(settings));
-      
-      toast({
-        title: "Settings saved successfully!",
-        description: "Your platform settings have been updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error saving settings",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
+      if (error) throw error;
+      return data || [];
     }
-  };
+  });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const fileArray = Array.from(files);
-      setSettings(prev => ({
-        ...prev,
-        heroImages: fileArray
+  // Save settings mutation
+  const saveSettings = useMutation({
+    mutationFn: async (newSettings: typeof settings) => {
+      const settingsArray = Object.entries(newSettings).map(([key, value]) => ({
+        setting_key: key,
+        setting_value: { value },
+        updated_by: null // Would be current user in real app
       }));
       
-      toast({
-        title: "Images selected",
-        description: `${files.length} hero image(s) selected. Click save to upload.`,
+      for (const setting of settingsArray) {
+        const { error } = await supabase
+          .from('admin_settings')
+          .upsert(setting, { onConflict: 'setting_key' });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+      toast({ title: "Settings saved successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error saving settings", 
+        description: error.message,
+        variant: "destructive"
       });
     }
+  });
+
+  const handleSave = () => {
+    saveSettings.mutate(settings);
   };
 
-  const updateSetting = (key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const handleSettingChange = (key: string, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-3 sm:space-y-4 animate-fade-in">
-        <div className="bg-gradient-to-r from-gray-600 to-gray-800 text-white p-3 sm:p-4 md:p-6 rounded-lg shadow-lg">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2">
-            <Settings className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
-            Platform Settings
-          </h1>
-          <p className="text-gray-100 mt-1 sm:mt-2 text-sm">Configure your marketplace settings</p>
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-r from-gray-700 to-gray-900 text-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Settings className="h-8 w-8" />
+              System Settings
+            </h1>
+            <p className="text-gray-200 mt-2">Configure your application settings and preferences</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* General Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  General Settings
+                </CardTitle>
+                <CardDescription>Basic application configuration</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="siteName">Site Name</Label>
+                  <Input
+                    id="siteName"
+                    value={settings.siteName}
+                    onChange={(e) => handleSettingChange('siteName', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="siteDescription">Site Description</Label>
+                  <Textarea
+                    id="siteDescription"
+                    value={settings.siteDescription}
+                    onChange={(e) => handleSettingChange('siteDescription', e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
+                  <Switch
+                    id="maintenanceMode"
+                    checked={settings.maintenanceMode}
+                    onCheckedChange={(checked) => handleSettingChange('maintenanceMode', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="allowRegistration">Allow User Registration</Label>
+                  <Switch
+                    id="allowRegistration"
+                    checked={settings.allowRegistration}
+                    onCheckedChange={(checked) => handleSettingChange('allowRegistration', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notification Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notification Settings
+                </CardTitle>
+                <CardDescription>Configure notification preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="emailNotifications">Email Notifications</Label>
+                  <Switch
+                    id="emailNotifications"
+                    checked={settings.emailNotifications}
+                    onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="smsNotifications">SMS Notifications</Label>
+                  <Switch
+                    id="smsNotifications"
+                    checked={settings.smsNotifications}
+                    onCheckedChange={(checked) => handleSettingChange('smsNotifications', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="orderNotifications">Order Notifications</Label>
+                  <Switch
+                    id="orderNotifications"
+                    checked={settings.orderNotifications}
+                    onCheckedChange={(checked) => handleSettingChange('orderNotifications', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* System Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  System Settings
+                </CardTitle>
+                <CardDescription>Technical configuration options</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="maxFileSize">Max File Size (MB)</Label>
+                  <Input
+                    id="maxFileSize"
+                    type="number"
+                    value={settings.maxFileSize}
+                    onChange={(e) => handleSettingChange('maxFileSize', parseInt(e.target.value))}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="supportEmail">Support Email</Label>
+                  <Input
+                    id="supportEmail"
+                    type="email"
+                    value={settings.supportEmail}
+                    onChange={(e) => handleSettingChange('supportEmail', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="supportPhone">Support Phone</Label>
+                  <Input
+                    id="supportPhone"
+                    value={settings.supportPhone}
+                    onChange={(e) => handleSettingChange('supportPhone', e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Theme Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Theme & Appearance
+                </CardTitle>
+                <CardDescription>Customize the look and feel</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Color Scheme</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="w-full h-8 bg-blue-500 rounded cursor-pointer"></div>
+                      <div className="w-full h-8 bg-green-500 rounded cursor-pointer"></div>
+                      <div className="w-full h-8 bg-purple-500 rounded cursor-pointer"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Layout Options</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Compact Mode</span>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Dark Mode</span>
+                        <Switch />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSave} 
+              disabled={saveSettings.isPending}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {saveSettings.isPending ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-          {/* General Settings */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
-                General Settings
-              </CardTitle>
-              <CardDescription className="text-sm">Basic platform configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="siteName" className="text-sm">Site Name</Label>
-                <Input
-                  id="siteName"
-                  value={settings.siteName}
-                  onChange={(e) => updateSetting('siteName', e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="siteDescription" className="text-sm">Site Description</Label>
-                <Textarea
-                  id="siteDescription"
-                  value={settings.siteDescription}
-                  onChange={(e) => updateSetting('siteDescription', e.target.value)}
-                  className="text-sm min-h-[80px]"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currency" className="text-sm">Currency</Label>
-                <Input
-                  id="currency"
-                  value={settings.currency}
-                  onChange={(e) => updateSetting('currency', e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Hero Images */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Palette className="h-4 w-4 sm:h-5 sm:w-5" />
-                Hero Section
-              </CardTitle>
-              <CardDescription className="text-sm">Manage hero slideshow images</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="heroImages" className="text-sm">Upload Hero Images</Label>
-                <Input
-                  id="heroImages"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="text-sm"
-                />
-                <p className="text-xs text-gray-500">Upload multiple images for the hero slideshow</p>
-                {settings.heroImages.length > 0 && (
-                  <p className="text-xs text-green-600">
-                    {settings.heroImages.length} image(s) selected
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                Notifications
-              </CardTitle>
-              <CardDescription className="text-sm">Configure notification preferences</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Email Notifications</Label>
-                  <p className="text-xs text-gray-500">Receive email notifications for important events</p>
-                </div>
-                <Switch
-                  checked={settings.emailNotifications}
-                  onCheckedChange={(checked) => updateSetting('emailNotifications', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Order Notifications</Label>
-                  <p className="text-xs text-gray-500">Get notified about new orders</p>
-                </div>
-                <Switch
-                  checked={settings.orderNotifications}
-                  onCheckedChange={(checked) => updateSetting('orderNotifications', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Security Settings */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
-                Security & Access
-              </CardTitle>
-              <CardDescription className="text-sm">Platform security configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Maintenance Mode</Label>
-                  <p className="text-xs text-gray-500">Temporarily disable public access</p>
-                </div>
-                <Switch
-                  checked={settings.maintenanceMode}
-                  onCheckedChange={(checked) => updateSetting('maintenanceMode', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Allow Registration</Label>
-                  <p className="text-xs text-gray-500">Enable new user registrations</p>
-                </div>
-                <Switch
-                  checked={settings.allowRegistration}
-                  onCheckedChange={(checked) => updateSetting('allowRegistration', checked)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="commission" className="text-sm">Platform Commission (%)</Label>
-                <Input
-                  id="commission"
-                  type="number"
-                  value={settings.commission}
-                  onChange={(e) => updateSetting('commission', parseInt(e.target.value) || 0)}
-                  className="text-sm"
-                  min="0"
-                  max="100"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex justify-end pt-2 sm:pt-4">
-          <Button 
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </div>
-      </div>
-    </MainLayout>
+      </AdminLayout>
+    </ProtectedAdminRoute>
   );
 };
 

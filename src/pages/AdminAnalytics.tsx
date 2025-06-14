@@ -1,267 +1,237 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, ShoppingCart, DollarSign, Package, Eye, Star, MessageSquare } from 'lucide-react';
-import MainLayout from '@/components/MainLayout';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, Users, Package, ShoppingCart, Building, Car, DollarSign, Calendar } from 'lucide-react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 
 const AdminAnalytics = () => {
-  // Mock data - in a real app, this would come from your database
-  const salesData = [
-    { month: 'Jan', sales: 45000, orders: 120, users: 1200 },
-    { month: 'Feb', sales: 52000, orders: 140, users: 1350 },
-    { month: 'Mar', sales: 48000, orders: 130, users: 1500 },
-    { month: 'Apr', sales: 61000, orders: 165, users: 1750 },
-    { month: 'May', sales: 55000, orders: 150, users: 1900 },
-    { month: 'Jun', sales: 67000, orders: 180, users: 2100 },
-  ];
+  // Fetch analytics data
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['admin-analytics'],
+    queryFn: async () => {
+      const [
+        { count: usersCount },
+        { count: productsCount },
+        { count: ordersCount },
+        { count: propertiesCount },
+        { count: ridesCount },
+        { data: orders },
+        { data: transactions }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('properties').select('*', { count: 'exact', head: true }),
+        supabase.from('rides').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('created_at, total_amount, status'),
+        supabase.from('transactions').select('amount, created_at')
+      ]);
 
-  const categoryData = [
-    { name: 'Electronics', value: 35, color: '#8884d8' },
-    { name: 'Fashion', value: 25, color: '#82ca9d' },
-    { name: 'Home & Garden', value: 20, color: '#ffc658' },
-    { name: 'Sports', value: 12, color: '#ff7300' },
-    { name: 'Books', value: 8, color: '#00ff88' },
-  ];
+      // Process data for charts
+      const monthlyOrders = processMonthlyData(orders || []);
+      const monthlyRevenue = processMonthlyRevenue(transactions || []);
+      const ordersByStatus = processOrdersByStatus(orders || []);
 
-  const recentActivity = [
-    { type: 'order', message: 'New order #12345 placed', time: '2 min ago' },
-    { type: 'user', message: 'New user registration', time: '5 min ago' },
-    { type: 'product', message: 'Product "iPhone 15" updated', time: '10 min ago' },
-    { type: 'review', message: 'New 5-star review received', time: '15 min ago' },
-  ];
+      return {
+        counts: {
+          users: usersCount || 0,
+          products: productsCount || 0,
+          orders: ordersCount || 0,
+          properties: propertiesCount || 0,
+          rides: ridesCount || 0
+        },
+        charts: {
+          monthlyOrders,
+          monthlyRevenue,
+          ordersByStatus
+        }
+      };
+    }
+  });
 
-  const stats = [
-    {
-      title: 'Total Revenue',
-      value: 'KSh 2,345,000',
-      change: '+12.5%',
-      icon: DollarSign,
-      color: 'text-green-600',
-    },
-    {
-      title: 'Total Orders',
-      value: '1,234',
-      change: '+8.2%',
-      icon: ShoppingCart,
-      color: 'text-blue-600',
-    },
-    {
-      title: 'Active Users',
-      value: '8,945',
-      change: '+15.3%',
-      icon: Users,
-      color: 'text-purple-600',
-    },
-    {
-      title: 'Products Sold',
-      value: '3,456',
-      change: '+6.7%',
-      icon: Package,
-      color: 'text-orange-600',
-    },
-  ];
+  const processMonthlyData = (orders: any[]) => {
+    const monthlyData: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const month = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData[month] = (monthlyData[month] || 0) + 1;
+    });
+    return Object.entries(monthlyData).map(([month, count]) => ({ month, orders: count }));
+  };
+
+  const processMonthlyRevenue = (transactions: any[]) => {
+    const monthlyData: { [key: string]: number } = {};
+    transactions.forEach(transaction => {
+      const month = new Date(transaction.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData[month] = (monthlyData[month] || 0) + Number(transaction.amount || 0);
+    });
+    return Object.entries(monthlyData).map(([month, revenue]) => ({ month, revenue }));
+  };
+
+  const processOrdersByStatus = (orders: any[]) => {
+    const statusData: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const status = order.status || 'pending';
+      statusData[status] = (statusData[status] || 0) + 1;
+    });
+    return Object.entries(statusData).map(([status, count]) => ({ status, count }));
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+  if (isLoading) {
+    return (
+      <ProtectedAdminRoute>
+        <AdminLayout>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+              <p>Loading analytics...</p>
+            </div>
+          </div>
+        </AdminLayout>
+      </ProtectedAdminRoute>
+    );
+  }
 
   return (
-    <MainLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-          <p className="text-gray-600">Comprehensive insights into your business performance</p>
-        </div>
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <TrendingUp className="h-8 w-8" />
+              Analytics Dashboard
+            </h1>
+            <p className="text-purple-100 mt-2">Comprehensive business insights and metrics</p>
+          </div>
 
-        {/* Key Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
+          {/* Key Metrics */}
+          <div className="grid gap-4 md:grid-cols-5">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className={`text-xs ${stat.color} flex items-center`}>
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  {stat.change} from last month
-                </div>
+                <div className="text-2xl font-bold">{analytics?.counts.users}</div>
+                <p className="text-xs text-muted-foreground">+10.2% from last month</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sales">Sales</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Overview</CardTitle>
-                  <CardDescription>Monthly sales and order trends</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="sales" stroke="#8884d8" name="Sales (KSh)" />
-                      <Line type="monotone" dataKey="orders" stroke="#82ca9d" name="Orders" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Distribution</CardTitle>
-                  <CardDescription>Sales by product category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={120}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {categoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
             <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest system activities and notifications</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Products</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                      <div className={`w-2 h-2 rounded-full ${
-                        activity.type === 'order' ? 'bg-blue-500' :
-                        activity.type === 'user' ? 'bg-green-500' :
-                        activity.type === 'product' ? 'bg-orange-500' : 'bg-yellow-500'
-                      }`} />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{activity.message}</p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <div className="text-2xl font-bold">{analytics?.counts.products}</div>
+                <p className="text-xs text-muted-foreground">+5.1% from last month</p>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="sales" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Sales Performance</CardTitle>
-                <CardDescription>Detailed sales analytics and trends</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Orders</CardTitle>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={salesData}>
+                <div className="text-2xl font-bold">{analytics?.counts.orders}</div>
+                <p className="text-xs text-muted-foreground">+12.5% from last month</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Properties</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.counts.properties}</div>
+                <p className="text-xs text-muted-foreground">+3.2% from last month</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Rides</CardTitle>
+                <Car className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.counts.rides}</div>
+                <p className="text-xs text-muted-foreground">+8.7% from last month</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Orders</CardTitle>
+                <CardDescription>Order trends over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analytics?.charts.monthlyOrders}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Legend />
-                    <Bar dataKey="sales" fill="#8884d8" name="Sales (KSh)" />
-                    <Bar dataKey="orders" fill="#82ca9d" name="Orders" />
+                    <Bar dataKey="orders" fill="#8884d8" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>User Growth</CardTitle>
-                <CardDescription>User registration and activity trends</CardDescription>
+                <CardTitle>Monthly Revenue</CardTitle>
+                <CardDescription>Revenue trends over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={salesData}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analytics?.charts.monthlyRevenue}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="users" stroke="#8884d8" name="Total Users" />
+                    <Tooltip formatter={(value) => [`KSH ${Number(value).toLocaleString()}`, 'Revenue']} />
+                    <Line type="monotone" dataKey="revenue" stroke="#82ca9d" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="products" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
-                    Total Products
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">2,456</div>
-                  <p className="text-sm text-gray-600">+12 new this week</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Eye className="h-5 w-5 mr-2" />
-                    Total Views
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">45,678</div>
-                  <p className="text-sm text-gray-600">+8.5% this month</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Star className="h-5 w-5 mr-2" />
-                    Avg Rating
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">4.8</div>
-                  <p className="text-sm text-gray-600">Based on 1,234 reviews</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </MainLayout>
+          <Card>
+            <CardHeader>
+              <CardTitle>Orders by Status</CardTitle>
+              <CardDescription>Distribution of order statuses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={analytics?.charts.ordersByStatus}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="count"
+                  >
+                    {analytics?.charts.ordersByStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
+    </ProtectedAdminRoute>
   );
 };
 

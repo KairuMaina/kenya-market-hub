@@ -43,7 +43,6 @@ const AdminDrivers = () => {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'online':
       case 'available':
         return 'default';
       case 'busy':
@@ -64,7 +63,7 @@ const AdminDrivers = () => {
   const totalDrivers = drivers?.length || 0;
   const activeDrivers = drivers?.filter(driver => driver.is_active).length || 0;
   const verifiedDrivers = drivers?.filter(driver => driver.is_verified).length || 0;
-  const onlineDrivers = drivers?.filter(driver => driver.status === 'online').length || 0;
+  const availableDrivers = drivers?.filter(driver => driver.status === 'available').length || 0;
 
   return (
     <ProtectedAdminRoute>
@@ -109,11 +108,11 @@ const AdminDrivers = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Online Now</CardTitle>
+                <CardTitle className="text-sm font-medium">Available Now</CardTitle>
                 <MapPin className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{onlineDrivers}</div>
+                <div className="text-2xl font-bold">{availableDrivers}</div>
               </CardContent>
             </Card>
           </div>
