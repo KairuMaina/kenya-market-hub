@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,15 @@ import { Store, Users, CheckCircle, Clock, Eye, Edit, UserCheck, Check, X, FileT
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useApprovalActions } from '@/hooks/useApprovalActions';
+import VendorApplicationModal from '@/components/admin/VendorApplicationModal';
 
 const AdminVendors = () => {
   const { approveVendor, rejectVendor, approveVendorApplication, rejectVendorApplication } = useApprovalActions();
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [selectedVendor, setSelectedVendor] = useState<any>(null);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
   const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
 
   // Fetch vendors
@@ -105,6 +109,11 @@ const AdminVendors = () => {
     setIsRejectionDialogOpen(true);
   };
 
+  const handleViewApplication = (application: any) => {
+    setSelectedApplication(application);
+    setIsViewModalOpen(true);
+  };
+
   const confirmApproval = () => {
     if (selectedApplication) {
       approveVendorApplication.mutate({ applicationId: selectedApplication.id });
@@ -185,8 +194,8 @@ const AdminVendors = () => {
 
           <Tabs defaultValue="applications" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="applications">Vendor Applications</TabsTrigger>
-              <TabsTrigger value="vendors">Approved Vendors</TabsTrigger>
+              <TabsTrigger value="applications">Vendor Applications ({pendingApplications})</TabsTrigger>
+              <TabsTrigger value="vendors">Approved Vendors ({totalVendors})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="applications">
@@ -201,7 +210,7 @@ const AdminVendors = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                       <span className="ml-2 text-sm sm:text-base">Loading applications...</span>
                     </div>
-                  ) : (
+                  ) : vendorApplications && vendorApplications.length > 0 ? (
                     <div className="overflow-x-auto table-responsive">
                       <Table>
                         <TableHeader>
@@ -215,7 +224,7 @@ const AdminVendors = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {vendorApplications?.map((application) => (
+                          {vendorApplications.map((application) => (
                             <TableRow key={application.id} className="hover:bg-gray-50">
                               <TableCell className="text-xs sm:text-sm">
                                 <div className="space-y-1">
@@ -266,7 +275,12 @@ const AdminVendors = () => {
                                       </Button>
                                     </>
                                   )}
-                                  <Button variant="outline" size="sm" className="text-xs px-2 py-1">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-xs px-2 py-1"
+                                    onClick={() => handleViewApplication(application)}
+                                  >
                                     <Eye className="h-3 w-3" />
                                   </Button>
                                 </div>
@@ -275,6 +289,11 @@ const AdminVendors = () => {
                           ))}
                         </TableBody>
                       </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No vendor applications found</p>
                     </div>
                   )}
                 </CardContent>
@@ -439,6 +458,13 @@ const AdminVendors = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* View Application Modal */}
+          <VendorApplicationModal 
+            application={selectedApplication}
+            isOpen={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+          />
         </div>
       </AdminLayout>
     </ProtectedAdminRoute>
