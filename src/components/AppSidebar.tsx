@@ -8,6 +8,7 @@ const AppSidebar = () => {
     user
   } = useAuth();
   const isAdmin = user?.email === 'gmaina424@gmail.com';
+  
   const customerItems = [{
     title: 'Home',
     url: '/',
@@ -66,11 +67,11 @@ const AppSidebar = () => {
   return <Sidebar className="border-r border-gray-200 bg-white/95 backdrop-blur-sm">
       <SidebarHeader className="border-b border-gray-100 p-3 sm:p-4">
         <div className="flex items-center space-x-2 sm:space-x-3 animate-fade-in">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 overflow-hidden">
-            <img alt="Soko Smart Logo" className="w-full h-full object-cover" src="/lovable-uploads/6aa2ba30-ca09-474b-a8ed-8c5162002f95.png" />
+          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 overflow-hidden flex-shrink-0">
+            <img alt="Soko Smart Logo" className="w-full h-full object-contain" src="/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent truncate">
+            <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent truncate">
               Soko Smart
             </h1>
             <p className="text-xs text-gray-600 truncate">
