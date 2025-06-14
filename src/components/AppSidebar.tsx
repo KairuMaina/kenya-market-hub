@@ -1,3 +1,4 @@
+
 import {
   Sidebar,
   SidebarContent,
@@ -58,8 +59,12 @@ const AppSidebar = () => {
     <Sidebar className="border-r border-gray-200 bg-white/95 backdrop-blur-sm">
       <SidebarHeader className="border-b border-gray-100 p-3 sm:p-4">
         <div className="flex items-center space-x-2 sm:space-x-3 animate-fade-in">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <span className="text-white font-bold text-sm sm:text-base">🛒</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 overflow-hidden">
+            <img 
+              src="/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4c4b.png" 
+              alt="Soko Smart Logo" 
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent truncate">
