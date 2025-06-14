@@ -184,8 +184,15 @@ const NewAdminDashboard = () => {
     }
   });
 
-  // Use the new vendor applications hook
+  // Use the vendor applications hook with enhanced logging
   const { data: vendorApplications, isLoading: vendorApplicationsLoading, error: vendorApplicationsError } = useVendorApplications();
+
+  // Add console logging to debug the vendor applications data
+  useEffect(() => {
+    console.log('Vendor applications data:', vendorApplications);
+    console.log('Vendor applications loading:', vendorApplicationsLoading);
+    console.log('Vendor applications error:', vendorApplicationsError);
+  }, [vendorApplications, vendorApplicationsLoading, vendorApplicationsError]);
 
   // Fetch coupons
   const { data: coupons, isLoading: couponsLoading } = useQuery({
@@ -315,12 +322,14 @@ const NewAdminDashboard = () => {
       case 'paid':
       case 'completed':
       case 'delivered':
+      case 'approved':
         return 'default';
       case 'pending':
       case 'processing':
         return 'secondary';
       case 'failed':
       case 'cancelled':
+      case 'rejected':
         return 'destructive';
       default:
         return 'outline';
@@ -382,8 +391,11 @@ const NewAdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {vendorApplications?.filter(app => app.status === 'pending').length || 0}
+                {vendorApplications?.length || 0}
               </div>
+              <p className="text-xs text-muted-foreground">
+                {vendorApplications?.filter(app => app.status === 'pending').length || 0} pending
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -604,72 +616,107 @@ const NewAdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 {vendorApplicationsLoading ? (
-                  <div>Loading vendor applications...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                      <p>Loading vendor applications...</p>
+                    </div>
+                  </div>
                 ) : vendorApplicationsError ? (
-                  <div className="text-red-500">
-                    Error loading vendor applications: {vendorApplicationsError.message}
+                  <div className="text-red-500 bg-red-50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Error loading vendor applications</h4>
+                    <p className="text-sm">{vendorApplicationsError.message}</p>
+                    <Button 
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
+                      className="mt-2"
+                      size="sm"
+                    >
+                      Retry
+                    </Button>
                   </div>
                 ) : !vendorApplications || vendorApplications.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No vendor applications</h3>
-                    <p className="text-gray-500">No vendor applications have been submitted yet.</p>
+                  <div className="text-center py-12">
+                    <Store className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">No vendor applications found</h3>
+                    <p className="text-gray-500 mb-4">
+                      No vendor applications have been submitted yet.
+                    </p>
+                    <div className="text-sm text-gray-400">
+                      <p>Debug info:</p>
+                      <p>Applications count: {vendorApplications?.length || 0}</p>
+                      <p>Loading: {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
+                      <p>Error: {vendorApplicationsError ? 'Yes' : 'No'}</p>
+                    </div>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Business Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Submitted</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {vendorApplications.map((application) => (
-                        <TableRow key={application.id}>
-                          <TableCell className="font-medium">{application.business_name}</TableCell>
-                          <TableCell>{application.business_email}</TableCell>
-                          <TableCell>{application.business_phone}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(application.status)}>
-                              {application.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(application.submitted_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            {application.status === 'pending' && (
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleVendorApplication.mutate({ 
-                                    applicationId: application.id, 
-                                    action: 'approve' 
-                                  })}
-                                  disabled={handleVendorApplication.isPending}
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleVendorApplication.mutate({ 
-                                    applicationId: application.id, 
-                                    action: 'reject' 
-                                  })}
-                                  disabled={handleVendorApplication.isPending}
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Found {vendorApplications.length} applications
+                      </p>
+                      <Button 
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Refresh
+                      </Button>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Business Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Submitted</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {vendorApplications.map((application) => (
+                          <TableRow key={application.id}>
+                            <TableCell className="font-medium">{application.business_name}</TableCell>
+                            <TableCell>{application.business_email}</TableCell>
+                            <TableCell>{application.business_phone}</TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusBadgeVariant(application.status)}>
+                                {application.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(application.submitted_at).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              {application.status === 'pending' && (
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleVendorApplication.mutate({ 
+                                      applicationId: application.id, 
+                                      action: 'approve' 
+                                    })}
+                                    disabled={handleVendorApplication.isPending}
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleVendorApplication.mutate({ 
+                                      applicationId: application.id, 
+                                      action: 'reject' 
+                                    })}
+                                    disabled={handleVendorApplication.isPending}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
