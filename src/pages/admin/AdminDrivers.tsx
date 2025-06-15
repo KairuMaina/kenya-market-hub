@@ -35,13 +35,12 @@ const AdminDrivers = () => {
       let query = supabase
         .from('drivers')
         .select(`
-          *,
-          profiles!inner(full_name, email)
+          *
         `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`profiles.full_name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%,license_plate.ilike.%${searchTerm}%`);
+        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,license_plate.ilike.%${searchTerm}%`);
       }
 
       const { data: drivers, error, count } = await query
@@ -223,8 +222,8 @@ const AdminDrivers = () => {
                           >
                             <TableCell>
                               <div>
-                                <p className="font-medium">{driver.profiles?.full_name || 'Unknown Driver'}</p>
-                                <p className="text-sm text-gray-500">{driver.profiles?.email}</p>
+                                <p className="font-medium">{driver.full_name || 'Unknown Driver'}</p>
+                                <p className="text-sm text-gray-500">{driver.email}</p>
                                 <p className="text-sm text-gray-500">{driver.phone_number}</p>
                               </div>
                             </TableCell>

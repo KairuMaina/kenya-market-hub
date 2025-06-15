@@ -1,20 +1,20 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { 
-  Eye, 
-  Package, 
-  Truck, 
+  ShoppingCart, 
+  Search, 
   CheckCircle, 
-  Search,
+  XCircle, 
+  Clock,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  DollarSign
 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
@@ -22,13 +22,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminOrders = () => {
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const ordersPerPage = 10;
 
-  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery({
+  const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ['admin-orders', currentPage, searchTerm],
     queryFn: async () => {
       console.log('🔍 Fetching orders...', { currentPage, searchTerm });
@@ -37,12 +35,12 @@ const AdminOrders = () => {
         .from('orders')
         .select(`
           *,
-          profiles!inner(full_name, email)
+          user_email
         `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`profiles.full_name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%`);
+        query = query.or(`user_email.ilike.%${searchTerm}%,id.ilike.%${searchTerm}%`);
       }
 
       const { data: orders, error, count } = await query
@@ -79,22 +77,7 @@ const AdminOrders = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Package className="h-4 w-4" />;
-      case 'processing': return <Package className="h-4 w-4" />;
-      case 'shipped': return <Truck className="h-4 w-4" />;
-      case 'delivered': return <CheckCircle className="h-4 w-4" />;
-      default: return <Package className="h-4 w-4" />;
-    }
-  };
-
-  const handleViewOrder = (order: any) => {
-    setSelectedOrder(order);
-    setShowOrderDetails(true);
-  };
-
-  if (ordersError) {
+  if (error) {
     return (
       <ProtectedAdminRoute>
         <AdminLayout>
@@ -110,75 +93,77 @@ const AdminOrders = () => {
   }
 
   const orders = ordersData?.orders || [];
-  const statusCounts = {
+  const orderStats = {
     total: orders.length,
     pending: orders.filter(o => o.status === 'pending').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
+    processing: orders.filter(o => o.status === 'processing').length,
     delivered: orders.filter(o => o.status === 'delivered').length
   };
+
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
   return (
     <ProtectedAdminRoute>
       <AdminLayout>
         <div className="space-y-6 animate-fade-in">
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg">
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Package className="h-8 w-8" />
-              Orders Management
+              <ShoppingCart className="h-8 w-8" />
+              Order Management
             </h1>
-            <p className="text-orange-100 mt-2">Track and manage customer orders</p>
+            <p className="text-blue-100 mt-2">Manage all platform orders and transactions</p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                    <p className="text-2xl font-bold text-gray-900">{statusCounts.total}</p>
+                    <p className="text-2xl font-bold text-gray-900">{orderStats.total}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600">
-                    <Package className="h-6 w-6 text-white" />
+                  <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600">
+                    <ShoppingCart className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Pending</p>
-                    <p className="text-2xl font-bold text-gray-900">{statusCounts.pending}</p>
+                    <p className="text-2xl font-bold text-yellow-600">{orderStats.pending}</p>
                   </div>
                   <div className="p-3 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600">
-                    <Package className="h-6 w-6 text-white" />
+                    <Clock className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Shipped</p>
-                    <p className="text-2xl font-bold text-gray-900">{statusCounts.shipped}</p>
+                    <p className="text-sm font-medium text-gray-600">Processing</p>
+                    <p className="text-2xl font-bold text-blue-600">{orderStats.processing}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600">
-                    <Truck className="h-6 w-6 text-white" />
+                  <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600">
+                    <Clock className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Delivered</p>
-                    <p className="text-2xl font-bold text-gray-900">{statusCounts.delivered}</p>
+                    <p className="text-2xl font-bold text-green-600">{orderStats.delivered}</p>
                   </div>
                   <div className="p-3 rounded-full bg-gradient-to-r from-green-500 to-green-600">
                     <CheckCircle className="h-6 w-6 text-white" />
@@ -186,15 +171,31 @@ const AdminOrders = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Revenue</p>
+                    <p className="text-2xl font-bold text-purple-600">${totalRevenue.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Orders Table */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl">Orders</CardTitle>
-                  <p className="text-gray-600">Manage all customer orders ({ordersData?.total || 0} total)</p>
+                  <CardDescription>
+                    View and manage all customer orders ({ordersData?.total || 0} total)
+                  </CardDescription>
                 </div>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -208,21 +209,21 @@ const AdminOrders = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {ordersLoading ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 </div>
               ) : (
                 <>
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gradient-to-r from-orange-50 to-orange-100">
+                        <TableRow className="bg-gradient-to-r from-blue-50 to-blue-100">
                           <TableHead className="font-semibold">Order ID</TableHead>
                           <TableHead className="font-semibold">Customer</TableHead>
+                          <TableHead className="font-semibold">Items</TableHead>
                           <TableHead className="font-semibold">Total</TableHead>
                           <TableHead className="font-semibold">Status</TableHead>
-                          <TableHead className="font-semibold">Payment</TableHead>
                           <TableHead className="font-semibold">Date</TableHead>
                           <TableHead className="font-semibold">Actions</TableHead>
                         </TableRow>
@@ -231,42 +232,53 @@ const AdminOrders = () => {
                         {orders.map((order) => (
                           <TableRow 
                             key={order.id} 
-                            className="hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 transition-all duration-200"
+                            className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 transition-all duration-200"
                           >
-                            <TableCell className="font-mono text-sm">#{order.id.slice(-8)}</TableCell>
+                            <TableCell>
+                              <p className="font-mono text-sm">{order.id.slice(0, 8)}...</p>
+                            </TableCell>
                             <TableCell>
                               <div>
-                                <p className="font-medium">{order.profiles?.full_name || 'Unknown Customer'}</p>
-                                <p className="text-sm text-gray-500">{order.profiles?.email}</p>
+                                <p className="font-medium">{order.user_email || 'Unknown Customer'}</p>
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">KSh {order.total_amount.toLocaleString()}</TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-blue-600">
+                                {Array.isArray(order.items) ? order.items.length : 0} items
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-bold text-green-600">
+                                ${(order.total_amount || 0).toFixed(2)}
+                              </span>
+                            </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(order.status || 'pending')}>
-                                <div className="flex items-center gap-1">
-                                  {getStatusIcon(order.status || 'pending')}
-                                  {order.status || 'pending'}
-                                </div>
+                                {order.status?.replace('_', ' ') || 'Pending'}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={order.payment_status === 'completed' ? 'default' : 'secondary'}>
-                                {order.payment_status || 'pending'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-600">
-                              {new Date(order.created_at || '').toLocaleDateString()}
+                              <span className="text-sm text-gray-600">
+                                {new Date(order.created_at).toLocaleDateString()}
+                              </span>
                             </TableCell>
                             <TableCell>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleViewOrder(order)}
-                                className="border-orange-300 text-orange-600 hover:bg-orange-50"
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
+                              <div className="flex items-center space-x-2">
+                                <Button 
+                                  variant="secondary" 
+                                  size="sm"
+                                  className="bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white"
+                                >
+                                  View
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                                >
+                                  Update
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -286,7 +298,6 @@ const AdminOrders = () => {
                           size="sm"
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           disabled={currentPage === 1}
-                          className="border-orange-300 text-orange-600 hover:bg-orange-50"
                         >
                           <ChevronLeft className="h-4 w-4" />
                           Previous
@@ -299,7 +310,6 @@ const AdminOrders = () => {
                           size="sm"
                           onClick={() => setCurrentPage(prev => Math.min(prev + 1, ordersData.totalPages))}
                           disabled={currentPage === ordersData.totalPages}
-                          className="border-orange-300 text-orange-600 hover:bg-orange-50"
                         >
                           Next
                           <ChevronRight className="h-4 w-4" />
@@ -312,50 +322,6 @@ const AdminOrders = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Order Details Dialog */}
-        <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Order Details</DialogTitle>
-              <DialogDescription>
-                Order #{selectedOrder?.id?.slice(-8)}
-              </DialogDescription>
-            </DialogHeader>
-            {selectedOrder && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-semibold">Customer Information</h4>
-                    <p>{selectedOrder.profiles?.full_name || 'Unknown'}</p>
-                    <p className="text-sm text-gray-600">{selectedOrder.profiles?.email}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Order Status</h4>
-                    <Badge className={getStatusColor(selectedOrder.status || 'pending')}>
-                      {selectedOrder.status || 'pending'}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Shipping Address</h4>
-                  <p className="text-sm text-gray-600">
-                    {selectedOrder.shipping_address ? 
-                      JSON.stringify(selectedOrder.shipping_address) : 
-                      'No shipping address provided'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Order Total</h4>
-                  <p className="text-xl font-bold text-green-600">
-                    KSh {selectedOrder.total_amount.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </AdminLayout>
     </ProtectedAdminRoute>
   );
