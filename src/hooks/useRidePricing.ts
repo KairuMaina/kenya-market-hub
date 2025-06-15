@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface NewFareData {
-  vehicle_type: 'sedan' | 'suv' | 'van' | 'boda';
+  vehicle_type: 'taxi' | 'motorbike';
   base_fare: number;
   per_km_rate: number;
   per_minute_rate: number;

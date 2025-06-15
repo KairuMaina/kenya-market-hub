@@ -30,22 +30,26 @@ const getServiceBookings = async (): Promise<ServiceBookingAdminView[]> => {
     const categoryIds = [...new Set(bookings.map(b => b.service_category_id).filter(Boolean))] as string[];
 
     const [
-        { data: customers, error: customerError },
-        { data: providers, error: providerError },
-        { data: categories, error: categoryError }
+        customersResponse,
+        providersResponse,
+        categoriesResponse
     ] = await Promise.all([
-        customerIds.length > 0 ? supabase.from('profiles').select('id, full_name').in('id', customerIds) : Promise.resolve({ data: [] }),
-        providerIds.length > 0 ? supabase.from('service_provider_profiles').select('id, business_name').in('id', providerIds) : Promise.resolve({ data: [] }),
-        categoryIds.length > 0 ? supabase.from('service_categories').select('id, name').in('id', categoryIds) : Promise.resolve({ data: [] })
+        customerIds.length > 0 ? supabase.from('profiles').select('id, full_name').in('id', customerIds) : Promise.resolve({ data: [], error: null }),
+        providerIds.length > 0 ? supabase.from('service_provider_profiles').select('id, business_name').in('id', providerIds) : Promise.resolve({ data: [], error: null }),
+        categoryIds.length > 0 ? supabase.from('service_categories').select('id, name').in('id', categoryIds) : Promise.resolve({ data: [], error: null })
     ]);
+
+    const { data: customers, error: customerError } = customersResponse;
+    const { data: providers, error: providerError } = providersResponse;
+    const { data: categories, error: categoryError } = categoriesResponse;
 
     if (customerError) console.error("Error fetching customers:", customerError);
     if (providerError) console.error("Error fetching providers:", providerError);
     if (categoryError) console.error("Error fetching categories:", categoryError);
     
-    const customersMap = new Map(customers?.map(c => [c.id, c.full_name]));
-    const providersMap = new Map(providers?.map(p => [p.id, p.business_name]));
-    const categoriesMap = new Map(categories?.map(c => [c.id, c.name]));
+    const customersMap = new Map<string, string | null>(customers?.map(c => [c.id, c.full_name]) || []);
+    const providersMap = new Map<string, string | null>(providers?.map(p => [p.id, p.business_name]) || []);
+    const categoriesMap = new Map<string, string | null>(categories?.map(c => [c.id, c.name]) || []);
 
     return bookings.map(booking => ({
         id: booking.id,
@@ -53,9 +57,9 @@ const getServiceBookings = async (): Promise<ServiceBookingAdminView[]> => {
         status: booking.status || 'pending',
         total_amount: booking.total_amount,
         description: booking.description,
-        customer_name: customersMap.get(booking.customer_id!) || 'N/A',
-        provider_name: providersMap.get(booking.provider_id!) || 'N/A',
-        service_type: categoriesMap.get(booking.service_category_id!) || 'N/A',
+        customer_name: customersMap.get(booking.customer_id!) ?? null,
+        provider_name: providersMap.get(booking.provider_id!) ?? null,
+        service_type: categoriesMap.get(booking.service_category_id!) ?? null,
     }));
 };
 
