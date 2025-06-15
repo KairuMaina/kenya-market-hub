@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,8 +22,15 @@ import {
 import { useVendorApplication } from '@/hooks/useVendors';
 import { useServiceProviderRegistration } from '@/hooks/useServiceProviderRegistration';
 
-const ServiceProviderRegistration = () => {
-  const [activeTab, setActiveTab] = useState('vendor');
+const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) => {
+  const [activeTab, setActiveTab] = useState(initialTab || 'vendor');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [formData, setFormData] = useState({
     business_name: '',
     business_description: '',

@@ -33,6 +33,7 @@ import SoundEffects from '@/components/SoundEffects';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AdminApp from './pages/AdminApp';
+import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistrationPage';
 
 function App() {
   const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ function App() {
                   <Route path="/vendor-analytics" element={<VendorAnalyticsPage />} />
                   <Route path="/admin/*" element={<AdminApp />} />
                   <Route path="/driver/*" element={<DriverApp />} />
+                  <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>

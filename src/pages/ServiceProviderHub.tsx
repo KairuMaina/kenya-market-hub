@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,9 +17,13 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
+import { useNavigate } from 'react-router-dom';
+import VendorApplicationModal from '@/components/VendorApplicationModal';
 
 const ServiceProviderHub = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   
   // Check each service provider type
   const { data: vendorProfile } = useServiceProviderProfile('vendor');
@@ -89,9 +92,11 @@ const ServiceProviderHub = () => {
   };
 
   const handleApply = (providerType: string) => {
-    // For now, redirect to a contact or application page
-    // This can be replaced with actual application logic later
-    alert(`Application for ${providerType} is coming soon! Please contact support.`);
+    if (providerType === 'vendor') {
+      setIsVendorModalOpen(true);
+    } else {
+      navigate(`/service-provider-registration?type=${providerType}`);
+    }
   };
 
   return (
@@ -201,6 +206,7 @@ const ServiceProviderHub = () => {
           </CardContent>
         </Card>
       </div>
+      <VendorApplicationModal open={isVendorModalOpen} onOpenChange={setIsVendorModalOpen} />
     </MainLayout>
   );
 };
