@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Index from './pages/Index';
@@ -24,7 +26,6 @@ import AdvancedProductSearch from './pages/AdvancedProductSearch';
 import Products from './pages/Products';
 import VendorAnalyticsPage from './pages/VendorAnalyticsPage';
 import { Toaster } from '@/components/ui/toaster';
-import { QueryClient } from '@tanstack/react-query';
 import VendorDashboard from './pages/VendorDashboard';
 import ServiceProviderHub from './pages/ServiceProviderHub';
 import VendorApp from './pages/VendorApp';
@@ -36,11 +37,14 @@ import ProtectedPropertyOwnerRoute from './components/ProtectedPropertyOwnerRout
 import PerformanceMonitor from './components/PerformanceMonitor';
 import ErrorBoundary from './components/ErrorBoundary';
 
+// Create a client
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <QueryClient>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
           <BrowserRouter>
             <div className="App">
               <ErrorBoundary>
@@ -99,9 +103,9 @@ function App() {
               </ErrorBoundary>
             </div>
           </BrowserRouter>
-        </QueryClient>
-      </CartProvider>
-    </AuthProvider>
+        </CartProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
