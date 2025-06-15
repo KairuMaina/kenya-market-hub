@@ -42,6 +42,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Only cache GET requests (Cache API doesn't support HEAD, POST, etc.)
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // Network-first for navigation to prevent stale HTML.
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -84,3 +89,4 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
