@@ -13,6 +13,8 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useApprovalActions } from '@/hooks/useApprovalActions';
 import { useToast } from '@/hooks/use-toast';
+import PendingApplicationsTable from "@/components/admin/PendingApplicationsTable";
+import ProvidersTable from "@/components/admin/ProvidersTable";
 
 const AdminServiceProviders = () => {
   const { toast } = useToast();
@@ -216,6 +218,31 @@ const AdminServiceProviders = () => {
     (app: any) => app.status === 'pending'
   ) ?? [];
 
+  // Table and modal handlers for the new PendingApplicationsTable
+  const handlePendingApprove = (application: any) => {
+    setSelectedApplication(application);
+    setApplicationModalOpen("approve");
+  };
+  const handlePendingReject = (application: any) => {
+    setSelectedApplication(application);
+    setApplicationModalOpen("reject");
+  };
+  const handlePendingView = (application: any) => {
+    setSelectedApplication(application);
+    setApplicationModalOpen("view");
+  };
+
+  // Table handlers for the new ProvidersTable
+  const handleProviderApprove = (provider: any) => {
+    handleApprove(provider);
+  };
+  const handleProviderReject = (provider: any) => {
+    handleReject(provider);
+  };
+  const handleProviderView = (provider: any) => {
+    handleView(provider);
+  };
+
   return (
     <ProtectedAdminRoute>
       <AdminLayout>
@@ -284,104 +311,16 @@ const AdminServiceProviders = () => {
               <CardDescription className="text-sm">Review, approve, or reject service provider applications</CardDescription>
             </CardHeader>
             <CardContent>
-              {pendingLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading applications...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto table-responsive">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Applicant</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Business</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contact</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Type</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingApplications?.map((application: any) => (
-                        <TableRow key={application.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="space-y-1">
-                              <div className="font-medium">{getProviderOwner(application.user_id)}</div>
-                              <div className="text-xs text-gray-500">ID: {application.id.slice(-8)}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <div className="space-y-1">
-                              <div className="font-medium">{application.business_name || 'N/A'}</div>
-                              <div className="text-xs text-gray-500 max-w-32 truncate">
-                                {application.business_description || 'No description'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="space-y-1">
-                              <div>{application.business_email || 'N/A'}</div>
-                              <div className="text-gray-500">{application.business_phone || 'N/A'}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <Badge variant="outline" className="text-xs">
-                              {application.service_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs">
-                              {application.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                              {application.status === 'pending' && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-green-500 text-white hover:bg-green-600 text-xs px-2 py-1"
-                                    onClick={() => {
-                                      setSelectedApplication(application);
-                                      setApplicationModalOpen('approve');
-                                    }}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-red-500 text-white hover:bg-red-600 text-xs px-2 py-1"
-                                    onClick={() => {
-                                      setSelectedApplication(application);
-                                      setApplicationModalOpen('reject');
-                                    }}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs px-2 py-1"
-                                onClick={() => {
-                                  setSelectedApplication(application);
-                                  setApplicationModalOpen('view');
-                                }}
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <PendingApplicationsTable
+                pendingApplications={pendingApplications}
+                profiles={profiles}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                getProviderOwner={getProviderOwner}
+                onApprove={handlePendingApprove}
+                onReject={handlePendingReject}
+                onView={handlePendingView}
+                loading={pendingLoading}
+              />
             </CardContent>
           </Card>
 
@@ -513,104 +452,18 @@ const AdminServiceProviders = () => {
               <CardDescription className="text-sm">View and manage approved provider accounts</CardDescription>
             </CardHeader>
             <CardContent>
-              {providersLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading providers...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto table-responsive">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Provider</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Business</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contact</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Type</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {providers?.map((provider) => (
-                        <TableRow key={provider.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="space-y-1">
-                              <div className="font-medium">{getProviderOwner(provider.user_id)}</div>
-                              <div className="text-xs text-gray-500">ID: {provider.id.slice(-8)}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <div className="space-y-1">
-                              <div className="font-medium">{provider.business_name || 'N/A'}</div>
-                              <div className="text-xs text-gray-500 max-w-32 truncate">
-                                {provider.business_description || 'No description'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="space-y-1">
-                              <div>{provider.email || 'N/A'}</div>
-                              <div className="text-gray-500">{provider.phone_number || 'N/A'}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <Badge variant="outline" className="text-xs">
-                              {provider.provider_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {provider.is_active ? (
-                                <Badge variant="default" className="text-xs">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs">Inactive</Badge>
-                              )}
-                              <Badge variant={getStatusBadgeVariant(provider.verification_status)} className="text-xs">
-                                {provider.verification_status}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                              {provider.verification_status === 'pending' && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-green-500 text-white hover:bg-green-600 text-xs px-2 py-1"
-                                    onClick={() => handleApprove(provider)}
-                                    disabled={approveServiceProvider.isPending}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-red-500 text-white hover:bg-red-600 text-xs px-2 py-1"
-                                    onClick={() => handleReject(provider)}
-                                    disabled={rejectServiceProvider.isPending}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs px-2 py-1"
-                                onClick={() => handleView(provider)}
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <ProvidersTable
+                providers={providers}
+                profiles={profiles}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                getProviderOwner={getProviderOwner}
+                onApprove={handleProviderApprove}
+                onReject={handleProviderReject}
+                onView={handleProviderView}
+                approveLoading={approveServiceProvider.isPending}
+                rejectLoading={rejectServiceProvider.isPending}
+                loading={providersLoading}
+              />
             </CardContent>
           </Card>
 
