@@ -336,3 +336,135 @@ export const useDriverRideHistory = () => {
         enabled: !!user,
     });
 };
+
+export const useDriverAnalytics = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['driver-analytics', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (driverError) throw driverError;
+      if (!driver) return null;
+
+      const { data, error } = await supabase.rpc('get_driver_analytics', { p_driver_id: driver.id });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+export const usePopularRoutes = () => {
+  return useQuery({
+    queryKey: ['popular-routes'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_popular_routes', { limit_count: 3 });
+      if (error) {
+        console.error("Error fetching popular routes:", error);
+        throw error;
+      }
+      return data;
+    },
+  });
+};
+
+export const useDriverSavedRoutes = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['driver-saved-routes', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (driverError) throw driverError;
+      if (!driver) return null;
+
+      const { data, error } = await supabase
+        .from('driver_saved_routes')
+        .select('*')
+        .eq('driver_id', driver.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+export const useAddDriverSavedRoute = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (routeData: { name: string, from_address: string, to_address: string }) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (driverError) throw driverError;
+      if (!driver) throw new Error("Driver profile not found");
+
+      const { error } = await supabase
+        .from('driver_saved_routes')
+        .insert([{ ...routeData, driver_id: driver.id }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-saved-routes'] });
+      toast({ title: "Route saved successfully!" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error saving route",
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+};
+
+export const useDeleteDriverSavedRoute = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (routeId: string) => {
+      const { error } = await supabase
+        .from('driver_saved_routes')
+        .delete()
+        .eq('id', routeId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-saved-routes'] });
+      toast({ title: "Route deleted successfully!" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting route",
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+};

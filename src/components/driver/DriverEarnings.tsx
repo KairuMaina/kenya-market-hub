@@ -121,3 +121,5 @@ const DriverEarnings = () => {
     </div>
   );
 };
+
+export default DriverEarnings;

@@ -112,3 +112,5 @@ const DriverRatings = () => {
     </div>
   );
 };
+
+export default DriverRatings;

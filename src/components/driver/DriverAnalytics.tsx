@@ -1,24 +1,49 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
-  BarChart3, 
   TrendingUp, 
-  TrendingDown, 
   Clock, 
-  DollarSign,
-  Users,
   MapPin,
   Star
 } from 'lucide-react';
+import { useDriverAnalytics } from '@/hooks/useDriver';
 
 const DriverAnalytics = () => {
+  const { data: analyticsData, isLoading, error } = useDriverAnalytics();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        <p className="ml-4 text-gray-600">Loading Analytics...</p>
+      </div>
+    );
+  }
+
+  if (error || !analyticsData) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">Could not load analytics data.</p>
+        <p className="text-gray-500 text-sm mt-2">
+          {(error as Error)?.message || 'An error occurred. You may need more ride history.'}
+        </p>
+      </div>
+    );
+  }
+
+  const formatHour = (hour: number) => {
+    if (hour === 0) return '12 AM';
+    if (hour < 12) return `${hour} AM`;
+    if (hour === 12) return '12 PM';
+    return `${hour - 12} PM`;
+  };
+
   const metrics = [
-    { label: 'Peak Hours', value: '6-9 PM', change: '+15%', icon: Clock, color: 'blue' },
-    { label: 'Best Day', value: 'Friday', change: '+22%', icon: TrendingUp, color: 'green' },
-    { label: 'Top Area', value: 'Westlands', change: '+18%', icon: MapPin, color: 'purple' },
-    { label: 'Avg Rating', value: '4.8', change: '+0.2', icon: Star, color: 'yellow' }
+    { label: 'Peak Hours', value: analyticsData.peak_hours ? `${formatHour(analyticsData.peak_hours.hour)} - ${formatHour(analyticsData.peak_hours.hour + 1)}` : 'N/A', icon: Clock, color: 'blue' },
+    { label: 'Best Day', value: analyticsData.best_day?.day_name || 'N/A', icon: TrendingUp, color: 'green' },
+    { label: 'Top Area', value: analyticsData.top_destination?.address || 'N/A', icon: MapPin, color: 'purple' },
+    { label: 'Avg Rating', value: (analyticsData.average_rating || 0).toFixed(1), icon: Star, color: 'yellow' }
   ];
 
   return (
@@ -36,10 +61,6 @@ const DriverAnalytics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">{metric.label}</p>
                   <p className="text-2xl font-bold">{metric.value}</p>
-                  <div className="flex items-center mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                    <span className="text-xs text-green-600">{metric.change}</span>
-                  </div>
                 </div>
                 <div className={`p-3 rounded-full bg-${metric.color}-100`}>
                   <metric.icon className={`h-6 w-6 text-${metric.color}-600`} />
@@ -58,15 +79,15 @@ const DriverAnalytics = () => {
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 rounded-lg">
               <h3 className="font-semibold text-blue-800">Peak Performance Time</h3>
-              <p className="text-sm text-blue-700">You earn 35% more during evening hours (6-9 PM)</p>
+              <p className="text-sm text-blue-700">{analyticsData.peak_hours ? `You get the most rides around ${formatHour(analyticsData.peak_hours.hour)}.` : 'Not enough data to determine peak hours.'}</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <h3 className="font-semibold text-green-800">High-Demand Areas</h3>
-              <p className="text-sm text-green-700">Westlands and CBD show highest ride requests</p>
+              <p className="text-sm text-green-700">{analyticsData.top_destination ? `${analyticsData.top_destination.address} is your most frequent destination.` : 'Not enough data for high-demand areas.'}</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
-              <h3 className="font-semibold text-orange-800">Customer Satisfaction</h3>
-              <p className="text-sm text-orange-700">Your rating improved by 0.2 stars this month</p>
+              <h3 className="font-semibold text-orange-800">Busiest Day</h3>
+              <p className="text-sm text-orange-700">{analyticsData.best_day ? `Your busiest day is ${analyticsData.best_day.day_name}.` : 'Not enough data to determine busiest day.'}</p>
             </div>
           </div>
         </CardContent>

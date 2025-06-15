@@ -277,6 +277,41 @@ export type Database = {
           },
         ]
       }
+      driver_saved_routes: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          from_address: string
+          id: string
+          name: string
+          to_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          from_address: string
+          id?: string
+          name: string
+          to_address: string
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          from_address?: string
+          id?: string
+          name?: string
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_saved_routes_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           availability_status: string | null
@@ -1711,6 +1746,20 @@ export type Database = {
           driver_id: string
           distance_km: number
           estimated_pickup_minutes: number
+        }[]
+      }
+      get_driver_analytics: {
+        Args: { p_driver_id: string }
+        Returns: Json
+      }
+      get_popular_routes: {
+        Args: { limit_count: number }
+        Returns: {
+          from_address: string
+          to_address: string
+          ride_count: number
+          avg_fare: number
+          avg_duration_minutes: number
         }[]
       }
       has_role: {
