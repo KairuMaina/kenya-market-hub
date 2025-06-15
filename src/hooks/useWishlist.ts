@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -60,7 +59,7 @@ export const useToggleWishlist = () => {
         .select('id')
         .eq('user_id', user.id)
         .eq('product_id', productId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         // Remove from wishlist
@@ -112,9 +111,11 @@ export const useIsInWishlist = (productId: string) => {
         .select('id')
         .eq('user_id', user.id)
         .eq('product_id', productId)
-        .single();
+        .maybeSingle();
       
       return !!data;
-    }
+    },
+    // Keep `enabled` option if it exists, otherwise it's fine.
+    // Tanstack Query v5 enables queries by default if `enabled` isn't specified
   });
 };

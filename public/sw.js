@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'soko-smart-v1';
 const urlsToCache = [
   '/',
@@ -17,6 +18,10 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
