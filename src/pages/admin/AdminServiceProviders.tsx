@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -143,6 +144,7 @@ const AdminServiceProviders = () => {
       setSelectedApplication(null);
       queryClient.invalidateQueries({ queryKey: ['admin-service-provider-applications'] });
       queryClient.invalidateQueries({ queryKey: ['admin-service-providers'] });
+      queryClient.invalidateQueries({ queryKey: ['service-provider-profile', application.user_id, application.service_type] });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
@@ -165,6 +167,7 @@ const AdminServiceProviders = () => {
       setSelectedApplication(null);
       setApplicationRejectionNotes('');
       queryClient.invalidateQueries({ queryKey: ['admin-service-provider-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['service-provider-profile', application.user_id, application.service_type] });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
