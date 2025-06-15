@@ -1,9 +1,6 @@
-
 const CACHE_NAME = 'soko-smart-v1';
 const urlsToCache = [
   '/',
-  '/static/css/main.css',
-  '/static/js/main.js',
   '/manifest.json',
   '/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png'
 ];
