@@ -92,18 +92,31 @@ const AdminServiceProviders = () => {
   // Approve: create a row in service_provider_profiles and update application status to "approved"
   const handleApproveApplication = async (application: any) => {
     try {
+      // Only allow provider_type: vendor, driver, property_owner, service_provider
+      let provider_type = application.service_type;
+      const allowedTypes = ['vendor', 'driver', 'property_owner', 'service_provider'];
+      // If not an allowed value, use 'service_provider'
+      if (!allowedTypes.includes(provider_type)) {
+        provider_type = 'service_provider';
+      }
+
       const { data: inserted, error: profileError } = await supabase
         .from('service_provider_profiles')
         .insert([{
           user_id: application.user_id,
-          provider_type: application.service_type,
+          provider_type,
           business_name: application.business_name,
           business_description: application.business_description,
           phone_number: application.business_phone,
           email: application.business_email,
           location_address: application.business_address,
           verification_status: 'approved',
-          is_active: true
+          is_active: true,
+          // Store the granular service_type in documents field for context
+          documents: {
+            service_type: application.service_type,
+            ...(application.documents || {})
+          }
         }]);
       if (profileError) throw profileError;
 
@@ -206,7 +219,7 @@ const AdminServiceProviders = () => {
 
           {/* -- NEW: Pending Applications Card/Section (Prominent) -- */}
           <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-yellow-300 mb-2">
-            <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 mb-2 text-yellow-700">
+            <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-yellow-700">
               <Clock className="h-5 w-5 text-yellow-600" />
               Pending Service Provider Applications
             </h2>
