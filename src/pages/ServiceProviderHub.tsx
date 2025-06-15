@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,13 +13,15 @@ import {
   XCircle, 
   ArrowRight,
   Plus,
-  UserPlus
+  UserPlus,
+  Stethoscope
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 import { useMyVendorProfile } from '@/hooks/useVendors';
 import { useNavigate } from 'react-router-dom';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
+import { useMedicalApplicationStatus, useMyMedicalProviderProfile } from '@/hooks/useMedical';
 
 const ServiceProviderHub = () => {
   const { user } = useAuth();
@@ -32,6 +33,14 @@ const ServiceProviderHub = () => {
   const { data: driverProfile } = useServiceProviderProfile('driver');
   const { data: propertyOwnerProfile } = useServiceProviderProfile('property_owner');
   const { data: serviceProviderProfile } = useServiceProviderProfile('service_provider');
+  const { data: medicalProviderProfile } = useMyMedicalProviderProfile();
+  const { data: medicalApplication } = useMedicalApplicationStatus();
+
+  const medicalProfile = medicalProviderProfile
+    ? { verification_status: 'approved' }
+    : medicalApplication
+    ? { verification_status: medicalApplication.status }
+    : null;
 
   const serviceProviderTypes = [
     {
@@ -69,6 +78,15 @@ const ServiceProviderHub = () => {
       color: 'from-orange-500 to-orange-600',
       dashboardUrl: '/services-app',
       profile: serviceProviderProfile
+    },
+    {
+      id: 'medical_provider',
+      title: 'Medical Provider Portal',
+      description: 'Offer medical services and connect with patients',
+      icon: Stethoscope,
+      color: 'from-blue-500 to-cyan-500',
+      dashboardUrl: '/medical-provider-dashboard',
+      profile: medicalProfile,
     }
   ];
 

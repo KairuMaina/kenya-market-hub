@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useMedicalProviders = () => {
   return useQuery({
@@ -37,5 +38,58 @@ export const useMedicalProviders = () => {
 
       return filteredProviders;
     },
+  });
+};
+
+export const useMedicalApplicationStatus = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['medical-provider-application-status', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('medical_provider_applications')
+        .select('status, full_name, provider_type, submitted_at, admin_notes')
+        .eq('user_id', user.id)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching medical application status:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+export const useMyMedicalProviderProfile = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['my-medical-provider-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('medical_providers')
+        .select('*')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching my medical provider profile:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!user,
   });
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useVendorApplication } from '@/hooks/useVendors';
 import { useServiceProviderRegistration } from '@/hooks/useServiceProviderRegistration';
+import MedicalProviderRegistrationForm from './MedicalProviderRegistrationForm';
 
 const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) => {
   const serviceTypes = [
@@ -36,7 +36,8 @@ const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) =>
     { id: 'doctor', title: 'Doctor', icon: Stethoscope, description: 'Medical consultation services', color: 'from-red-500 to-pink-600' },
     { id: 'tutor', title: 'Tutor', icon: GraduationCap, description: 'Educational and tutoring services', color: 'from-indigo-500 to-purple-600' },
     { id: 'photographer', title: 'Photographer', icon: Camera, description: 'Photography and videography', color: 'from-gray-600 to-slate-700' },
-    { id: 'caterer', title: 'Caterer', icon: Utensils, description: 'Food and catering services', color: 'from-emerald-500 to-green-600' }
+    { id: 'caterer', title: 'Caterer', icon: Utensils, description: 'Food and catering services', color: 'from-emerald-500 to-green-600' },
+    { id: 'medical_provider', title: 'Medical Provider', icon: Stethoscope, description: 'Register as a licensed medical professional', color: 'from-blue-500 to-cyan-500' }
   ];
 
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -128,15 +129,15 @@ const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) =>
               <Button
                 key={service.id}
                 variant={activeTab === service.id ? "default" : "outline"}
-                className={`h-auto p-4 flex flex-col items-center space-y-2 ${
+                className={`h-auto p-4 flex flex-col items-center space-y-2 text-center ${
                   activeTab === service.id 
                     ? `bg-gradient-to-r ${service.color} text-white hover:opacity-90` 
-                    : ''
+                    : 'hover:bg-gray-50'
                 }`}
                 onClick={() => setActiveTab(service.id)}
               >
                 <service.icon className="h-6 w-6" />
-                <div className="text-center">
+                <div>
                   <h3 className="font-semibold text-sm">{service.title}</h3>
                   <p className="text-xs opacity-80">{service.description}</p>
                 </div>
@@ -147,7 +148,11 @@ const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) =>
       </Card>
 
       {/* Registration Form */}
-      {selectedService && (
+      {selectedService && activeTab === 'medical_provider' && (
+        <MedicalProviderRegistrationForm />
+      )}
+
+      {selectedService && activeTab !== 'medical_provider' && (
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-3">
