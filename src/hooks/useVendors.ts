@@ -66,6 +66,7 @@ export const useVendorApplications = () => {
         .from('vendor_applications')
         .select('*')
         .eq('status', 'pending')
+        .eq('service_type', 'products')
         .order('submitted_at', { ascending: false });
 
       if (error) {
