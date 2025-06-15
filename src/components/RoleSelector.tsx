@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Wrench
 } from 'lucide-react';
 import ServiceProviderRegistration from '@/components/ServiceProviderRegistration';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
@@ -29,6 +29,7 @@ const RoleSelector = () => {
   const { data: vendorProfile } = useMyVendorProfile();
   const { data: driverProfile } = useServiceProviderProfile('driver');
   const { data: propertyProfile } = useServiceProviderProfile('property_owner');
+  const { data: servicesProfile } = useServiceProviderProfile('service_provider');
   const [registrationError, setRegistrationError] = useState<string | null>(null);
 
   const serviceTypes = [
@@ -55,6 +56,14 @@ const RoleSelector = () => {
       description: 'List properties for sale or rent',
       profile: propertyProfile,
       color: 'from-purple-500 to-violet-600'
+    },
+    {
+      id: 'service_provider',
+      title: 'Service Provider',
+      icon: Wrench,
+      description: 'Offer professional services',
+      profile: servicesProfile,
+      color: 'from-green-500 to-emerald-600'
     }
   ];
 
@@ -126,7 +135,7 @@ const RoleSelector = () => {
       )}
 
       {/* Service Types Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {serviceTypes.map((service) => (
           <Card key={service.id} className="relative overflow-hidden">
             <div className={`h-2 bg-gradient-to-r ${service.color}`} />
@@ -151,7 +160,8 @@ const RoleSelector = () => {
                     const appRoutes: Record<string, string> = {
                       vendor: '/vendor',
                       driver: '/driver',
-                      property_owner: '/property-owner'
+                      property_owner: '/property-owner',
+                      service_provider: '/services-app'
                     };
                     window.location.href = appRoutes[service.id];
                   }}>

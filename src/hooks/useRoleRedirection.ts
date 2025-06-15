@@ -9,6 +9,7 @@ interface UserRoles {
   isVendor: boolean;
   isDriver: boolean;
   isPropertyOwner: boolean;
+  isServiceProvider: boolean;
   approvedRoles: string[];
   primaryRole?: string;
 }
@@ -21,15 +22,17 @@ export const useRoleRedirection = () => {
   const { data: vendorProfile, isLoading: vendorLoading } = useMyVendorProfile();
   const { data: driverProfile, isLoading: driverLoading } = useServiceProviderProfile('driver');
   const { data: propertyProfile, isLoading: propertyLoading } = useServiceProviderProfile('property_owner');
+  const { data: servicesProfile, isLoading: servicesLoading } = useServiceProviderProfile('service_provider');
   
   const [roles, setRoles] = useState<UserRoles>({
     isVendor: false,
     isDriver: false,
     isPropertyOwner: false,
+    isServiceProvider: false,
     approvedRoles: []
   });
 
-  const isLoading = authLoading || vendorLoading || driverLoading || propertyLoading;
+  const isLoading = authLoading || vendorLoading || driverLoading || propertyLoading || servicesLoading;
 
   useEffect(() => {
     if (!user || isLoading) return;
@@ -58,14 +61,22 @@ export const useRoleRedirection = () => {
       if (!primaryRole) primaryRole = 'property_owner';
     }
 
+    // Check service provider status
+    const isServiceProvider = servicesProfile?.verification_status === 'approved';
+    if (isServiceProvider) {
+      approvedRoles.push('service_provider');
+      if (!primaryRole) primaryRole = 'service_provider';
+    }
+
     setRoles({
       isVendor,
       isDriver,
       isPropertyOwner,
+      isServiceProvider,
       approvedRoles,
       primaryRole
     });
-  }, [user, vendorProfile, driverProfile, propertyProfile, isLoading]);
+  }, [user, vendorProfile, driverProfile, propertyProfile, servicesProfile, isLoading]);
 
   const redirectToAppropriateApp = () => {
     if (!user || isLoading) return;
@@ -76,6 +87,7 @@ export const useRoleRedirection = () => {
     if (currentPath.startsWith('/driver') || 
         currentPath.startsWith('/vendor') || 
         currentPath.startsWith('/property-owner') ||
+        currentPath.startsWith('/services-app') ||
         currentPath === '/auth' ||
         currentPath === '/vendor-dashboard') {
       return;
@@ -92,6 +104,9 @@ export const useRoleRedirection = () => {
           break;
         case 'property_owner':
           navigate('/property-owner');
+          break;
+        case 'service_provider':
+          navigate('/services-app');
           break;
       }
     }
@@ -124,6 +139,15 @@ export const useRoleRedirection = () => {
         path: '/property-owner', 
         description: 'Manage properties and inquiries',
         color: 'green'
+      });
+    }
+    
+    if (roles.isServiceProvider) {
+      apps.push({ 
+        name: 'Services Portal', 
+        path: '/services-app', 
+        description: 'Manage services and bookings',
+        color: 'emerald'
       });
     }
     
