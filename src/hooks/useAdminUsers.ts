@@ -73,10 +73,15 @@ export const useUpdateUserRole = () => {
     mutationFn: async ({ userId, role, action }: { userId: string; role: string; action: 'add' | 'remove' }) => {
       console.log('🔄 Updating user role:', { userId, role, action });
 
+      const validRoles = ['admin', 'customer', 'vendor', 'driver', 'property_owner', 'rider'];
+      if (!validRoles.includes(role)) {
+        throw new Error(`Invalid role: ${role}`);
+      }
+
       if (action === 'add') {
         const { error } = await supabase
           .from('user_roles')
-          .insert({ user_id: userId, role });
+          .insert({ user_id: userId, role: role as any });
         
         if (error) throw error;
       } else {
@@ -84,7 +89,7 @@ export const useUpdateUserRole = () => {
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', role);
+          .eq('role', role as any);
         
         if (error) throw error;
       }

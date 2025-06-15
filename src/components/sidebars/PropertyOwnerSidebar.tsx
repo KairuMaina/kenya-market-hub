@@ -95,7 +95,7 @@ const PropertyOwnerSidebar = () => {
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
-                        className="w-full relative"
+                        className="w-full relative hover:bg-green-50 hover:text-green-600"
                         isActive={isActive}
                         onClick={() => handleNavigation(item.url)}
                       >
@@ -113,7 +113,7 @@ const PropertyOwnerSidebar = () => {
       
       <SidebarFooter className="p-4 border-t">
         <div className="text-xs text-gray-500 text-center">
-          © 2024 Soko Smart Property
+          © 2025 Soko Smart by Milleast.tech
         </div>
       </SidebarFooter>
     </Sidebar>

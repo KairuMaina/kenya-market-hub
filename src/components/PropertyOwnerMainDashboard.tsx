@@ -13,26 +13,92 @@ import {
   DollarSign,
   Plus
 } from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const PropertyOwnerMainDashboard = () => {
+  const navigate = useNavigate();
+  const { data: properties, isLoading: propertiesLoading } = useProperties();
+
+  const { data: inquiries } = useQuery({
+    queryKey: ['property-inquiries-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('property_inquiries')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: viewings } = useQuery({
+    queryKey: ['property-viewings-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('property_viewings')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: recentInquiries } = useQuery({
+    queryKey: ['recent-property-inquiries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('property_inquiries')
+        .select(`
+          *,
+          properties (title, listing_type)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalViews = properties?.reduce((sum, property) => sum + property.views_count, 0) || 0;
+
   const quickStats = [
-    { title: 'Active Listings', value: '12', icon: Building, color: 'green' },
-    { title: 'Total Views', value: '1,847', icon: Eye, color: 'blue' },
-    { title: 'Inquiries', value: '23', icon: MessageSquare, color: 'orange' },
-    { title: 'Viewings Scheduled', value: '8', icon: Calendar, color: 'purple' }
+    { 
+      title: 'Active Listings', 
+      value: propertiesLoading ? '...' : properties?.length.toString() || '0', 
+      icon: Building, 
+      color: 'green' 
+    },
+    { 
+      title: 'Total Views', 
+      value: propertiesLoading ? '...' : totalViews.toLocaleString(), 
+      icon: Eye, 
+      color: 'blue' 
+    },
+    { 
+      title: 'Inquiries', 
+      value: inquiries?.toString() || '0', 
+      icon: MessageSquare, 
+      color: 'orange' 
+    },
+    { 
+      title: 'Viewings Scheduled', 
+      value: viewings?.toString() || '0', 
+      icon: Calendar, 
+      color: 'purple' 
+    }
   ];
 
-  const recentInquiries = [
-    { id: 1, property: 'Modern Apartment - Westlands', inquirer: 'John Doe', type: 'rent', date: '2 hours ago' },
-    { id: 2, property: '3BR House - Karen', inquirer: 'Jane Smith', type: 'sale', date: '5 hours ago' },
-    { id: 3, property: 'Studio - Kilimani', inquirer: 'Mike Johnson', type: 'rent', date: '1 day ago' }
-  ];
-
-  const topPerformingProperties = [
-    { id: 1, title: 'Modern Apartment - Westlands', views: 234, inquiries: 12, type: 'rent' },
-    { id: 2, title: '3BR House - Karen', views: 189, inquiries: 8, type: 'sale' },
-    { id: 3, title: 'Luxury Villa - Runda', views: 156, inquiries: 15, type: 'sale' }
-  ];
+  const topPerformingProperties = properties
+    ?.sort((a, b) => b.views_count - a.views_count)
+    .slice(0, 3)
+    .map(property => ({
+      id: property.id,
+      title: property.title,
+      views: property.views_count,
+      inquiries: 0, // This would need to be calculated from inquiries table
+      type: property.listing_type
+    })) || [];
 
   return (
     <div className="space-y-6">
@@ -68,19 +134,34 @@ const PropertyOwnerMainDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2 bg-green-600 hover:bg-green-700"
+              onClick={() => navigate('/property-owner/properties/add')}
+            >
               <Plus className="h-6 w-6" />
               <span className="text-sm">Add Property</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => navigate('/property-owner/analytics')}
+            >
               <TrendingUp className="h-6 w-6" />
               <span className="text-sm">View Analytics</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => navigate('/property-owner/inquiries')}
+            >
               <Users className="h-6 w-6" />
               <span className="text-sm">Manage Inquiries</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => navigate('/property-owner/viewings')}
+            >
               <Calendar className="h-6 w-6" />
               <span className="text-sm">Schedule Viewings</span>
             </Button>
@@ -96,21 +177,23 @@ const PropertyOwnerMainDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentInquiries.map((inquiry) => (
+              {recentInquiries?.map((inquiry) => (
                 <div key={inquiry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <h4 className="font-medium text-sm">{inquiry.property}</h4>
-                    <p className="text-sm text-gray-600">from {inquiry.inquirer}</p>
-                    <p className="text-xs text-gray-500">{inquiry.date}</p>
+                    <h4 className="font-medium text-sm">{inquiry.properties?.title}</h4>
+                    <p className="text-sm text-gray-600">from {inquiry.inquirer_name}</p>
+                    <p className="text-xs text-gray-500">{new Date(inquiry.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant={inquiry.type === 'rent' ? 'default' : 'secondary'}>
-                      {inquiry.type}
+                    <Badge variant={inquiry.properties?.listing_type === 'rent' ? 'default' : 'secondary'}>
+                      {inquiry.properties?.listing_type}
                     </Badge>
                     <Button size="sm" variant="outline">View</Button>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <p className="text-gray-500 text-center py-4">No recent inquiries</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -121,7 +204,7 @@ const PropertyOwnerMainDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topPerformingProperties.map((property) => (
+              {topPerformingProperties?.map((property) => (
                 <div key={property.id} className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-sm">{property.title}</h4>
@@ -140,7 +223,9 @@ const PropertyOwnerMainDashboard = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <p className="text-gray-500 text-center py-4">No properties listed yet</p>
+              )}
             </div>
           </CardContent>
         </Card>

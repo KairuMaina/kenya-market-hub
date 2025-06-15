@@ -1,10 +1,20 @@
 
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import PropertyOwnerLayout from '@/components/layouts/PropertyOwnerLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProtectedPropertyOwnerRoute from '@/components/ProtectedPropertyOwnerRoute';
 import PropertyOwnerMainDashboard from '@/components/PropertyOwnerMainDashboard';
+import PropertyOwnerProperties from '@/pages/property-owner/PropertyOwnerProperties';
+import PropertyOwnerAddProperty from '@/pages/property-owner/PropertyOwnerAddProperty';
+import PropertyOwnerViewings from '@/pages/property-owner/PropertyOwnerViewings';
+import PropertyOwnerInquiries from '@/pages/property-owner/PropertyOwnerInquiries';
+import PropertyOwnerTenants from '@/pages/property-owner/PropertyOwnerTenants';
+import PropertyOwnerAnalytics from '@/pages/property-owner/PropertyOwnerAnalytics';
+import PropertyOwnerRevenue from '@/pages/property-owner/PropertyOwnerRevenue';
+import PropertyOwnerProfile from '@/pages/property-owner/PropertyOwnerProfile';
+import PropertyOwnerSettings from '@/pages/property-owner/PropertyOwnerSettings';
 
 const PropertyOwnerApp = () => {
   const { user, loading } = useAuth();
@@ -27,7 +37,18 @@ const PropertyOwnerApp = () => {
   return (
     <ProtectedPropertyOwnerRoute>
       <PropertyOwnerLayout>
-        <PropertyOwnerMainDashboard />
+        <Routes>
+          <Route index element={<PropertyOwnerMainDashboard />} />
+          <Route path="properties" element={<PropertyOwnerProperties />} />
+          <Route path="properties/add" element={<PropertyOwnerAddProperty />} />
+          <Route path="viewings" element={<PropertyOwnerViewings />} />
+          <Route path="inquiries" element={<PropertyOwnerInquiries />} />
+          <Route path="tenants" element={<PropertyOwnerTenants />} />
+          <Route path="analytics" element={<PropertyOwnerAnalytics />} />
+          <Route path="revenue" element={<PropertyOwnerRevenue />} />
+          <Route path="profile" element={<PropertyOwnerProfile />} />
+          <Route path="settings" element={<PropertyOwnerSettings />} />
+        </Routes>
       </PropertyOwnerLayout>
     </ProtectedPropertyOwnerRoute>
   );
