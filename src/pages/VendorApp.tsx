@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import VendorLayout from '@/components/layouts/VendorLayout';
@@ -5,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProtectedVendorRoute from '@/components/ProtectedVendorRoute';
 import VendorMainDashboard from '@/components/VendorMainDashboard';
-import VendorAnalytics from '@/components/vendor/VendorAnalytics';
+// Removed: import VendorAnalytics from '@/components/vendor/VendorAnalytics';
 import VendorProducts from "@/pages/vendor/VendorProducts";
 import VendorStore from "@/pages/vendor/VendorStore";
 import VendorCustomers from "@/pages/vendor/VendorCustomers";
@@ -34,9 +35,9 @@ const VendorApp = () => {
       <VendorLayout>
         <Routes>
           <Route index element={<VendorMainDashboard />} />
-          <Route path="analytics" element={<VendorAnalytics />} />
+          {/* Removed analytics route */}
           <Route path="products" element={<VendorProducts />} />
-          <Route path="products/add" element={<AddProductModal open onOpenChange={() => {}} />} />
+          <Route path="products/add" element={<AddProductModal open onOpenChange={() => {}} onSuccess={() => {}} />} />
           <Route path="store" element={<VendorStore />} />
           <Route path="customers" element={<VendorCustomers />} />
         </Routes>

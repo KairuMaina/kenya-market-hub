@@ -57,7 +57,7 @@ const VendorProducts = () => {
           )}
         </CardContent>
       </Card>
-      <AddProductModal open={showAddProduct} onOpenChange={setShowAddProduct} />
+      <AddProductModal open={showAddProduct} onOpenChange={setShowAddProduct} onSuccess={() => {}} />
     </div>
   );
 };
