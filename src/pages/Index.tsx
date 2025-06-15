@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MainLayout from '@/components/MainLayout';
+import { IMAGE_CONFIG } from '@/config/images';
 import { 
   Globe, 
   ShieldCheck, 
@@ -19,7 +20,7 @@ import {
 const Index: React.FC = () => {
   const navigate = useNavigate();
 
-  // Service-specific hero images
+  // Service-specific hero images with reliable URLs
   const heroSlides = [
     {
       image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
@@ -31,7 +32,7 @@ const Index: React.FC = () => {
       icon: ShoppingBag
     },
     {
-      image: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?ix=4&ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
       service: 'Real Estate',
       title: 'Find Your Dream Property',
       description: 'Explore homes and investments across Kenya',
@@ -40,7 +41,7 @@ const Index: React.FC = () => {
       icon: Building
     },
     {
-      image: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
       service: 'Transport',
       title: 'Reliable Transportation',
       description: 'Book rides with verified drivers',
@@ -49,7 +50,7 @@ const Index: React.FC = () => {
       icon: Car
     },
     {
-      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
       service: 'Services',
       title: 'Professional Services',
       description: 'Connect with skilled service providers',
@@ -60,6 +61,7 @@ const Index: React.FC = () => {
   ];
 
   const [currentSlideIndex, setCurrentSlideIndex] = React.useState(0);
+  const [imageErrors, setImageErrors] = React.useState<boolean[]>(new Array(heroSlides.length).fill(false));
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -67,6 +69,14 @@ const Index: React.FC = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [heroSlides.length]);
+
+  const handleImageError = (index: number) => {
+    setImageErrors(prev => {
+      const newErrors = [...prev];
+      newErrors[index] = true;
+      return newErrors;
+    });
+  };
 
   const currentSlide = heroSlides[currentSlideIndex];
 
@@ -83,11 +93,21 @@ const Index: React.FC = () => {
                   index === currentSlideIndex ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <img
-                  src={slide.image}
-                  alt={slide.service}
-                  className="w-full h-full object-cover"
-                />
+                {!imageErrors[index] ? (
+                  <img
+                    src={slide.image}
+                    alt={slide.service}
+                    className="w-full h-full object-cover"
+                    onError={() => handleImageError(index)}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <slide.icon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg opacity-75">{slide.service}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
               </div>
             ))}

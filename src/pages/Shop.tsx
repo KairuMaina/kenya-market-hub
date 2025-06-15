@@ -18,13 +18,15 @@ const Shop = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
 
+  // Updated hero images with reliable URLs
   const heroImages = [
-    'https://images.unsplash.com/photo-1629198725902-ad2a25a8a619?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1698132712573-0487d7b5791a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
+    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [imageErrors, setImageErrors] = React.useState<boolean[]>(new Array(heroImages.length).fill(false));
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -32,6 +34,14 @@ const Shop = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
+
+  const handleImageError = (index: number) => {
+    setImageErrors(prev => {
+      const newErrors = [...prev];
+      newErrors[index] = true;
+      return newErrors;
+    });
+  };
 
   const handleFiltersChange = (filters: any) => {
     setSearchFilters(filters);
@@ -56,11 +66,21 @@ const Shop = () => {
                   index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <img
-                  src={image}
-                  alt={`Hero ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                {!imageErrors[index] ? (
+                  <img
+                    src={image}
+                    alt={`Hero ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={() => handleImageError(index)}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg opacity-75">Shopping Experience</p>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/40" />
               </div>
             ))}
