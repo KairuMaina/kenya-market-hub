@@ -35,12 +35,12 @@ const AdminOrders = () => {
         .from('orders')
         .select(`
           *,
-          user_email
+          profiles!orders_user_id_fkey(email, full_name)
         `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`user_email.ilike.%${searchTerm}%,id.ilike.%${searchTerm}%`);
+        query = query.or(`profiles.email.ilike.%${searchTerm}%,id.ilike.%${searchTerm}%`);
       }
 
       const { data: orders, error, count } = await query
@@ -95,12 +95,12 @@ const AdminOrders = () => {
   const orders = ordersData?.orders || [];
   const orderStats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    delivered: orders.filter(o => o.status === 'delivered').length
+    pending: orders.filter(o => o.order_status === 'pending').length,
+    processing: orders.filter(o => o.order_status === 'processing').length,
+    delivered: orders.filter(o => o.order_status === 'delivered').length
   };
 
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
 
   return (
     <ProtectedAdminRoute>
@@ -177,7 +177,7 @@ const AdminOrders = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Revenue</p>
-                    <p className="text-2xl font-bold text-purple-600">${totalRevenue.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-purple-600">KSh {totalRevenue.toLocaleString()}</p>
                   </div>
                   <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600">
                     <DollarSign className="h-6 w-6 text-white" />
@@ -239,22 +239,22 @@ const AdminOrders = () => {
                             </TableCell>
                             <TableCell>
                               <div>
-                                <p className="font-medium">{order.user_email || 'Unknown Customer'}</p>
+                                <p className="font-medium">{order.profiles?.email || 'Unknown Customer'}</p>
                               </div>
                             </TableCell>
                             <TableCell>
                               <span className="font-semibold text-blue-600">
-                                {Array.isArray(order.items) ? order.items.length : 0} items
+                                {Array.isArray(order.order_items) ? order.order_items.length : 0} items
                               </span>
                             </TableCell>
                             <TableCell>
                               <span className="font-bold text-green-600">
-                                ${(order.total_amount || 0).toFixed(2)}
+                                KSh {(order.total || 0).toLocaleString()}
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getStatusColor(order.status || 'pending')}>
-                                {order.status?.replace('_', ' ') || 'Pending'}
+                              <Badge className={getStatusColor(order.order_status || 'pending')}>
+                                {order.order_status?.replace('_', ' ') || 'Pending'}
                               </Badge>
                             </TableCell>
                             <TableCell>

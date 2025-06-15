@@ -35,12 +35,13 @@ const AdminDrivers = () => {
       let query = supabase
         .from('drivers')
         .select(`
-          *
+          *,
+          profiles!drivers_user_id_fkey(email, full_name)
         `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,license_plate.ilike.%${searchTerm}%`);
+        query = query.or(`profiles.full_name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%,license_plate.ilike.%${searchTerm}%`);
       }
 
       const { data: drivers, error, count } = await query
@@ -99,7 +100,7 @@ const AdminDrivers = () => {
     total: drivers.length,
     verified: drivers.filter(d => d.is_verified).length,
     active: drivers.filter(d => d.is_active).length,
-    available: drivers.filter(d => d.status === 'available').length
+    available: drivers.filter(d => d.availability_status === 'available').length
   };
 
   return (
@@ -210,7 +211,6 @@ const AdminDrivers = () => {
                           <TableHead className="font-semibold">Status</TableHead>
                           <TableHead className="font-semibold">Verified</TableHead>
                           <TableHead className="font-semibold">Rating</TableHead>
-                          <TableHead className="font-semibold">Rides</TableHead>
                           <TableHead className="font-semibold">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -222,9 +222,9 @@ const AdminDrivers = () => {
                           >
                             <TableCell>
                               <div>
-                                <p className="font-medium">{driver.full_name || 'Unknown Driver'}</p>
-                                <p className="text-sm text-gray-500">{driver.email}</p>
-                                <p className="text-sm text-gray-500">{driver.phone_number}</p>
+                                <p className="font-medium">{driver.profiles?.full_name || 'Unknown Driver'}</p>
+                                <p className="text-sm text-gray-500">{driver.profiles?.email}</p>
+                                <p className="text-sm text-gray-500">{driver.phone}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -239,8 +239,8 @@ const AdminDrivers = () => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getStatusColor(driver.status || 'offline')}>
-                                {driver.status?.replace('_', ' ') || 'Offline'}
+                              <Badge className={getStatusColor(driver.availability_status || 'offline')}>
+                                {driver.availability_status?.replace('_', ' ') || 'Offline'}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -263,11 +263,6 @@ const AdminDrivers = () => {
                                 <Star className="h-4 w-4 text-yellow-500 mr-1" />
                                 <span className="font-medium">{driver.rating || 0}</span>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className="font-semibold text-blue-600">
-                                {driver.total_rides || 0}
-                              </span>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-2">

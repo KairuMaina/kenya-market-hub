@@ -15,8 +15,6 @@ import {
   ShoppingBag, 
   Building, 
   Car, 
-  Briefcase, 
-  Users, 
   TrendingUp, 
   Shield, 
   Headphones,
@@ -28,87 +26,134 @@ import {
 const Index: React.FC = () => {
   const navigate = useNavigate();
 
-  const heroImages = [
-    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
+  // Service-specific hero images
+  const heroSlides = [
+    {
+      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      service: 'Shop',
+      title: 'Shop Smart with Soko',
+      description: 'Discover amazing products from trusted vendors',
+      action: 'Start Shopping',
+      path: '/shop',
+      icon: ShoppingBag
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?ix=4&ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      service: 'Real Estate',
+      title: 'Find Your Dream Property',
+      description: 'Explore homes and investments across Kenya',
+      action: 'Browse Properties',
+      path: '/real-estate',
+      icon: Building
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      service: 'Transport',
+      title: 'Reliable Transportation',
+      description: 'Book rides with verified drivers',
+      action: 'Book a Ride',
+      path: '/rides',
+      icon: Car
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+      service: 'Services',
+      title: 'Professional Services',
+      description: 'Connect with skilled service providers',
+      action: 'Find Services',
+      path: '/services',
+      icon: ShieldCheck
+    }
   ];
 
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [currentSlideIndex, setCurrentSlideIndex] = React.useState(0);
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [heroImages.length]);
+  }, [heroSlides.length]);
+
+  const currentSlide = heroSlides[currentSlideIndex];
 
   return (
     <MainLayout>
       <div className="space-y-8">
-        {/* Hero Section with Image Slideshow */}
-        <section className="relative h-[60vh] rounded-xl overflow-hidden shadow-lg animate-fade-in">
+        {/* Enhanced Hero Section with Service-Specific Slideshow */}
+        <section className="relative h-[70vh] rounded-xl overflow-hidden shadow-lg animate-fade-in">
           <div className="absolute inset-0">
-            {heroImages.map((image, index) => (
+            {heroSlides.map((slide, index) => (
               <div
                 key={index}
                 className={`absolute inset-0 transition-opacity duration-1000 ${
-                  index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                  index === currentSlideIndex ? 'opacity-100' : 'opacity-0'
                 }`}
               >
                 <img
-                  src={image}
-                  alt={`Hero ${index + 1}`}
+                  src={slide.image}
+                  alt={slide.service}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
               </div>
             ))}
           </div>
           
           <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-6">
-            <div className="max-w-3xl animate-scale-in">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-                Welcome to{' '}
-                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                  Soko Smart
-                </span>
+            <div className="max-w-4xl animate-scale-in">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm mr-4">
+                  <currentSlide.icon className="h-8 w-8" />
+                </div>
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">
+                  {currentSlide.service}
+                </Badge>
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                {currentSlide.title}
               </h1>
-              <p className="text-base md:text-lg mb-6 opacity-90 max-w-2xl mx-auto">
-                Your one-stop platform for e-commerce, real estate, transportation, and professional services across Kenya
+              <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                {currentSlide.description}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button 
                   size="lg" 
-                  onClick={() => navigate('/shop')}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  onClick={() => navigate(currentSlide.path)}
+                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-8 py-4"
                 >
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  Explore Shop
+                  <currentSlide.icon className="mr-2 h-5 w-5" />
+                  {currentSlide.action}
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  onClick={() => navigate('/real-estate')}
-                  className="border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300"
+                  onClick={() => navigate('/auth')}
+                  className="border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-8 py-4"
                 >
-                  <Building className="mr-2 h-4 w-4" />
-                  Find Properties
+                  Join Soko Smart
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Slideshow Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {heroImages.map((_, index) => (
+          {/* Enhanced Slideshow Indicators */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
+            {heroSlides.map((slide, index) => (
               <button
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                className={`group flex flex-col items-center transition-all duration-300 ${
+                  index === currentSlideIndex ? 'opacity-100' : 'opacity-60 hover:opacity-80'
                 }`}
-                onClick={() => setCurrentImageIndex(index)}
-              />
+                onClick={() => setCurrentSlideIndex(index)}
+              >
+                <div className={`w-3 h-3 rounded-full mb-1 transition-all duration-300 ${
+                  index === currentSlideIndex ? 'bg-white scale-125' : 'bg-white/70'
+                }`} />
+                <span className="text-xs text-white/80 font-medium">{slide.service}</span>
+              </button>
             ))}
           </div>
         </section>
@@ -231,91 +276,11 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Service Provider Section */}
-        <section className="animate-bounce-in">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Join Our Network of Service Providers
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-4">
-              Grow your business and reach thousands of customers across Kenya. Join our trusted network of vendors, drivers, and property owners.
-            </p>
-            <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
-              <Users className="mr-2 h-3 w-3" />
-              10,000+ Trusted Providers
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {[
-              {
-                title: 'Vendor',
-                desc: 'Sell your products to a wider audience and grow your business',
-                color: 'orange',
-                icon: ShoppingBag,
-                gradient: 'from-orange-500 to-red-600'
-              },
-              {
-                title: 'Driver',
-                desc: 'Provide transportation services and earn competitive income',
-                color: 'blue',
-                icon: Car,
-                gradient: 'from-blue-500 to-blue-600'
-              },
-              {
-                title: 'Property Owner',
-                desc: 'Manage and rent out your properties with professional tools',
-                color: 'green',
-                icon: Building,
-                gradient: 'from-green-500 to-green-600'
-              }
-            ].map((provider, index) => (
-              <Card 
-                key={index} 
-                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-              >
-                <div className={`h-1 bg-gradient-to-r ${provider.gradient}`} />
-                <CardHeader className="text-center">
-                  <div className={`w-12 h-12 mx-auto mb-3 bg-gradient-to-br ${provider.gradient} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                    <provider.icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-gray-800">
-                    {provider.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-gray-600 text-sm mb-4">{provider.desc}</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate('/vendor-dashboard')}
-                    className="w-full text-sm"
-                  >
-                    Apply Now
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Button
-              onClick={() => navigate('/service-provider-hub')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <Briefcase className="mr-2 h-4 w-4" />
-              Access Service Provider Apps
-            </Button>
-            <p className="text-gray-600 mt-2 text-xs">
-              Already approved? Access your dedicated service provider interface
-            </p>
-          </div>
-        </section>
-
         {/* Call to Action */}
         <section className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-xl text-center shadow-lg">
           <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
           <p className="mb-5 opacity-90 max-w-xl mx-auto">
-            Join thousands of satisfied customers and service providers on Kenya's leading digital platform
+            Join thousands of satisfied customers on Kenya's leading digital platform
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/shop">
