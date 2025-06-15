@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProperty, useIncrementPropertyViews, useCreatePropertyInquiry } from '@/hooks/useProperties';
@@ -296,11 +295,6 @@ const PropertyDetail = () => {
                     
                     <PropertyInquiryModal 
                       property={property}
-                      trigger={
-                        <Button size="lg" className="w-full">
-                          {property.listing_type === 'sale' ? 'Make Inquiry' : 'Request Viewing'}
-                        </Button>
-                      }
                     />
                   </div>
                 </CardContent>

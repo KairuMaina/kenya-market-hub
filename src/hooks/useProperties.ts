@@ -143,11 +143,22 @@ export const useIncrementPropertyViews = () => {
 
   return useMutation({
     mutationFn: async (propertyId: string) => {
-      const { error } = await supabase.rpc('increment_property_views', {
-        property_id: propertyId
-      });
+      // Instead of calling a non-existent function, we'll update the views count directly
+      const { data: property } = await supabase
+        .from('properties')
+        .select('views_count')
+        .eq('id', propertyId)
+        .single();
 
-      if (error) throw error;
+      if (property) {
+        const newViewsCount = (property.views_count || 0) + 1;
+        const { error } = await supabase
+          .from('properties')
+          .update({ views_count: newViewsCount })
+          .eq('id', propertyId);
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });

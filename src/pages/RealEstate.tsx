@@ -137,7 +137,6 @@ const RealEstate = () => {
             <div className="h-[600px] rounded-lg overflow-hidden border">
               <PropertyMapView
                 properties={filteredProperties}
-                onPropertySelect={setSelectedProperty}
                 onViewDetails={handleViewDetails}
               />
             </div>
