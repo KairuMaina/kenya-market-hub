@@ -4,21 +4,91 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Package, 
-  ShoppingCart, 
-  DollarSign, 
-  TrendingUp,
-  Plus,
-  BarChart3,
-  Store,
-  Users
+  Plus, Store, Users, TrendingUp
 } from 'lucide-react';
 import { useMyVendorProfile } from '@/hooks/useVendors';
-import VendorAnalytics from "@/components/VendorAnalytics";
+import { useVendorAnalytics } from '@/hooks/useVendorAnalytics';
+import { useProducts } from '@/hooks/useProducts';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const VendorMainDashboard = () => {
   const { data: vendorProfile } = useMyVendorProfile();
+  const analytics = useVendorAnalytics();
+  const { data: products = [] } = useProducts({ vendorId: vendorProfile?.id });
   const navigate = useNavigate();
+
+  // Orders fetching (recent 5)
+  const { data: recentOrders = [], isLoading: isOrdersLoading } = useQuery({
+    queryKey: ['vendor-recent-orders', vendorProfile?.id],
+    enabled: !!vendorProfile?.id,
+    queryFn: async () => {
+      if (!vendorProfile?.id) return [];
+      // Fetch recent orders for this vendor via their products
+      const { data: orderItems, error } = await supabase
+        .from('order_items').select(`
+          order_id, orders(created_at, user_id, total_amount, status), 
+          product_id, quantity, total_price, products(name)
+        `)
+        .eq('products.vendor_id', vendorProfile.id)
+        .order('orders.created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      const summarized = {};
+      // Group by order
+      (orderItems || []).forEach((item) => {
+        const oid = item.order_id;
+        if (!summarized[oid]) {
+          summarized[oid] = {
+            orderId: oid,
+            createdAt: item.orders?.created_at,
+            userId: item.orders?.user_id,
+            status: item.orders?.status || 'n/a',
+            total: item.orders?.total_amount || 0,
+            products: []
+          };
+        }
+        summarized[oid].products.push(item.products?.name);
+      });
+      // Return summary
+      return Object.values(summarized).slice(0, 5);
+    }
+  });
+
+  // Top products (by sales)
+  const { data: topProducts = [], isLoading: isTopLoading } = useQuery({
+    queryKey: ['vendor-top-products', vendorProfile?.id],
+    enabled: !!vendorProfile?.id,
+    queryFn: async () => {
+      if (!vendorProfile?.id) return [];
+      // Aggregate sales per product
+      const { data: orderItems, error } = await supabase
+        .from('order_items').select(`
+          product_id, quantity, products(name)
+        `)
+        .eq('products.vendor_id', vendorProfile.id);
+
+      if (error) throw error;
+      // Aggregate sales by product
+      const byProduct = {};
+      (orderItems || []).forEach((item) => {
+        const pid = item.product_id;
+        if (!byProduct[pid]) {
+          byProduct[pid] = { 
+            name: item.products?.name,
+            sales: 0
+          };
+        }
+        byProduct[pid].sales += item.quantity || 0;
+      });
+      // Return sorted
+      return Object.values(byProduct)
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 3);
+    }
+  });
+
 
   const quickActions = [
     {
@@ -63,9 +133,7 @@ const VendorMainDashboard = () => {
           </div>
         )}
       </div>
-      <VendorAnalytics />
-
-      {/* Quick Actions */}
+      {/* --- Vendor Analytics Section --- */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
@@ -91,55 +159,94 @@ const VendorMainDashboard = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-lg">
+      {/* Real Analytics */}
+      {analytics.isLoading ? (
+        <div className="flex items-center space-x-2">
+          <LoadingSpinner /> <span>Loading analytics...</span>
+        </div>
+      ) : analytics.error ? (
+        <Card><CardContent className="text-red-500">Error loading analytics data.</CardContent></Card>
+      ) : analytics.data ? (
+        <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            <CardTitle className="flex items-center gap-2"><TrendingUp /> Analytics</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div>
+                <div className="text-xs text-gray-500">Revenue</div>
+                <div className="font-bold text-lg text-green-600">KSh {analytics.data.totalRevenue.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500">Orders</div>
+                <div className="font-bold text-lg">{analytics.data.totalOrders}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500">Products</div>
+                <div className="font-bold text-lg">{analytics.data.totalProducts}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500">Avg. Rating</div>
+                <div className="font-bold text-lg">{analytics.data.averageRating || '-'}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Recent Orders */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Recent Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isOrdersLoading ? (
+            <div><LoadingSpinner /> Loading...</div>
+          ) : (
             <div className="space-y-4">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {recentOrders.length === 0 && (
+                <div className="text-center text-gray-400">No orders yet.</div>
+              )}
+              {recentOrders.map((order: any, i: number) => (
+                <div key={order.orderId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium">Order #00{item}</p>
-                    <p className="text-sm text-gray-600">Customer {item}</p>
+                    <p className="font-medium">Order #{String(order.orderId).slice(0, 7)}</p>
+                    <p className="text-sm text-gray-600">{order.products.join(', ')}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">KSH {(item * 1500).toLocaleString()}</p>
-                    <Badge variant="outline" className="text-xs">
-                      Pending
-                    </Badge>
+                    <div className="font-semibold text-orange-800">KSh {order.total ? Number(order.total).toLocaleString() : '-'}</div>
+                    <Badge variant="outline" className="text-xs">{order.status || 'n/a'}</Badge>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Top Products</CardTitle>
-          </CardHeader>
-          <CardContent>
+          )}
+        </CardContent>
+      </Card>
+      {/* Top Products */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Top Products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isTopLoading ? <LoadingSpinner /> : (
             <div className="space-y-4">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {topProducts && topProducts.length > 0 ? topProducts.map((product: any, idx: number) => (
+                <div key={product.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium">Product {item}</p>
-                    <p className="text-sm text-gray-600">{item * 5} sold this month</p>
+                    <p className="font-medium">{product.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">KSH {(item * 800).toLocaleString()}</p>
-                    <p className="text-xs text-green-600">+{item * 2}% sales</p>
+                    <p className="font-semibold">{product.sales} sold</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center text-gray-400">No sales yet.</div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

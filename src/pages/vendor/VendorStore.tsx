@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useMyVendorProfile } from '@/hooks/useVendors';
 import { useProducts } from '@/hooks/useProducts';
@@ -21,7 +20,7 @@ const VendorStore = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {isLoading ? (
           <Card><CardContent>Loading products...</CardContent></Card>
-        ) : products?.length === 0 ? (
+        ) : (products?.length === 0 ? (
           <span>No products in your store yet.</span>
         ) : (
           products?.map(product => (
@@ -33,7 +32,7 @@ const VendorStore = () => {
               </CardContent>
             </Card>
           ))
-        )}
+        ))}
       </div>
     </div>
   );
