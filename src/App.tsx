@@ -37,8 +37,8 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <TooltipProvider delayDuration={300}>
           <Toaster />
           <SoundEffects />
           <PerformanceMonitor />
@@ -72,8 +72,8 @@ function App() {
               </Routes>
             </Router>
           </ErrorBoundary>
-        </AuthProvider>
-      </TooltipProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
