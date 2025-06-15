@@ -2022,6 +2022,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_medical_provider_application: {
+        Args: { p_application_id: string }
+        Returns: string
+      }
       approve_vendor_application: {
         Args: { application_id: string }
         Returns: string
@@ -2072,6 +2076,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      reject_medical_provider_application: {
+        Args: { p_application_id: string; p_admin_notes: string }
+        Returns: undefined
       }
       reject_vendor_application: {
         Args: { application_id: string; rejection_notes?: string }
