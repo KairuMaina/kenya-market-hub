@@ -6,6 +6,7 @@ import { Navigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Building, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ProtectedPropertyOwnerRouteProps {
   children: React.ReactNode;
@@ -40,24 +41,29 @@ const ProtectedPropertyOwnerRoute: React.FC<ProtectedPropertyOwnerRouteProps> = 
       <div className="max-w-2xl mx-auto mt-8 p-4">
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-6 text-center">
-            <h2 className="text-lg font-semibold text-green-800 mb-2">
-              Property Owner Profile Required
+            <div className="flex justify-center mb-4">
+              <Building className="h-12 w-12 text-green-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-green-800 mb-2">
+              Property Owner Application Required
             </h2>
-            <p className="text-green-700 mb-4">
-              You need to create a property owner profile to access the property management application.
+            <p className="text-green-700 mb-6">
+              To access the Property Management Portal, you need to apply as a property owner first. 
+              Your application will be reviewed by our team before you can start listing properties.
             </p>
             <div className="flex gap-3 justify-center">
               <Button 
                 onClick={() => navigate('/vendor-dashboard')}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
               >
-                Create Property Owner Profile
+                <Building className="h-4 w-4" />
+                Apply as Property Owner
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/service-provider-hub')}
               >
-                Back to Hub
+                Back to Service Hub
               </Button>
             </div>
           </CardContent>
@@ -67,29 +73,60 @@ const ProtectedPropertyOwnerRoute: React.FC<ProtectedPropertyOwnerRouteProps> = 
   }
 
   if (requireApproval && propertyProfile.verification_status !== 'approved') {
+    const getStatusInfo = () => {
+      switch (propertyProfile.verification_status) {
+        case 'pending':
+          return {
+            icon: Clock,
+            title: 'Application Under Review',
+            message: 'Your property owner application is currently being reviewed by our team. We will notify you once the review is complete.',
+            color: 'yellow'
+          };
+        case 'rejected':
+          return {
+            icon: AlertCircle,
+            title: 'Application Needs Attention',
+            message: 'Your property owner application requires some updates. Please check your application status for details.',
+            color: 'red'
+          };
+        default:
+          return {
+            icon: Clock,
+            title: 'Application Status Unknown',
+            message: 'Please check your application status or contact support.',
+            color: 'gray'
+          };
+      }
+    };
+
+    const statusInfo = getStatusInfo();
+    const StatusIcon = statusInfo.icon;
+
     return (
       <div className="max-w-2xl mx-auto mt-8 p-4">
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className={`border-${statusInfo.color}-200 bg-${statusInfo.color}-50`}>
           <CardContent className="pt-6 text-center">
-            <h2 className="text-lg font-semibold text-yellow-800 mb-2">
-              Property Owner Profile Approval Required
+            <div className="flex justify-center mb-4">
+              <StatusIcon className={`h-12 w-12 text-${statusInfo.color}-600`} />
+            </div>
+            <h2 className={`text-xl font-semibold text-${statusInfo.color}-800 mb-2`}>
+              {statusInfo.title}
             </h2>
-            <p className="text-yellow-700 mb-4">
-              Your property owner profile is pending approval. The property management app will be available 
-              once your application is reviewed and approved by our team.
+            <p className={`text-${statusInfo.color}-700 mb-6`}>
+              {statusInfo.message}
             </p>
             <div className="flex gap-3 justify-center">
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/vendor-dashboard')}
               >
-                View Application Status
+                Check Application Status
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/service-provider-hub')}
               >
-                Back to Hub
+                Back to Service Hub
               </Button>
             </div>
           </CardContent>
