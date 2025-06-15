@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
   const { toast } = useToast();
   const uploadImages = useUploadProductImages();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     description: '',
     price: '',
@@ -36,7 +36,17 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     make: '',
     model: '',
     year: ''
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!open) {
+      setFormData(initialFormData);
+      setSelectedFiles([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const { data: vendors, isLoading: vendorsLoading } = useQuery({
     queryKey: ['vendors'],
@@ -77,7 +87,6 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     },
     onSuccess: async (newProduct) => {
       let hadImageError = false;
-      // Upload images if any were selected
       if (selectedFiles.length > 0) {
         try {
           await uploadImages.mutateAsync({
@@ -96,25 +105,9 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
         }
       }
       toast({ title: "Product added successfully!" });
-      // Close modal and signal success to parent for refetching
+      // Request modal close, let useEffect reset it
       onOpenChange(false);
       onSuccess();
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        original_price: '',
-        category: '',
-        brand: '',
-        vendor_id: '',
-        image_url: '',
-        stock_quantity: '',
-        in_stock: true,
-        make: '',
-        model: '',
-        year: ''
-      });
-      setSelectedFiles([]);
     },
     onError: (error: any) => {
       toast({ 
@@ -127,7 +120,6 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     const productData = {
       ...formData,
       vendor_id: formData.vendor_id || null,
@@ -136,7 +128,6 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
       stock_quantity: parseInt(formData.stock_quantity) || 0,
       year: formData.year ? parseInt(formData.year) : null,
     };
-
     addProduct.mutate(productData);
   };
 
@@ -152,6 +143,11 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     });
   };
 
+  const handleCancel = () => {
+    onOpenChange(false); // Triggers the parent to set open=false
+    // No need to manually reset here, it's handled by useEffect above
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -161,7 +157,6 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
             Fill in the product details to add it to your inventory.
           </DialogDescription>
         </DialogHeader>
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -335,7 +330,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" disabled={addProduct.isPending}>
