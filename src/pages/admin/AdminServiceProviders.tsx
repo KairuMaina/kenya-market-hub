@@ -85,7 +85,6 @@ const AdminServiceProviders = () => {
   };
 
   // ----- Approval and rejection for pending applications -----
-  const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [applicationRejectionNotes, setApplicationRejectionNotes] = useState('');
 
@@ -100,19 +99,9 @@ const AdminServiceProviders = () => {
         provider_type = 'service_provider';
       }
 
-      // Check if a profile already exists for this user and provider type
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('service_provider_profiles')
-        .select('id')
-        .eq('user_id', application.user_id)
-        .eq('provider_type', provider_type)
-        .maybeSingle();
-
-      if (checkError) {
-        throw checkError;
-      }
-
       const profileData = {
+        user_id: application.user_id,
+        provider_type,
         business_name: application.business_name,
         business_description: application.business_description,
         phone_number: application.business_phone,
@@ -126,23 +115,16 @@ const AdminServiceProviders = () => {
         },
       };
 
-      if (existingProfile) {
-        // If profile exists, update it
-        const { error: profileError } = await supabase
-          .from('service_provider_profiles')
-          .update(profileData)
-          .eq('id', existingProfile.id);
-        if (profileError) throw profileError;
-      } else {
-        // If not, insert a new one
-        const { error: profileError } = await supabase
-          .from('service_provider_profiles')
-          .insert({
-            ...profileData,
-            user_id: application.user_id,
-            provider_type,
-          });
-        if (profileError) throw profileError;
+      // Use upsert to handle both insert and update scenarios atomically.
+      const { error: profileError } = await supabase
+        .from('service_provider_profiles')
+        .upsert(profileData, {
+          onConflict: 'user_id,provider_type',
+        });
+
+      if (profileError) {
+        console.error("Supabase upsert error:", profileError);
+        throw profileError;
       }
 
       // update the vendor_applications row to "approved"
