@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Wrench, Shield, Phone, Star, Clock } from 'lucide-react';
@@ -7,6 +8,7 @@ import MainLayout from '@/components/MainLayout';
 import ServicesAdvancedSearch from '@/components/services/ServicesAdvancedSearch';
 
 const Services = () => {
+  const navigate = useNavigate();
   const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
   const [searchFilters, setSearchFilters] = React.useState({});
 
@@ -38,6 +40,10 @@ const Services = () => {
     console.log('Applied service filters:', filters);
   };
 
+  const handleBecomeProviderClick = () => {
+    navigate('/service-provider-hub');
+  };
+
   return (
     <MainLayout>
       <div className="space-y-12">
@@ -62,7 +68,7 @@ const Services = () => {
                 <Wrench className="mr-2 h-5 w-5" />
                 Find Services Now
               </Button>
-              <Button variant="outline" size="lg" className="border-orange-500 text-orange-600 hover:bg-orange-50 px-8 py-3">
+              <Button onClick={handleBecomeProviderClick} variant="outline" size="lg" className="border-orange-500 text-orange-600 hover:bg-orange-50 px-8 py-3">
                 Become a Service Provider
               </Button>
             </div>
@@ -112,7 +118,7 @@ const Services = () => {
                 Service providers will be able to list their services here. 
                 Check back soon or become a service provider yourself!
               </p>
-              <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">
+              <Button onClick={handleBecomeProviderClick} className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">
                 Become a Service Provider
               </Button>
             </CardContent>
@@ -161,7 +167,7 @@ const Services = () => {
               <Wrench className="mr-2 h-5 w-5" />
               Browse Services
             </Button>
-            <Button size="lg" variant="outline" className="px-8 py-3 text-lg border-white text-white hover:bg-white hover:text-orange-600">
+            <Button onClick={handleBecomeProviderClick} size="lg" variant="outline" className="px-8 py-3 text-lg border-white text-white hover:bg-white hover:text-orange-600">
               <Phone className="mr-2 h-5 w-5" />
               Become a Provider
             </Button>

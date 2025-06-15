@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -135,14 +136,52 @@ export const useMyVendorProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // 1. Check for an existing, approved profile in the 'vendors' table
+      const { data: vendorProfile, error: vendorError } = await supabase
         .from('vendors')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as Vendor | null;
+      if (vendorError && vendorError.code !== 'PGRST116') {
+        throw vendorError; // Re-throw actual errors
+      }
+
+      if (vendorProfile) {
+        return vendorProfile as Vendor;
+      }
+
+      // 2. If no approved profile, check for a recent application in 'vendor_applications' for products
+      const { data: vendorApplication, error: vendorAppError } = await supabase
+        .from('vendor_applications')
+        .select('status, business_name, business_description, business_address, business_phone, business_email, submitted_at, service_type')
+        .eq('user_id', user.id)
+        .eq('service_type', 'products')
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (vendorAppError) throw vendorAppError;
+      
+      if (vendorApplication && (vendorApplication.status === 'pending' || vendorApplication.status === 'rejected')) {
+        // Return a mock/synthetic Vendor object to represent the application status
+        return {
+          id: '', // No real vendor ID yet
+          user_id: user.id,
+          verification_status: vendorApplication.status,
+          business_name: vendorApplication.business_name,
+          business_description: vendorApplication.business_description,
+          business_address: vendorApplication.business_address,
+          business_phone: vendorApplication.business_phone,
+          business_email: vendorApplication.business_email,
+          is_active: false,
+          commission_rate: 0,
+          created_at: vendorApplication.submitted_at,
+          updated_at: vendorApplication.submitted_at,
+        } as Vendor;
+      }
+      
+      return null; // No profile and no relevant application found
     }
   });
 };

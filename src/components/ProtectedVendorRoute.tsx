@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMyVendorProfile } from '@/hooks/useVendors';
@@ -53,7 +52,7 @@ const ProtectedVendorRoute: React.FC<ProtectedVendorRouteProps> = ({
             </p>
             <div className="flex gap-3 justify-center">
               <Button 
-                onClick={() => navigate('/vendor-dashboard')}
+                onClick={() => navigate('/service-provider-hub')}
                 className="bg-orange-600 hover:bg-orange-700 flex items-center gap-2"
               >
                 <Store className="h-4 w-4" />
@@ -118,7 +117,7 @@ const ProtectedVendorRoute: React.FC<ProtectedVendorRouteProps> = ({
             <div className="flex gap-3 justify-center">
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/vendor-dashboard')}
+                onClick={() => navigate('/service-provider-hub')}
               >
                 Check Application Status
               </Button>
