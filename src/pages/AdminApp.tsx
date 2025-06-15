@@ -22,6 +22,7 @@ import AdminAnalytics from './admin/AdminAnalytics';
 import AdminReports from './admin/AdminReports';
 import AdminNotifications from './admin/AdminNotifications';
 import AdminSettings from './admin/AdminSettings';
+import AdminMedical from './admin/AdminMedical';
 
 const AdminApp = () => {
   const { user, loading } = useAuth();
@@ -60,6 +61,7 @@ const AdminApp = () => {
         <Route path="ride-pricing" element={<AdminRidePricing />} />
         <Route path="service-providers" element={<AdminServiceProviders />} />
         <Route path="service-bookings" element={<AdminServiceBookings />} />
+        <Route path="medical" element={<AdminMedical />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings" element={<AdminSettings />} />
       </Routes>

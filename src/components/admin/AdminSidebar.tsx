@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -31,7 +30,8 @@ import {
   Bell,
   Truck,
   MessageSquare,
-  Calendar
+  Calendar,
+  HeartPulse
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -83,6 +83,12 @@ const AdminSidebar = () => {
       items: [
         { title: 'Service Providers', url: '/admin/service-providers', icon: Briefcase },
         { title: 'Service Bookings', url: '/admin/service-bookings', icon: Calendar },
+      ]
+    },
+    {
+      title: 'Medical',
+      items: [
+        { title: 'Medical Mgmt', url: '/admin/medical', icon: HeartPulse },
       ]
     },
     {
