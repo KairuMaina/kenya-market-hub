@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +5,86 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Car, Store, Building } from 'lucide-react';
 import { useRoleRedirection } from '@/hooks/useRoleRedirection';
+import { useMyVendorProfile } from '@/hooks/useVendors';
+import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 
 const RoleSelector = () => {
   const navigate = useNavigate();
   const { getAvailableApps, hasMultipleRoles } = useRoleRedirection();
-  const availableApps = getAvailableApps();
+  const { data: vendorProfile } = useMyVendorProfile();
+  const { data: driverProfile } = useServiceProviderProfile('driver');
+  const { data: propertyProfile } = useServiceProviderProfile('property_owner');
+  
+  // Get all service provider profiles
+  const { data: plumberProfile } = useServiceProviderProfile('plumber');
+  const { data: electricianProfile } = useServiceProviderProfile('electrician');
+  const { data: painterProfile } = useServiceProviderProfile('painter');
+  const { data: carpenterProfile } = useServiceProviderProfile('carpenter');
+  const { data: barberProfile } = useServiceProviderProfile('barber');
+  const { data: doctorProfile } = useServiceProviderProfile('doctor');
+  const { data: tutorProfile } = useServiceProviderProfile('tutor');
+  const { data: photographerProfile } = useServiceProviderProfile('photographer');
+  const { data: catererProfile } = useServiceProviderProfile('caterer');
+
+  const getAllAvailableApps = () => {
+    const apps = [];
+    
+    // Core service provider apps
+    if (vendorProfile?.verification_status === 'approved') {
+      apps.push({ 
+        name: 'Vendor Portal', 
+        path: '/vendor', 
+        description: 'Manage products and sales',
+        color: 'orange'
+      });
+    }
+    
+    if (driverProfile?.verification_status === 'approved') {
+      apps.push({ 
+        name: 'Driver App', 
+        path: '/driver', 
+        description: 'Manage rides and earnings',
+        color: 'blue'
+      });
+    }
+    
+    if (propertyProfile?.verification_status === 'approved') {
+      apps.push({ 
+        name: 'Property Management', 
+        path: '/property-owner', 
+        description: 'Manage properties and inquiries',
+        color: 'green'
+      });
+    }
+
+    // Other service provider types
+    const serviceProviders = [
+      { profile: plumberProfile, name: 'Plumber Dashboard', path: '/service/plumber', color: 'blue' },
+      { profile: electricianProfile, name: 'Electrician Dashboard', path: '/service/electrician', color: 'yellow' },
+      { profile: painterProfile, name: 'Painter Dashboard', path: '/service/painter', color: 'green' },
+      { profile: carpenterProfile, name: 'Carpenter Dashboard', path: '/service/carpenter', color: 'amber' },
+      { profile: barberProfile, name: 'Barber Dashboard', path: '/service/barber', color: 'pink' },
+      { profile: doctorProfile, name: 'Doctor Dashboard', path: '/service/doctor', color: 'red' },
+      { profile: tutorProfile, name: 'Tutor Dashboard', path: '/service/tutor', color: 'indigo' },
+      { profile: photographerProfile, name: 'Photography Dashboard', path: '/service/photographer', color: 'gray' },
+      { profile: catererProfile, name: 'Catering Dashboard', path: '/service/caterer', color: 'emerald' }
+    ];
+
+    serviceProviders.forEach(service => {
+      if (service.profile?.verification_status === 'approved') {
+        apps.push({
+          name: service.name,
+          path: service.path,
+          description: 'Manage jobs and clients',
+          color: service.color
+        });
+      }
+    });
+    
+    return apps;
+  };
+
+  const availableApps = getAllAvailableApps();
 
   const getIcon = (color: string) => {
     switch (color) {
@@ -22,32 +96,19 @@ const RoleSelector = () => {
   };
 
   const getColorClasses = (color: string) => {
-    switch (color) {
-      case 'blue': return {
-        bg: 'bg-blue-500',
-        hover: 'hover:bg-blue-600',
-        from: 'from-blue-500',
-        to: 'to-indigo-600'
-      };
-      case 'orange': return {
-        bg: 'bg-orange-500',
-        hover: 'hover:bg-orange-600',
-        from: 'from-orange-500',
-        to: 'to-red-600'
-      };
-      case 'green': return {
-        bg: 'bg-green-500',
-        hover: 'hover:bg-green-600',
-        from: 'from-green-500',
-        to: 'to-emerald-600'
-      };
-      default: return {
-        bg: 'bg-gray-500',
-        hover: 'hover:bg-gray-600',
-        from: 'from-gray-500',
-        to: 'to-gray-600'
-      };
-    }
+    const colorMap: Record<string, any> = {
+      blue: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', from: 'from-blue-500', to: 'to-indigo-600' },
+      orange: { bg: 'bg-orange-500', hover: 'hover:bg-orange-600', from: 'from-orange-500', to: 'to-red-600' },
+      green: { bg: 'bg-green-500', hover: 'hover:bg-green-600', from: 'from-green-500', to: 'to-emerald-600' },
+      yellow: { bg: 'bg-yellow-500', hover: 'hover:bg-yellow-600', from: 'from-yellow-500', to: 'to-orange-500' },
+      amber: { bg: 'bg-amber-500', hover: 'hover:bg-amber-600', from: 'from-amber-500', to: 'to-orange-600' },
+      pink: { bg: 'bg-pink-500', hover: 'hover:bg-pink-600', from: 'from-pink-500', to: 'to-rose-600' },
+      red: { bg: 'bg-red-500', hover: 'hover:bg-red-600', from: 'from-red-500', to: 'to-pink-600' },
+      indigo: { bg: 'bg-indigo-500', hover: 'hover:bg-indigo-600', from: 'from-indigo-500', to: 'to-purple-600' },
+      gray: { bg: 'bg-gray-500', hover: 'hover:bg-gray-600', from: 'from-gray-500', to: 'to-slate-600' },
+      emerald: { bg: 'bg-emerald-500', hover: 'hover:bg-emerald-600', from: 'from-emerald-500', to: 'to-green-600' }
+    };
+    return colorMap[color] || colorMap.gray;
   };
 
   if (availableApps.length === 0) {
@@ -82,7 +143,7 @@ const RoleSelector = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-4">
+    <div className="max-w-6xl mx-auto mt-8 p-4">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Application</h1>
         <p className="text-gray-600">You have access to multiple service provider applications</p>

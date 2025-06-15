@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { 
   ShoppingBag, 
@@ -22,8 +20,7 @@ import {
   Utensils
 } from 'lucide-react';
 import { useVendorApplication } from '@/hooks/useVendors';
-import { useServiceProviderRegistration } from '@/hooks/useServiceProviders';
-import { useToast } from '@/hooks/use-toast';
+import { useServiceProviderRegistration } from '@/hooks/useServiceProviderRegistration';
 
 const ServiceProviderRegistration = () => {
   const [activeTab, setActiveTab] = useState('vendor');
@@ -41,7 +38,6 @@ const ServiceProviderRegistration = () => {
 
   const vendorMutation = useVendorApplication();
   const serviceProviderMutation = useServiceProviderRegistration();
-  const { toast } = useToast();
 
   const serviceTypes = [
     { id: 'vendor', title: 'Product Vendor', icon: ShoppingBag, description: 'Sell products on our marketplace', color: 'from-orange-500 to-red-600' },
@@ -99,11 +95,6 @@ const ServiceProviderRegistration = () => {
         license_number: '',
         experience_years: '',
         service_areas: ''
-      });
-      
-      toast({
-        title: 'Application submitted successfully!',
-        description: 'We will review your application and get back to you soon.'
       });
       
     } catch (error) {
