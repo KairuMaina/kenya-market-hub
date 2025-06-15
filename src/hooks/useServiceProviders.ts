@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,9 +33,10 @@ export const useServiceProviderProfile = (providerType: string) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('provider_type', providerType)
-        .single();
+        .limit(1)
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data as ServiceProviderProfile | null;
     },
     enabled: !!user,
