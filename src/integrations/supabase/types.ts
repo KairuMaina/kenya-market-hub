@@ -2113,6 +2113,7 @@ export type Database = {
         | "lab_technician"
         | "ambulance_driver"
         | "dentist"
+        | "physiotherapist"
       order_status_type:
         | "pending"
         | "confirmed"
@@ -2280,6 +2281,7 @@ export const Constants = {
         "lab_technician",
         "ambulance_driver",
         "dentist",
+        "physiotherapist",
       ],
       order_status_type: [
         "pending",
