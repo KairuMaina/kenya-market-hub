@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -96,6 +97,9 @@ export const useVendorApplication = () => {
         throw new Error("One or more required fields are missing.");
       }
 
+      // Set default service_type if not provided
+      const serviceType = applicationData.service_type || 'products';
+
       const { data, error } = await supabase
         .from('vendor_applications')
         .insert({
@@ -103,7 +107,7 @@ export const useVendorApplication = () => {
           user_id: user.id,
           status: 'pending',
           submitted_at: new Date().toISOString(),
-          service_type: 'products'
+          service_type: serviceType
         });
 
       if (error) {
@@ -152,12 +156,11 @@ export const useMyVendorProfile = () => {
         return vendorProfile as Vendor;
       }
 
-      // 2. If no approved profile, check for a recent application in 'vendor_applications' for products
+      // 2. If no approved profile, check for a recent application in 'vendor_applications'
       const { data: vendorApplication, error: vendorAppError } = await supabase
         .from('vendor_applications')
         .select('status, business_name, business_description, business_address, business_phone, business_email, submitted_at, service_type')
         .eq('user_id', user.id)
-        .eq('service_type', 'products')
         .order('submitted_at', { ascending: false })
         .limit(1)
         .maybeSingle();
