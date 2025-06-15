@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ProtectedDriverRouteProps {
   children: React.ReactNode;
@@ -16,6 +18,7 @@ const ProtectedDriverRoute: React.FC<ProtectedDriverRouteProps> = ({
 }) => {
   const { user, loading } = useAuth();
   const { data: driverProfile, isLoading: driverLoading } = useServiceProviderProfile('driver');
+  const navigate = useNavigate();
 
   if (loading || driverLoading) {
     return (
@@ -33,7 +36,34 @@ const ProtectedDriverRoute: React.FC<ProtectedDriverRouteProps> = ({
   }
 
   if (!driverProfile) {
-    return <Navigate to="/vendor-dashboard" replace />;
+    return (
+      <div className="max-w-2xl mx-auto mt-8 p-4">
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6 text-center">
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">
+              Driver Profile Required
+            </h2>
+            <p className="text-blue-700 mb-4">
+              You need to create a driver profile to access the driver application.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={() => navigate('/vendor-dashboard')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Create Driver Profile
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/service-provider-hub')}
+              >
+                Back to Hub
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (requireApproval && driverProfile.verification_status !== 'approved') {
@@ -44,10 +74,24 @@ const ProtectedDriverRoute: React.FC<ProtectedDriverRouteProps> = ({
             <h2 className="text-lg font-semibold text-yellow-800 mb-2">
               Driver Profile Approval Required
             </h2>
-            <p className="text-yellow-700">
+            <p className="text-yellow-700 mb-4">
               Your driver profile is pending approval. The driver app will be available 
               once your application is reviewed and approved by our team.
             </p>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/vendor-dashboard')}
+              >
+                View Application Status
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/service-provider-hub')}
+              >
+                Back to Hub
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

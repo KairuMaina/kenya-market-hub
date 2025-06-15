@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 import DriverApp from "./pages/DriverApp";
 import VendorApp from "./pages/VendorApp";
 import PropertyOwnerApp from "./pages/PropertyOwnerApp";
+import ServiceProviderHub from "./pages/ServiceProviderHub";
 
 // Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
@@ -96,6 +97,9 @@ const App: React.FC = () => {
                     
                     {/* User Routes */}
                     <Route path="/profile" element={<Profile />} />
+                    
+                    {/* Service Provider Hub */}
+                    <Route path="/service-provider-hub" element={<ServiceProviderHub />} />
                     
                     {/* Service Provider Applications Routes */}
                     <Route path="/vendor-dashboard" element={<VendorDashboard />} />
