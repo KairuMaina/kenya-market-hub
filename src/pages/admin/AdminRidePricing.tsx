@@ -6,11 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DollarSign, TrendingUp, MapPin, Edit, Plus } from 'lucide-react';
+import { DollarSign, TrendingUp, MapPin, Edit, Plus, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import AddFareModal from '@/components/admin/AddFareModal';
 
 const AdminRidePricing = () => {
+  const [isAddFareModalOpen, setIsAddFareModalOpen] = React.useState(false);
+
   const { data: fareCalculations, isLoading: fareLoading } = useQuery({
     queryKey: ['admin-fare-calculations'],
     queryFn: async () => {
@@ -90,7 +93,7 @@ const AdminRidePricing = () => {
                     <CardTitle className="text-xl">Fare Calculations</CardTitle>
                     <CardDescription>Base fare rates by vehicle type</CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={() => setIsAddFareModalOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Fare
                   </Button>
@@ -99,7 +102,7 @@ const AdminRidePricing = () => {
               <CardContent>
                 {fareLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                    <Loader2 className="h-8 w-8 animate-spin text-yellow-600" />
                     <span className="ml-2">Loading fares...</span>
                   </div>
                 ) : (
@@ -116,26 +119,34 @@ const AdminRidePricing = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {fareCalculations?.map((fare) => (
-                          <TableRow key={fare.id}>
-                            <TableCell className="font-medium capitalize">
-                              {fare.vehicle_type}
-                            </TableCell>
-                            <TableCell>KSH {Number(fare.base_fare).toLocaleString()}</TableCell>
-                            <TableCell>KSH {Number(fare.per_km_rate).toLocaleString()}</TableCell>
-                            <TableCell>KSH {Number(fare.per_minute_rate).toLocaleString()}</TableCell>
-                            <TableCell>
-                              <Badge variant={fare.is_active ? "default" : "outline"}>
-                                {fare.is_active ? "Active" : "Inactive"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="outline" size="sm">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                        {fareCalculations && fareCalculations.length > 0 ? (
+                          fareCalculations.map((fare) => (
+                            <TableRow key={fare.id}>
+                              <TableCell className="font-medium capitalize">
+                                {fare.vehicle_type}
+                              </TableCell>
+                              <TableCell>KSH {Number(fare.base_fare).toLocaleString()}</TableCell>
+                              <TableCell>KSH {Number(fare.per_km_rate).toLocaleString()}</TableCell>
+                              <TableCell>KSH {Number(fare.per_minute_rate).toLocaleString()}</TableCell>
+                              <TableCell>
+                                <Badge variant={fare.is_active ? "default" : "outline"}>
+                                  {fare.is_active ? "Active" : "Inactive"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="h-24 text-center">
+                              No fare calculations found.
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </div>
@@ -159,7 +170,7 @@ const AdminRidePricing = () => {
               <CardContent>
                 {surgeLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                    <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
                     <span className="ml-2">Loading surge zones...</span>
                   </div>
                 ) : (
@@ -176,33 +187,41 @@ const AdminRidePricing = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {surgePricing?.map((surge) => (
-                          <TableRow key={surge.id}>
-                            <TableCell className="font-medium">
-                              {surge.location_name}
-                            </TableCell>
-                            <TableCell className="capitalize">{surge.vehicle_type}</TableCell>
-                            <TableCell className="font-bold text-orange-600">
-                              {Number(surge.surge_multiplier).toFixed(1)}x
-                            </TableCell>
-                            <TableCell>
-                              {surge.start_time && surge.end_time 
-                                ? `${surge.start_time} - ${surge.end_time}`
-                                : 'All day'
-                              }
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={surge.is_active ? "default" : "outline"}>
-                                {surge.is_active ? "Active" : "Inactive"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="outline" size="sm">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                        {surgePricing && surgePricing.length > 0 ? (
+                          surgePricing.map((surge) => (
+                            <TableRow key={surge.id}>
+                              <TableCell className="font-medium">
+                                {surge.location_name}
+                              </TableCell>
+                              <TableCell className="capitalize">{surge.vehicle_type}</TableCell>
+                              <TableCell className="font-bold text-orange-600">
+                                {Number(surge.surge_multiplier).toFixed(1)}x
+                              </TableCell>
+                              <TableCell>
+                                {surge.start_time && surge.end_time 
+                                  ? `${surge.start_time} - ${surge.end_time}`
+                                  : 'All day'
+                                }
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={surge.is_active ? "default" : "outline"}>
+                                  {surge.is_active ? "Active" : "Inactive"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="h-24 text-center">
+                              No surge pricing zones found.
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </div>
@@ -211,6 +230,7 @@ const AdminRidePricing = () => {
             </Card>
           </div>
         </div>
+        <AddFareModal isOpen={isAddFareModalOpen} onOpenChange={setIsAddFareModalOpen} />
       </AdminLayout>
     </ProtectedAdminRoute>
   );

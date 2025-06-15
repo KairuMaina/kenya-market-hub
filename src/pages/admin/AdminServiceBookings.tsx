@@ -4,54 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Calendar, User, Briefcase, Eye, Edit, CheckCircle } from 'lucide-react';
+import { Calendar, User, Briefcase, Eye, Edit, CheckCircle, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { useAdminServiceBookings } from '@/hooks/useAdminServiceBookings';
 
 const AdminServiceBookings = () => {
-  // Fetch service bookings - using placeholder data since service_bookings table doesn't exist yet
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: ['admin-service-bookings'],
-    queryFn: async () => {
-      // This would be the actual query when service_bookings table exists
-      // const { data, error } = await supabase
-      //   .from('service_bookings')
-      //   .select('*')
-      //   .order('created_at', { ascending: false });
-      
-      // For now, return mock data
-      return [
-        {
-          id: '1',
-          service_provider_id: '1',
-          customer_id: '1',
-          service_type: 'plumbing',
-          booking_date: '2024-01-15',
-          booking_time: '10:00',
-          status: 'scheduled',
-          total_amount: 5000,
-          customer_name: 'John Doe',
-          provider_name: 'Quick Fix Plumbing',
-          description: 'Fix kitchen sink leak'
-        },
-        {
-          id: '2',
-          service_provider_id: '2',
-          customer_id: '2',
-          service_type: 'cleaning',
-          booking_date: '2024-01-16',
-          booking_time: '14:00',
-          status: 'completed',
-          total_amount: 3000,
-          customer_name: 'Jane Smith',
-          provider_name: 'Clean House Services',
-          description: 'Deep cleaning service'
-        }
-      ];
-    }
-  });
+  const { data: bookings, isLoading } = useAdminServiceBookings();
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -116,14 +75,14 @@ const AdminServiceBookings = () => {
 
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl">Service Bookings</CardTitle>
-              <CardDescription>View and manage service bookings and appointments</CardDescription>
+              <CardTitle className="text-2xl">All Bookings</CardTitle>
+              <CardDescription>View and manage all service bookings</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  <span className="ml-2">Loading bookings...</span>
+                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                  <span className="ml-2 text-lg">Loading bookings...</span>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -141,51 +100,59 @@ const AdminServiceBookings = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bookings?.map((booking) => (
-                        <TableRow key={booking.id}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              {booking.customer_name}
-                            </div>
-                          </TableCell>
-                          <TableCell>{booking.provider_name}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {booking.service_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="font-medium">
-                                {new Date(booking.booking_date).toLocaleDateString()}
+                      {bookings && bookings.length > 0 ? (
+                        bookings.map((booking) => (
+                          <TableRow key={booking.id}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                {booking.customer_name}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {booking.booking_time}
+                            </TableCell>
+                            <TableCell>{booking.provider_name}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {booking.service_type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium">
+                                  {new Date(booking.booking_date).toLocaleDateString()}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {new Date(booking.booking_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            KSH {Number(booking.total_amount).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {booking.description}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(booking.status)}>
-                              {booking.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="secondary" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {booking.total_amount ? `KSH ${Number(booking.total_amount).toLocaleString()}` : 'N/A'}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {booking.description}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusBadgeVariant(booking.status)} className="capitalize">
+                                {booking.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="space-x-2">
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="secondary" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={8} className="h-24 text-center">
+                            No service bookings found.
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
                     </TableBody>
                   </Table>
                 </div>

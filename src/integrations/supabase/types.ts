@@ -1332,6 +1332,84 @@ export type Database = {
           },
         ]
       }
+      service_bookings: {
+        Row: {
+          booking_address: string | null
+          booking_date: string
+          created_at: string | null
+          customer_id: string | null
+          description: string | null
+          id: string
+          provider_id: string | null
+          service_category_id: string | null
+          status: Database["public"]["Enums"]["service_booking_status"] | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_address?: string | null
+          booking_date: string
+          created_at?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          provider_id?: string | null
+          service_category_id?: string | null
+          status?: Database["public"]["Enums"]["service_booking_status"] | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_address?: string | null
+          booking_date?: string
+          created_at?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          provider_id?: string | null
+          service_category_id?: string | null
+          status?: Database["public"]["Enums"]["service_booking_status"] | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_provider_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bookings_service_category_id_fkey"
+            columns: ["service_category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       service_provider_profiles: {
         Row: {
           business_description: string | null
@@ -1803,6 +1881,13 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      service_booking_status:
+        | "pending"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "rejected"
       user_role:
         | "admin"
         | "customer"
@@ -1947,6 +2032,14 @@ export const Constants = {
         "in_progress",
         "completed",
         "cancelled",
+      ],
+      service_booking_status: [
+        "pending",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "rejected",
       ],
       user_role: [
         "admin",
