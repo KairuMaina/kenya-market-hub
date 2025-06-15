@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -103,7 +102,8 @@ export const useVendorApplication = () => {
           ...applicationData,
           user_id: user.id,
           status: 'pending',
-          submitted_at: new Date().toISOString()
+          submitted_at: new Date().toISOString(),
+          service_type: 'products'
         });
 
       if (error) {
@@ -117,6 +117,7 @@ export const useVendorApplication = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['my-vendor-profile'] });
       toast({ title: 'Vendor application submitted successfully!' });
     },
     onError: (error: any) => {

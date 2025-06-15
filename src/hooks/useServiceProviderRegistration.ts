@@ -25,20 +25,22 @@ export const useServiceProviderRegistration = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data: result, error } = await supabase
-        .from('service_provider_profiles')
+        .from('vendor_applications')
         .insert({
           user_id: user.id,
-          provider_type: data.service_type,
+          service_type: data.service_type,
           business_name: data.business_name,
           business_description: data.business_description,
-          location_address: data.business_address,
-          phone_number: data.business_phone,
-          email: data.business_email,
+          business_address: data.business_address,
+          business_phone: data.business_phone,
+          business_email: data.business_email,
+          business_license: data.license_number,
           documents: {
-            license_number: data.license_number,
             experience_years: data.experience_years,
             service_areas: data.service_areas
-          }
+          },
+          status: 'pending',
+          submitted_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -48,6 +50,8 @@ export const useServiceProviderRegistration = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-provider-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['my-vendor-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
       toast({
         title: 'Application Submitted Successfully!',
         description: 'Your service provider application has been submitted for review.',
