@@ -21,9 +21,13 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { useDeleteProperty } from '@/hooks/usePropertyManagement';
+import { useToast } from '@/hooks/use-toast';
 
 const PropertyOwnerProperties = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
+  const deleteProperty = useDeleteProperty();
 
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['owner-properties', searchTerm],
@@ -46,6 +50,25 @@ const PropertyOwnerProperties = () => {
       return data || [];
     }
   });
+
+  const handleDelete = async (propertyId: string, propertyTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${propertyTitle}"? This action cannot be undone.`)) {
+      try {
+        await deleteProperty.mutateAsync(propertyId);
+        toast({
+          title: "Property Deleted",
+          description: "Property has been successfully removed.",
+        });
+      } catch (error) {
+        console.error('Failed to delete property:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete property. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -199,13 +222,22 @@ const PropertyOwnerProperties = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="destructive" size="sm">
+                          <Link to={`/property/${property.id}`}>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link to={`/property-owner/properties/edit/${property.id}`}>
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDelete(property.id, property.title)}
+                            disabled={deleteProperty.isPending}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

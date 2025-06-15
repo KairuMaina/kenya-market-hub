@@ -8,6 +8,7 @@ import ProtectedPropertyOwnerRoute from '@/components/ProtectedPropertyOwnerRout
 import PropertyOwnerMainDashboard from '@/components/PropertyOwnerMainDashboard';
 import PropertyOwnerProperties from '@/pages/property-owner/PropertyOwnerProperties';
 import PropertyOwnerAddProperty from '@/pages/property-owner/PropertyOwnerAddProperty';
+import PropertyOwnerEditProperty from '@/pages/property-owner/PropertyOwnerEditProperty';
 import PropertyOwnerViewings from '@/pages/property-owner/PropertyOwnerViewings';
 import PropertyOwnerInquiries from '@/pages/property-owner/PropertyOwnerInquiries';
 import PropertyOwnerTenants from '@/pages/property-owner/PropertyOwnerTenants';
@@ -41,6 +42,7 @@ const PropertyOwnerApp = () => {
           <Route index element={<PropertyOwnerMainDashboard />} />
           <Route path="properties" element={<PropertyOwnerProperties />} />
           <Route path="properties/add" element={<PropertyOwnerAddProperty />} />
+          <Route path="properties/edit/:id" element={<PropertyOwnerEditProperty />} />
           <Route path="viewings" element={<PropertyOwnerViewings />} />
           <Route path="inquiries" element={<PropertyOwnerInquiries />} />
           <Route path="tenants" element={<PropertyOwnerTenants />} />
