@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +34,7 @@ const AdminOrders = () => {
         .from('orders')
         .select(`
           *,
-          profiles(email, full_name)
+          profiles!orders_user_id_fkey(email, full_name)
         `)
         .order('created_at', { ascending: false });
 

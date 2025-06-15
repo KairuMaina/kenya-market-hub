@@ -95,15 +95,6 @@ const Index: React.FC = () => {
           
           <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-6">
             <div className="max-w-4xl animate-scale-in">
-              {/* Logo Section */}
-              <div className="flex items-center justify-center mb-6">
-                <img 
-                  src="/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png" 
-                  alt="Soko Smart Logo" 
-                  className="h-20 w-auto object-contain"
-                />
-              </div>
-              
               <div className="flex items-center justify-center mb-4">
                 <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm mr-4">
                   <currentSlide.icon className="h-8 w-8" />
@@ -133,7 +124,7 @@ const Index: React.FC = () => {
                   size="lg" 
                   variant="outline" 
                   onClick={() => navigate('/auth')}
-                  className="bg-white text-black border-2 border-white hover:bg-gray-100 hover:text-black transition-all duration-300 px-8 py-4 font-semibold"
+                  className="bg-white text-black border-2 border-white hover:bg-white hover:text-black transition-all duration-300 px-8 py-4 font-semibold"
                 >
                   Join Soko Smart
                 </Button>

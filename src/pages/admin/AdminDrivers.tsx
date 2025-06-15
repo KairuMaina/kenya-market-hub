@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ const AdminDrivers = () => {
         .from('drivers')
         .select(`
           *,
-          profiles(email, full_name, phone)
+          profiles!drivers_user_id_fkey(email, full_name, phone)
         `)
         .order('created_at', { ascending: false });
 

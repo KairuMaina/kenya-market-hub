@@ -71,7 +71,7 @@ const AppSidebar = () => {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
             <img 
               alt="Soko Smart Logo" 
-              src="/lovable-uploads/79fe9f77-6c77-4b5c-b7e0-4c0f7d6b4b4b.png" 
+              src="/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png" 
               className="w-full h-full object-contain" 
             />
           </div>
