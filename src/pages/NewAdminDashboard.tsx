@@ -13,6 +13,7 @@ import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCirc
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
 import { useVendorApplications } from '@/hooks/useVendors';
+import { useAdminVendors } from '@/hooks/useAdminVendors';
 
 interface UserProfile {
   id: string;
@@ -277,6 +278,11 @@ const NewAdminDashboard = () => {
 
   // Use the vendor applications hook with enhanced logging
   const { data: vendorApplications, isLoading: vendorApplicationsLoading, error: vendorApplicationsError } = useVendorApplications();
+
+  // Fetch vendor profiles for admin
+  const [vendorPage, setVendorPage] = useState(1);
+  const [vendorSearchTerm, setVendorSearchTerm] = useState('');
+  const { data: adminVendorsData, isLoading: adminVendorsLoading, error: adminVendorsError } = useAdminVendors(vendorPage, 10, vendorSearchTerm);
 
   // Add console logging to debug the vendor applications data
   useEffect(() => {
@@ -704,159 +710,113 @@ const NewAdminDashboard = () => {
           <TabsContent value="vendors" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Vendor Applications</CardTitle>
-                <CardDescription>Review and manage vendor applications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Enhanced Debug Panel */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium mb-2">🔧 Debug Panel</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><strong>Hook Data:</strong> {vendorApplications?.length || 0} applications</p>
-                    <p><strong>Loading:</strong> {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
-                    <p><strong>Error:</strong> {vendorApplicationsError ? 'Yes' : 'No'}</p>
-                    {vendorApplicationsError && (
-                      <p><strong>Error Message:</strong> {vendorApplicationsError.message}</p>
-                    )}
-                    {directQueryResult && (
-                      <p><strong>Direct Query:</strong> {directQueryResult.data?.length || 0} found at {directQueryResult.timestamp}</p>
-                    )}
-                    {detailedTestResult && (
-                      <div>
-                        <p><strong>Detailed Test:</strong> Run at {detailedTestResult.timestamp}</p>
-                        <p><strong>Simple Select:</strong> {detailedTestResult.simpleSelect?.count || 0} records</p>
-                        <p><strong>User:</strong> {detailedTestResult.user?.user || 'Not logged in'}</p>
-                      </div>
-                    )}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Vendors</CardTitle>
+                    <CardDescription>
+                      View and manage all vendor profiles. New vendors will be listed here as soon as they are approved.
+                    </CardDescription>
                   </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button 
-                      onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Refresh Hook
-                    </Button>
-                    <Button 
-                      onClick={testDirectQuery}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Test Direct Query
-                    </Button>
-                    <Button 
-                      onClick={runDetailedTest}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Run Detailed Test
-                    </Button>
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <input
+                        placeholder="Search vendors..."
+                        value={vendorSearchTerm}
+                        onChange={(e) => {
+                          setVendorSearchTerm(e.target.value);
+                          setVendorPage(1);
+                        }}
+                        className="pl-9 w-64 h-9 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        style={{ paddingLeft: 36 }}
+                      />
+                      <span className="absolute left-3 top-2.5 text-gray-400 pointer-events-none">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M5 11a6 6 0 1112 0 6 6 0 01-12 0z" stroke="#a3a3a3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                {vendorApplicationsLoading ? (
+              </CardHeader>
+              <CardContent>
+                {adminVendorsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-                      <p>Loading vendor applications...</p>
-                    </div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    <span className="ml-2 text-orange-500">Loading vendors...</span>
                   </div>
-                ) : vendorApplicationsError ? (
-                  <div className="text-red-500 bg-red-50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Error loading vendor applications</h4>
-                    <p className="text-sm">{vendorApplicationsError.message}</p>
-                    <Button 
-                      onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
-                      className="mt-2"
-                      size="sm"
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                ) : !vendorApplications || vendorApplications.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Store className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">No vendor applications found</h3>
-                    <p className="text-gray-500 mb-4">
-                      No vendor applications have been submitted yet.
-                    </p>
-                    <div className="text-sm text-gray-400 space-y-1">
-                      <p><strong>Debug info:</strong></p>
-                      <p>Applications array: {JSON.stringify(vendorApplications)}</p>
-                      <p>Loading: {vendorApplicationsLoading ? 'Yes' : 'No'}</p>
-                      <p>Error: {vendorApplicationsError ? vendorApplicationsError.message : 'No'}</p>
-                    </div>
+                ) : adminVendorsError ? (
+                  <div className="text-red-500 bg-red-50 p-4 rounded">
+                    Error loading vendors: {adminVendorsError.message}
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Found {vendorApplications.length} applications
-                      </p>
-                      <Button 
-                        onClick={() => queryClient.invalidateQueries({ queryKey: ['vendor-applications'] })}
-                        size="sm"
-                        variant="outline"
-                      >
-                        Refresh
-                      </Button>
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead>
+                          <tr className="bg-orange-50">
+                            <th className="px-4 py-2 text-left font-semibold">Business Name</th>
+                            <th className="px-4 py-2 text-left font-semibold">Email</th>
+                            <th className="px-4 py-2 font-semibold">Status</th>
+                            <th className="px-4 py-2 font-semibold">Products</th>
+                            <th className="px-4 py-2 font-semibold">Revenue</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adminVendorsData?.vendors?.length > 0 ? adminVendorsData.vendors.map((vendor) => (
+                            <tr key={vendor.id} className="hover:bg-orange-50 transition-all">
+                              <td className="px-4 py-2 font-medium">{vendor.business_name}</td>
+                              <td className="px-4 py-2">{vendor.business_email || 'N/A'}</td>
+                              <td className="px-4 py-2">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  vendor.verification_status === 'approved'
+                                    ? 'bg-green-100 text-green-700'
+                                    : vendor.verification_status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
+                                  {vendor.verification_status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2">{vendor.products_count}</td>
+                              <td className="px-4 py-2 text-green-700 font-semibold">KSh {Number(vendor.total_revenue).toLocaleString()}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+                                No vendors found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Business Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Submitted</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {vendorApplications.map((application) => (
-                          <TableRow key={application.id}>
-                            <TableCell className="font-medium">{application.business_name}</TableCell>
-                            <TableCell>{application.business_email}</TableCell>
-                            <TableCell>{application.business_phone}</TableCell>
-                            <TableCell>
-                              <Badge variant={getStatusBadgeVariant(application.status)}>
-                                {application.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{new Date(application.submitted_at).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              {application.status === 'pending' && (
-                                <div className="flex space-x-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleVendorApplication.mutate({ 
-                                      applicationId: application.id, 
-                                      action: 'approve' 
-                                    })}
-                                    disabled={handleVendorApplication.isPending}
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleVendorApplication.mutate({ 
-                                      applicationId: application.id, 
-                                      action: 'reject' 
-                                    })}
-                                    disabled={handleVendorApplication.isPending}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                    {adminVendorsData && adminVendorsData.totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="text-sm text-gray-600">
+                          Showing {((vendorPage - 1) * 10) + 1} to {Math.min(vendorPage * 10, adminVendorsData.total)} of {adminVendorsData.total} vendors
+                        </p>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setVendorPage(prev => Math.max(prev - 1, 1))}
+                            disabled={vendorPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          <span className="text-sm">
+                            Page {vendorPage} of {adminVendorsData.totalPages}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setVendorPage(prev => Math.min(prev + 1, adminVendorsData.totalPages))}
+                            disabled={vendorPage === adminVendorsData.totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
