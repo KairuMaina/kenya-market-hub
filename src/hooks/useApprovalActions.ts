@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -102,7 +101,7 @@ export const useApprovalActions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
       toast({ title: 'Vendor approved successfully!' });
     },
     onError: (error: any) => {
@@ -127,7 +126,7 @@ export const useApprovalActions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
       toast({ title: 'Vendor rejected' });
     },
     onError: (error: any) => {

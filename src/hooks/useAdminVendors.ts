@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -105,7 +104,7 @@ export const useUpdateVendorStatus = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       toast({ title: 'Vendor status updated successfully' });
     },
