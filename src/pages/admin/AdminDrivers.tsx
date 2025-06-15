@@ -2,268 +2,193 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Car, Users, CheckCircle, Clock, Eye, UserCheck, Check, X, MapPin, Star } from 'lucide-react';
+import { Car, Search, Edit, CheckCircle, XCircle, UserPlus } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
-import { useApprovalActions } from '@/hooks/useApprovalActions';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminDrivers = () => {
-  const { approveDriver, rejectDriver } = useApprovalActions();
-  const [selectedDriver, setSelectedDriver] = useState<any>(null);
-  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [rejectionNotes, setRejectionNotes] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch drivers
-  const { data: drivers, isLoading: driversLoading } = useQuery({
-    queryKey: ['admin-drivers'],
+  const { data: drivers, isLoading } = useQuery({
+    queryKey: ['admin-drivers', searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('drivers')
-        .select('*')
+        .select(`
+          id,
+          user_id,
+          phone_number,
+          vehicle_type,
+          vehicle_make,
+          vehicle_model,
+          license_plate,
+          license_number,
+          rating,
+          total_rides,
+          is_verified,
+          is_active,
+          status,
+          created_at,
+          profiles!inner(full_name, email)
+        `)
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
 
-  // Fetch profiles for driver names
-  const { data: profiles } = useQuery({
-    queryKey: ['admin-profiles-drivers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) {
-        console.error('Profiles fetch error:', error);
-        return [];
+      if (searchTerm) {
+        query = query.or(`profiles.full_name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%,license_plate.ilike.%${searchTerm}%`);
       }
-      return data || [];
-    }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
   });
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'available':
-        return 'default';
-      case 'busy':
-        return 'destructive';
-      case 'offline':
-        return 'outline';
-      default:
-        return 'outline';
-    }
-  };
+  const updateDriverStatus = useMutation({
+    mutationFn: async ({ driverId, isVerified, isActive }: { driverId: string; isVerified?: boolean; isActive?: boolean }) => {
+      const updates: any = {};
+      if (isVerified !== undefined) updates.is_verified = isVerified;
+      if (isActive !== undefined) updates.is_active = isActive;
 
-  const getDriverOwner = (userId: string) => {
-    const profile = profiles?.find(p => p.id === userId);
-    return profile ? (profile.full_name || profile.email || 'Unknown') : 'Unknown';
-  };
+      const { error } = await supabase
+        .from('drivers')
+        .update(updates)
+        .eq('id', driverId);
 
-  const handleApprove = (driver: any) => {
-    setSelectedDriver(driver);
-    setIsApprovalDialogOpen(true);
-  };
-
-  const handleReject = (driver: any) => {
-    setSelectedDriver(driver);
-    setIsRejectionDialogOpen(true);
-  };
-
-  const handleView = (driver: any) => {
-    setSelectedDriver(driver);
-    setIsViewModalOpen(true);
-  };
-
-  const confirmApproval = () => {
-    if (selectedDriver) {
-      approveDriver.mutate({ driverId: selectedDriver.id });
-      setIsApprovalDialogOpen(false);
-      setSelectedDriver(null);
-    }
-  };
-
-  const confirmRejection = () => {
-    if (selectedDriver) {
-      rejectDriver.mutate({ 
-        driverId: selectedDriver.id, 
-        notes: rejectionNotes 
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-drivers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast({ title: 'Driver status updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating driver status',
+        description: error.message,
+        variant: 'destructive'
       });
-      setIsRejectionDialogOpen(false);
-      setSelectedDriver(null);
-      setRejectionNotes('');
     }
-  };
-
-  // Calculate statistics
-  const totalDrivers = drivers?.length || 0;
-  const activeDrivers = drivers?.filter(driver => driver.is_active).length || 0;
-  const verifiedDrivers = drivers?.filter(driver => driver.is_verified).length || 0;
-  const availableDrivers = drivers?.filter(driver => driver.availability_status === 'available').length || 0;
+  });
 
   return (
     <ProtectedAdminRoute>
       <AdminLayout>
-        <div className="space-y-4 sm:space-y-6 animate-fade-in">
-          <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Car className="h-6 w-6 sm:h-8 sm:w-8" />
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Car className="h-8 w-8" />
               Driver Management
             </h1>
-            <p className="text-blue-100 mt-2 text-sm sm:text-base">Manage ride-sharing drivers and their applications</p>
+            <p className="text-orange-100 mt-2">Manage all platform drivers</p>
           </div>
 
-          {/* Driver Statistics */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Total Drivers</CardTitle>
-                <Car className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{totalDrivers}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Active</CardTitle>
-                <UserCheck className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{activeDrivers}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Verified</CardTitle>
-                <CheckCircle className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{verifiedDrivers}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Available</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{availableDrivers}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-lg">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50">
             <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">All Drivers</CardTitle>
-              <CardDescription className="text-sm">View and manage driver accounts</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">Drivers</CardTitle>
+                  <CardDescription>View and manage all registered drivers</CardDescription>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search drivers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-64"
+                    />
+                  </div>
+                  <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Driver
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              {driversLoading ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading drivers...</span>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                 </div>
               ) : (
-                <div className="overflow-x-auto table-responsive">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Driver</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Vehicle</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contact</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Rating</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+                      <TableRow className="bg-gradient-to-r from-orange-50 to-orange-100">
+                        <TableHead className="font-semibold">Name</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">Vehicle</TableHead>
+                        <TableHead className="font-semibold">License Plate</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Rating</TableHead>
+                        <TableHead className="font-semibold">Total Rides</TableHead>
+                        <TableHead className="font-semibold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {drivers?.map((driver) => (
-                        <TableRow key={driver.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="space-y-1">
-                              <div className="font-medium">{getDriverOwner(driver.user_id)}</div>
-                              <div className="text-xs text-gray-500">ID: {driver.id.slice(-8)}</div>
-                            </div>
+                      {drivers?.map((driver: any) => (
+                        <TableRow key={driver.id} className="hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 transition-all duration-200">
+                          <TableCell className="font-medium">
+                            {driver.profiles?.full_name || 'N/A'}
                           </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <div className="space-y-1">
+                          <TableCell>{driver.profiles?.email}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
                               <div className="font-medium">{driver.vehicle_make} {driver.vehicle_model}</div>
-                              <div className="text-xs text-gray-500">{driver.license_plate}</div>
+                              <div className="text-gray-500">{driver.vehicle_type}</div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="space-y-1">
-                              <div>{driver.phone_number}</div>
-                              <div className="text-gray-500">{driver.license_number}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 text-yellow-500" />
-                              <span>{driver.rating || 0}</span>
-                            </div>
-                          </TableCell>
+                          <TableCell className="font-mono">{driver.license_plate}</TableCell>
                           <TableCell>
                             <div className="space-y-1">
-                              {driver.is_active ? (
-                                <Badge variant="default" className="text-xs">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs">Inactive</Badge>
-                              )}
-                              {driver.is_verified ? (
-                                <Badge variant="default" className="text-xs">Verified</Badge>
-                              ) : (
-                                <Badge variant="destructive" className="text-xs">Unverified</Badge>
-                              )}
-                              <Badge variant={getStatusBadgeVariant(driver.availability_status)} className="text-xs">
-                                {driver.availability_status || 'offline'}
+                              <Badge variant={driver.is_verified ? 'default' : 'secondary'} 
+                                     className={driver.is_verified ? 'bg-gradient-to-r from-green-500 to-green-600' : ''}>
+                                {driver.is_verified ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                {driver.is_verified ? 'Verified' : 'Unverified'}
+                              </Badge>
+                              <Badge variant={driver.is_active ? 'default' : 'secondary'}>
+                                {driver.is_active ? 'Active' : 'Inactive'}
                               </Badge>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                              {!driver.is_verified && (
-                                <>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="bg-green-500 text-white hover:bg-green-600 text-xs px-2 py-1"
-                                    onClick={() => handleApprove(driver)}
-                                    disabled={approveDriver.isPending}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="bg-red-500 text-white hover:bg-red-600 text-xs px-2 py-1"
-                                    onClick={() => handleReject(driver)}
-                                    disabled={rejectDriver.isPending}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="text-xs px-2 py-1"
-                                onClick={() => handleView(driver)}
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
+                            <div className="flex items-center">
+                              <span className="text-yellow-500">⭐</span>
+                              <span className="ml-1">{driver.rating?.toFixed(1) || '0.0'}</span>
                             </div>
+                          </TableCell>
+                          <TableCell className="font-semibold text-orange-600">
+                            {driver.total_rides || 0}
+                          </TableCell>
+                          <TableCell className="space-x-2">
+                            <Button variant="secondary" size="sm" className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            {!driver.is_verified && (
+                              <Button 
+                                size="sm"
+                                onClick={() => updateDriverStatus.mutate({ driverId: driver.id, isVerified: true })}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button 
+                              size="sm"
+                              variant={driver.is_active ? "destructive" : "default"}
+                              onClick={() => updateDriverStatus.mutate({ driverId: driver.id, isActive: !driver.is_active })}
+                            >
+                              {driver.is_active ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -273,137 +198,6 @@ const AdminDrivers = () => {
               )}
             </CardContent>
           </Card>
-
-          {/* Approval Dialog */}
-          <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Approve Driver</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to approve {getDriverOwner(selectedDriver?.user_id)}? 
-                  This will verify their account and allow them to accept rides.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={confirmApproval} disabled={approveDriver.isPending}>
-                  {approveDriver.isPending ? 'Approving...' : 'Approve'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Rejection Dialog */}
-          <Dialog open={isRejectionDialogOpen} onOpenChange={setIsRejectionDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reject Driver</DialogTitle>
-                <DialogDescription>
-                  Please provide a reason for rejecting {getDriverOwner(selectedDriver?.user_id)}.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="rejection-notes">Rejection Reason</Label>
-                  <Textarea
-                    id="rejection-notes"
-                    placeholder="Enter the reason for rejection..."
-                    value={rejectionNotes}
-                    onChange={(e) => setRejectionNotes(e.target.value)}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsRejectionDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={confirmRejection} 
-                  disabled={rejectDriver.isPending}
-                >
-                  {rejectDriver.isPending ? 'Rejecting...' : 'Reject'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* View Driver Details Modal */}
-          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
-                  Driver Details
-                </DialogTitle>
-                <DialogDescription>
-                  View details for {getDriverOwner(selectedDriver?.user_id)}
-                </DialogDescription>
-              </DialogHeader>
-              
-              {selectedDriver && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Driver:</span>
-                        <span className="text-sm">{getDriverOwner(selectedDriver.user_id)}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Car className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Vehicle:</span>
-                        <span className="text-sm">{selectedDriver.vehicle_make} {selectedDriver.vehicle_model} ({selectedDriver.vehicle_year})</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">License Plate:</span>
-                        <span className="text-sm">{selectedDriver.license_plate}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Phone:</span>
-                        <span className="text-sm">{selectedDriver.phone_number}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">License Number:</span>
-                        <span className="text-sm">{selectedDriver.license_number}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm font-medium">Rating:</span>
-                        <span className="text-sm">{selectedDriver.rating || 0} / 5</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold">{selectedDriver.total_rides || 0}</div>
-                      <div className="text-sm text-gray-500">Total Rides</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold">
-                        {selectedDriver.is_verified ? 'Verified' : 'Unverified'}
-                      </div>
-                      <div className="text-sm text-gray-500">Status</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold">{selectedDriver.availability_status || 'offline'}</div>
-                      <div className="text-sm text-gray-500">Availability</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
         </div>
       </AdminLayout>
     </ProtectedAdminRoute>
