@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -32,7 +33,6 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AdminApp from './pages/AdminApp';
 import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistrationPage';
-import VendorAnalyticsPage from './pages/vendor/VendorAnalyticsPage';
 
 function App() {
   const queryClient = new QueryClient();
@@ -68,7 +68,6 @@ function App() {
                   <Route path="/property-owner/*" element={<PropertyOwnerApp />} />
                   <Route path="/vendor/*" element={<VendorApp />} />
                   <Route path="/vendor-dashboard" element={<VendorDashboard />} />
-                  <Route path="/vendor-analytics" element={<VendorAnalyticsPage />} />
                   <Route path="/admin/*" element={<AdminApp />} />
                   <Route path="/driver/*" element={<DriverApp />} />
                   <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />

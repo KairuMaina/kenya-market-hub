@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useServiceProviderRegistration } from '@/hooks/useServiceProviderRegistration';
+import { useServiceProviderRegistration, ServiceProviderRegistrationData } from '@/hooks/useServiceProviderRegistration';
 import { useNavigate } from 'react-router-dom';
 
 const formSchema = z.object({
@@ -45,10 +44,15 @@ const GenericServiceProviderRegistrationForm = ({ serviceType }: GenericServiceP
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    register({
-      ...values,
+    const payload: ServiceProviderRegistrationData = {
+      business_name: values.business_name,
+      business_description: values.business_description,
+      business_address: values.business_address,
+      business_phone: values.business_phone,
+      business_email: values.business_email,
       service_type: serviceType,
-    }, {
+    };
+    register(payload, {
       onSuccess: () => {
         navigate('/service-provider-hub');
       }
