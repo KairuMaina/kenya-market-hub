@@ -9,6 +9,40 @@ export const useApprovalActions = () => {
 
   const approveVendorApplication = useMutation({
     mutationFn: async ({ applicationId }: { applicationId: string }) => {
+      // First check if user already has a vendor record
+      const { data: application } = await supabase
+        .from('vendor_applications')
+        .select('user_id')
+        .eq('id', applicationId)
+        .single();
+
+      if (!application) {
+        throw new Error('Application not found');
+      }
+
+      // Check if vendor already exists for this user
+      const { data: existingVendor } = await supabase
+        .from('vendors')
+        .select('id')
+        .eq('user_id', application.user_id)
+        .single();
+
+      if (existingVendor) {
+        // If vendor exists, just update the application status
+        const { error } = await supabase
+          .from('vendor_applications')
+          .update({ 
+            status: 'approved',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: (await supabase.auth.getUser()).data.user?.id
+          })
+          .eq('id', applicationId);
+
+        if (error) throw error;
+        return { success: true, message: 'Application approved (vendor already exists)' };
+      }
+
+      // If no existing vendor, use the RPC function
       const { data, error } = await supabase.rpc('approve_vendor_application', {
         application_id: applicationId
       });
