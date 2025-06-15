@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,11 +11,23 @@ import { Stethoscope } from 'lucide-react';
 import { useMedicalSpecializations } from '@/hooks/useMedicalSpecializations';
 import { useMedicalProviderApplication } from '@/hooks/useMedicalProviderApplication';
 
+const providerTypes = [
+  { value: 'doctor', label: 'Doctor' },
+  { value: 'nurse', label: 'Nurse' },
+  { value: 'pharmacist', label: 'Pharmacist' },
+  { value: 'lab_technician', label: 'Lab Technician' },
+  { value: 'ambulance_driver', label: 'Ambulance Driver' },
+  { value: 'dentist', label: 'Dentist' },
+  { value: 'physiotherapist', label: 'Physiotherapist' },
+] as const;
+
+const providerTypeValues = providerTypes.map(p => p.value);
+
 const formSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number is required"),
-  provider_type: z.enum(['Doctor', 'Nurse', 'Pharmacist', 'Therapist', 'Other']),
+  provider_type: z.enum(providerTypeValues),
   specialization_id: z.string().uuid("Please select a specialization"),
   license_number: z.string().min(1, "License number is required"),
 });
@@ -32,6 +43,8 @@ const MedicalProviderRegistrationForm = () => {
       email: '',
       phone: '',
       license_number: '',
+      provider_type: undefined,
+      specialization_id: undefined,
     },
   });
 
@@ -86,8 +99,8 @@ const MedicalProviderRegistrationForm = () => {
                   <SelectValue placeholder="Select provider type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {['Doctor', 'Nurse', 'Pharmacist', 'Therapist', 'Other'].map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  {providerTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -1,14 +1,15 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+type ProviderType = 'doctor' | 'nurse' | 'pharmacist' | 'lab_technician' | 'ambulance_driver' | 'dentist' | 'physiotherapist';
+
 type NewMedicalApplication = {
   full_name: string;
   email: string;
   phone: string;
-  provider_type: 'Doctor' | 'Nurse' | 'Pharmacist' | 'Therapist' | 'Other';
+  provider_type: ProviderType;
   specialization_id: string;
   license_number: string;
 };
@@ -26,6 +27,7 @@ export const useMedicalProviderApplication = () => {
         .from('medical_provider_applications')
         .insert({
           ...applicationData,
+          provider_type: applicationData.provider_type, // Ensure correct type is passed
           user_id: user.id,
         })
         .select()

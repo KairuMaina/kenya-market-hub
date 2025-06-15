@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -26,18 +25,22 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const AdminMedical = () => {
   const { data: providers, isLoading: providersLoading, error: providersError } = useAdminMedicalProviders();
   const { data: applications, isLoading: applicationsLoading, error: applicationsError } = useMedicalProviderApplications();
   const { approveMedicalProviderApplication, rejectMedicalProviderApplication } = useMedicalProviderApproval();
+  const [rejectionNotes, setRejectionNotes] = useState('');
 
   const handleApproveApplication = async (applicationId: string) => {
     await approveMedicalProviderApplication.mutateAsync({ applicationId });
   };
 
   const handleRejectApplication = async (applicationId: string) => {
-    await rejectMedicalProviderApplication.mutateAsync({ applicationId });
+    await rejectMedicalProviderApplication.mutateAsync({ applicationId, notes: rejectionNotes });
+    setRejectionNotes('');
   };
 
   if (providersError || applicationsError) {
@@ -68,13 +71,13 @@ const AdminMedical = () => {
             <p className="text-blue-100 mt-2">Manage medical providers and applications</p>
           </div>
 
-          <Tabs defaultValue="providers" className="space-y-6">
+          <Tabs defaultValue="applications" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="providers">Medical Providers</TabsTrigger>
               <TabsTrigger value="applications">
                 Applications
-                {applications && applications.length > 0 && (
-                  <Badge className="ml-2 bg-red-500">{applications.length}</Badge>
+                {applications && applications.filter(a => a.status === 'pending').length > 0 && (
+                  <Badge className="ml-2 bg-red-500">{applications.filter(a => a.status === 'pending').length}</Badge>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -139,9 +142,9 @@ const AdminMedical = () => {
                     <div className="flex items-center justify-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
-                  ) : applications && applications.length > 0 ? (
+                  ) : applications && applications.filter(a => a.status === 'pending').length > 0 ? (
                     <div className="space-y-4">
-                      {applications.map((app) => (
+                      {applications.filter(a => a.status === 'pending').map((app) => (
                         <Card key={app.id} className="border-2 border-blue-200">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
@@ -185,7 +188,7 @@ const AdminMedical = () => {
                                 </AlertDialog>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="destructive">
+                                    <Button size="sm" variant="destructive" onClick={() => setRejectionNotes('')}>
                                       <XCircle className="h-4 w-4 mr-1" />
                                       Reject
                                     </Button>
@@ -194,9 +197,18 @@ const AdminMedical = () => {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Reject Application</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Are you sure you want to reject this application?
+                                        Are you sure you want to reject this application? Please provide a reason for rejection.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
+                                    <div className="py-4">
+                                      <Label htmlFor="rejection-notes">Rejection Notes (Optional)</Label>
+                                      <Textarea
+                                        id="rejection-notes"
+                                        placeholder="Enter rejection notes..."
+                                        value={rejectionNotes}
+                                        onChange={(e) => setRejectionNotes(e.target.value)}
+                                      />
+                                    </div>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                                       <AlertDialogAction
