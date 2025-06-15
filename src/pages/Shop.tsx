@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -18,9 +19,9 @@ const Shop = () => {
   const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
 
   const heroImages = [
-    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
-    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
+    'https://images.unsplash.com/photo-1629198725902-ad2a25a8a619?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1698132712573-0487d7b5791a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80'
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
