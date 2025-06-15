@@ -1,10 +1,19 @@
 
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import DriverLayout from '@/components/layouts/DriverLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProtectedDriverRoute from '@/components/ProtectedDriverRoute';
 import DriverMainDashboard from '@/components/DriverMainDashboard';
+import DriverRideManagement from '@/components/DriverRideManagement';
+import DriverEarnings from '@/components/driver/DriverEarnings';
+import DriverHistory from '@/components/driver/DriverHistory';
+import DriverRoutes from '@/components/driver/DriverRoutes';
+import DriverAnalytics from '@/components/driver/DriverAnalytics';
+import DriverRatings from '@/components/driver/DriverRatings';
+import DriverProfile from '@/components/driver/DriverProfile';
+import DriverSettings from '@/components/driver/DriverSettings';
 
 const DriverApp = () => {
   const { user, loading } = useAuth();
@@ -27,7 +36,17 @@ const DriverApp = () => {
   return (
     <ProtectedDriverRoute>
       <DriverLayout>
-        <DriverMainDashboard />
+        <Routes>
+          <Route index element={<DriverMainDashboard />} />
+          <Route path="rides" element={<DriverRideManagement />} />
+          <Route path="earnings" element={<DriverEarnings />} />
+          <Route path="history" element={<DriverHistory />} />
+          <Route path="routes" element={<DriverRoutes />} />
+          <Route path="analytics" element={<DriverAnalytics />} />
+          <Route path="ratings" element={<DriverRatings />} />
+          <Route path="profile" element={<DriverProfile />} />
+          <Route path="settings" element={<DriverSettings />} />
+        </Routes>
       </DriverLayout>
     </ProtectedDriverRoute>
   );
