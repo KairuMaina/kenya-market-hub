@@ -13,8 +13,6 @@ export const useMedicalProviders = () => {
           full_name,
           provider_type,
           rating,
-          profile_picture_url,
-          biography,
           specialization:medical_specializations(name)
         `)
         .eq('is_active', true)

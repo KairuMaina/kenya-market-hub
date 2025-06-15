@@ -57,7 +57,6 @@ const MedicalPage = () => {
                 <Card key={provider.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
                   <CardHeader className="flex flex-row items-start gap-4 p-4 bg-gray-50">
                     <Avatar className="h-16 w-16 border">
-                      <AvatarImage src={provider.profile_picture_url || ''} alt={provider.full_name} />
                       <AvatarFallback className="bg-blue-100">
                         <Hospital className="h-8 w-8 text-blue-500" />
                       </AvatarFallback>
@@ -69,7 +68,7 @@ const MedicalPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 flex-grow">
-                    <p className="text-sm text-gray-700 h-24 overflow-hidden text-ellipsis">{provider.biography || 'No biography available.'}</p>
+                    <p className="text-sm text-gray-700">More details about this provider will be available soon.</p>
                   </CardContent>
                   <div className="p-4 pt-0">
                     {provider.rating && (
