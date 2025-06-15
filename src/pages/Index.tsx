@@ -124,7 +124,7 @@ const Index: React.FC = () => {
                   size="lg" 
                   variant="outline" 
                   onClick={() => navigate('/auth')}
-                  className="border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-8 py-4"
+                  className="bg-white text-black border-2 border-white hover:bg-gray-100 hover:text-black transition-all duration-300 px-8 py-4 font-semibold"
                 >
                   Join Soko Smart
                 </Button>
