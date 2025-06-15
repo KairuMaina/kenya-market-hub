@@ -1,6 +1,7 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Property {
   id: string;
@@ -28,9 +29,11 @@ export interface Property {
   agent_id?: string;
   created_at: string;
   updated_at: string;
+  location_coordinates?: { lat: number; lng: number };
+  virtual_tour_url?: string;
 }
 
-export const useProperties = (filters?: {
+export interface PropertyFilters {
   property_type?: string;
   listing_type?: string;
   min_price?: number;
@@ -39,7 +42,9 @@ export const useProperties = (filters?: {
   county?: string;
   bedrooms?: number;
   search?: string;
-}) => {
+}
+
+export const useProperties = (filters?: PropertyFilters) => {
   return useQuery({
     queryKey: ['properties', filters],
     queryFn: async () => {
@@ -52,10 +57,10 @@ export const useProperties = (filters?: {
       // Apply filters
       if (filters) {
         if (filters.property_type) {
-          query = query.eq('property_type', filters.property_type);
+          query = query.eq('property_type', filters.property_type as any);
         }
         if (filters.listing_type) {
-          query = query.eq('listing_type', filters.listing_type);
+          query = query.eq('listing_type', filters.listing_type as any);
         }
         if (filters.min_price) {
           query = query.gte('price', filters.min_price);
@@ -128,6 +133,70 @@ export const useFeaturedProperties = () => {
       }
 
       return data as Property[];
+    },
+  });
+};
+
+export const useIncrementPropertyViews = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (propertyId: string) => {
+      const { error } = await supabase.rpc('increment_property_views', {
+        property_id: propertyId
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+    onError: (error: any) => {
+      console.error('Error incrementing property views:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update property views',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useCreatePropertyInquiry = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (inquiryData: {
+      property_id: string;
+      inquirer_name: string;
+      inquirer_email: string;
+      inquirer_phone?: string;
+      message: string;
+      inquiry_type: 'general' | 'viewing' | 'purchase' | 'rent';
+      preferred_contact_method: 'email' | 'phone' | 'whatsapp';
+    }) => {
+      const { data, error } = await supabase
+        .from('property_inquiries')
+        .insert(inquiryData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Inquiry Sent',
+        description: 'Your inquiry has been sent successfully!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 };

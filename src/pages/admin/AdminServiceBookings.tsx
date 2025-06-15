@@ -11,12 +11,17 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 
 const AdminServiceBookings = () => {
-  // Note: This is a placeholder as we don't have service_bookings table yet
-  // In a real implementation, you would create this table and fetch actual data
+  // Fetch service bookings - using placeholder data since service_bookings table doesn't exist yet
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-service-bookings'],
     queryFn: async () => {
-      // Placeholder data - replace with actual Supabase query when table exists
+      // This would be the actual query when service_bookings table exists
+      // const { data, error } = await supabase
+      //   .from('service_bookings')
+      //   .select('*')
+      //   .order('created_at', { ascending: false });
+      
+      // For now, return mock data
       return [
         {
           id: '1',
