@@ -92,12 +92,12 @@ const AdminServiceProviders = () => {
   // Approve: create a row in service_provider_profiles and update application status to "approved"
   const handleApproveApplication = async (application: any) => {
     try {
-      // Only allow provider_type: vendor, driver, property_owner
+      // Only allow provider_type: vendor, driver, property_owner, service_provider
       let provider_type = application.service_type;
-      const allowedTypes = ['vendor', 'driver', 'property_owner'];
-      // If not an allowed value, use 'property_owner' as explicit fallback
+      const allowedTypes = ['vendor', 'driver', 'property_owner', 'service_provider'];
+      // If not an allowed value, use 'service_provider' as fallback
       if (!allowedTypes.includes(provider_type)) {
-        provider_type = 'property_owner';
+        provider_type = 'service_provider';
       }
 
       const { data: inserted, error: profileError } = await supabase
@@ -112,7 +112,7 @@ const AdminServiceProviders = () => {
           location_address: application.business_address,
           verification_status: 'approved',
           is_active: true,
-          // Store the actual service_type in documents for context
+          // Store the actual service_type in 'documents'
           documents: {
             service_type: application.service_type,
             ...(application.documents || {})
