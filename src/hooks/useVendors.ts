@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -62,66 +61,19 @@ export const useVendorApplications = () => {
   return useQuery({
     queryKey: ['vendor-applications'],
     queryFn: async () => {
-      console.log('🔍 Starting vendor applications fetch...');
-      
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        console.log('👤 Current user:', user?.email || 'Not logged in');
-        console.log('👤 User error:', userError);
+      const { data, error } = await supabase
+        .from('vendor_applications')
+        .select('*')
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: false });
 
-        console.log('🔧 Testing basic table access...');
-        const { data: testData, error: testError } = await supabase
-          .from('vendor_applications')
-          .select('count', { count: 'exact', head: true });
-        
-        console.log('🔧 Test count result:', testData);
-        console.log('🔧 Test count error:', testError);
-
-        console.log('📊 Executing main query...');
-        const { data, error, count } = await supabase
-          .from('vendor_applications')
-          .select('*', { count: 'exact' })
-          .order('submitted_at', { ascending: false });
-        
-        console.log('📊 Raw Supabase response:', { data, error, count });
-        console.log('📊 Applications count from Supabase:', count);
-        console.log('📊 Data type:', typeof data);
-        console.log('📊 Data is array:', Array.isArray(data));
-        
-        if (error) {
-          console.error('❌ Supabase query error:', error);
-          console.error('❌ Error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          throw error;
-        }
-        
-        if (!data) {
-          console.warn('⚠️ No data returned from Supabase');
-          return [];
-        }
-        
-        console.log('✅ Successfully fetched applications:', data.length);
-        if (data.length > 0) {
-          console.log('📝 First application sample:', data[0]);
-          console.log('📝 All application IDs:', data.map(app => app.id));
-        }
-        
-        return data as VendorApplication[];
-      } catch (err) {
-        console.error('💥 Vendor applications fetch failed:', err);
-        console.error('💥 Error type:', typeof err);
-        console.error('💥 Error constructor:', err?.constructor?.name);
-        if (err instanceof Error) {
-          console.error('💥 Error message:', err.message);
-          console.error('💥 Error stack:', err.stack);
-        }
-        throw err;
+      if (error) {
+        console.error('Error fetching pending vendor applications:', error);
+        throw error;
       }
-    }
+
+      return (data as VendorApplication[]) || [];
+    },
   });
 };
 
