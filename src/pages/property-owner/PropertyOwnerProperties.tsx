@@ -3,20 +3,59 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Building, Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
-import { useProperties } from '@/hooks/useProperties';
-import { useNavigate } from 'react-router-dom';
+import { 
+  Building, 
+  Search, 
+  Plus, 
+  Eye, 
+  Edit, 
+  Trash2,
+  MapPin,
+  Bed,
+  Bath,
+  Square,
+  DollarSign
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 const PropertyOwnerProperties = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
-  const { data: properties, isLoading } = useProperties();
 
-  const filteredProperties = properties?.filter(property =>
-    property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    property.location_address.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { data: properties = [], isLoading } = useQuery({
+    queryKey: ['owner-properties', searchTerm],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      let query = supabase
+        .from('properties')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,location_address.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'bg-green-100 text-green-800';
+      case 'rented': return 'bg-blue-100 text-blue-800';
+      case 'sold': return 'bg-purple-100 text-purple-800';
+      case 'under_maintenance': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -25,7 +64,7 @@ const PropertyOwnerProperties = () => {
           <Building className="h-8 w-8" />
           My Properties
         </h1>
-        <p className="text-green-100 mt-2">Manage and track your property listings</p>
+        <p className="text-green-100 mt-2">Manage your property listings and track performance</p>
       </div>
 
       <Card>
@@ -34,7 +73,7 @@ const PropertyOwnerProperties = () => {
             <div>
               <CardTitle className="text-2xl">Property Listings</CardTitle>
               <CardDescription>
-                View and manage all your properties ({filteredProperties?.length || 0} properties)
+                View and manage all your properties ({properties.length} total)
               </CardDescription>
             </div>
             <div className="flex items-center space-x-3">
@@ -47,13 +86,12 @@ const PropertyOwnerProperties = () => {
                   className="pl-10 w-64"
                 />
               </div>
-              <Button 
-                onClick={() => navigate('/property-owner/properties/add')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Property
-              </Button>
+              <Link to="/property-owner/properties/add">
+                <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Property
+                </Button>
+              </Link>
             </div>
           </div>
         </CardHeader>
@@ -62,56 +100,120 @@ const PropertyOwnerProperties = () => {
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
             </div>
+          ) : properties.length === 0 ? (
+            <div className="text-center py-8">
+              <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No properties found</p>
+              <p className="text-gray-400">Start by adding your first property listing</p>
+              <Link to="/property-owner/properties/add">
+                <Button className="mt-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Property
+                </Button>
+              </Link>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProperties?.map((property) => (
-                <Card key={property.id} className="hover:shadow-lg transition-shadow">
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                    <img
-                      src={property.images?.[0] || '/placeholder.svg'}
-                      alt={property.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <Badge 
-                      className="absolute top-2 right-2"
-                      variant={property.status === 'available' ? 'default' : 'secondary'}
-                    >
-                      {property.status}
-                    </Badge>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{property.location_address}</p>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-2xl font-bold text-green-600">
-                        KSh {property.price.toLocaleString()}
-                      </span>
-                      <Badge variant="outline">
-                        {property.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                      <span>{property.bedrooms} beds</span>
-                      <span>{property.bathrooms} baths</span>
-                      <span>{property.area_sqm} m²</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <Eye className="h-4 w-4" />
-                        <span>{property.views_count} views</span>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Views</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {properties.map((property) => (
+                    <TableRow key={property.id}>
+                      <TableCell>
+                        <div className="flex items-start space-x-3">
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            {property.images && property.images.length > 0 ? (
+                              <img 
+                                src={property.images[0]} 
+                                alt={property.title}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Building className="h-6 w-6 text-gray-400" />
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{property.title}</h3>
+                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {property.location_address}
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                              {property.bedrooms && (
+                                <div className="flex items-center">
+                                  <Bed className="h-3 w-3 mr-1" />
+                                  {property.bedrooms}
+                                </div>
+                              )}
+                              {property.bathrooms && (
+                                <div className="flex items-center">
+                                  <Bath className="h-3 w-3 mr-1" />
+                                  {property.bathrooms}
+                                </div>
+                              )}
+                              {property.area_sqm && (
+                                <div className="flex items-center">
+                                  <Square className="h-3 w-3 mr-1" />
+                                  {property.area_sqm} m²
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {property.property_type?.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <DollarSign className="h-4 w-4 text-green-600 mr-1" />
+                          <span className="font-semibold text-green-600">
+                            KSh {property.price?.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {property.listing_type === 'rent' ? 'per month' : 'total'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(property.status || 'available')}>
+                          {property.status?.replace('_', ' ') || 'Available'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Eye className="h-4 w-4 text-gray-400 mr-1" />
+                          {property.views_count || 0}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

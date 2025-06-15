@@ -65,12 +65,10 @@ export const useVendorApplications = () => {
       console.log('🔍 Starting vendor applications fetch...');
       
       try {
-        // First, let's check the current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         console.log('👤 Current user:', user?.email || 'Not logged in');
         console.log('👤 User error:', userError);
 
-        // Let's also check if we can access the table at all
         console.log('🔧 Testing basic table access...');
         const { data: testData, error: testError } = await supabase
           .from('vendor_applications')
@@ -79,7 +77,6 @@ export const useVendorApplications = () => {
         console.log('🔧 Test count result:', testData);
         console.log('🔧 Test count error:', testError);
 
-        // Now let's try the actual query with more detailed logging
         console.log('📊 Executing main query...');
         const { data, error, count } = await supabase
           .from('vendor_applications')
@@ -137,7 +134,6 @@ export const useVendorApplication = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
-      // Ensure all required fields are passed
       if (
         !applicationData.business_name ||
         !applicationData.business_description ||
@@ -148,14 +144,13 @@ export const useVendorApplication = () => {
         throw new Error("One or more required fields are missing.");
       }
 
-      // Insert and log the result
       const { data, error } = await supabase
         .from('vendor_applications')
         .insert({
           ...applicationData,
           user_id: user.id,
-          status: 'pending', // explicit
-          submitted_at: new Date().toISOString() // explicit for visibility
+          status: 'pending',
+          submitted_at: new Date().toISOString()
         });
 
       if (error) {
@@ -196,6 +191,70 @@ export const useMyVendorProfile = () => {
       
       if (error && error.code !== 'PGRST116') throw error;
       return data as Vendor | null;
+    }
+  });
+};
+
+export const useApproveVendorApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (applicationId: string) => {
+      console.log('✅ Approving vendor application:', applicationId);
+
+      const { data, error } = await supabase.rpc('approve_vendor_application', {
+        application_id: applicationId
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast({ title: 'Vendor application approved successfully' });
+    },
+    onError: (error: any) => {
+      console.error('❌ Error approving vendor application:', error);
+      toast({
+        title: 'Error approving application',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useRejectVendorApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
+      console.log('❌ Rejecting vendor application:', applicationId);
+
+      const { data, error } = await supabase.rpc('reject_vendor_application', {
+        application_id: applicationId,
+        rejection_notes: notes
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast({ title: 'Vendor application rejected' });
+    },
+    onError: (error: any) => {
+      console.error('❌ Error rejecting vendor application:', error);
+      toast({
+        title: 'Error rejecting application',
+        description: error.message,
+        variant: 'destructive'
+      });
     }
   });
 };

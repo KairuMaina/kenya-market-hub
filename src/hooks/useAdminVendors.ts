@@ -48,7 +48,6 @@ export const useAdminVendors = (page = 1, limit = 10, search = '') => {
         throw error;
       }
 
-      // Get products count and revenue for each vendor
       const vendorsWithStats = await Promise.all(
         (vendors || []).map(async (vendor) => {
           const [
@@ -114,70 +113,6 @@ export const useUpdateVendorStatus = () => {
       console.error('❌ Error updating vendor status:', error);
       toast({
         title: 'Error updating vendor status',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
-};
-
-export const useApproveVendorApplication = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (applicationId: string) => {
-      console.log('✅ Approving vendor application:', applicationId);
-
-      const { data, error } = await supabase.rpc('approve_vendor_application', {
-        application_id: applicationId
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      toast({ title: 'Vendor application approved successfully' });
-    },
-    onError: (error: any) => {
-      console.error('❌ Error approving vendor application:', error);
-      toast({
-        title: 'Error approving application',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
-};
-
-export const useRejectVendorApplication = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
-      console.log('❌ Rejecting vendor application:', applicationId);
-
-      const { data, error } = await supabase.rpc('reject_vendor_application', {
-        application_id: applicationId,
-        rejection_notes: notes
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      toast({ title: 'Vendor application rejected' });
-    },
-    onError: (error: any) => {
-      console.error('❌ Error rejecting vendor application:', error);
-      toast({
-        title: 'Error rejecting application',
         description: error.message,
         variant: 'destructive'
       });
