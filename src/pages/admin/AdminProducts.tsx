@@ -149,7 +149,7 @@ const AdminProducts = () => {
                               />
                               <div>
                                 <div className="font-medium">{product.name}</div>
-                                <div className="text-xs text-gray-500">{getVendorName(product.vendor_id)}</div>
+                                <div className="text-xs text-gray-500">{product.vendor_id ? getVendorName(product.vendor_id) : product.vendor}</div>
                               </div>
                             </div>
                           </TableCell>
