@@ -28,7 +28,7 @@ export const menuItems = [
       { title: 'Real Estate', url: '/real-estate', icon: Building },
       { title: 'Rides', url: '/rides', icon: Car },
       { title: 'Services', url: '/services', icon: Briefcase },
-      { title: 'Medical', url: '/admin/medical', icon: HeartPulse },
+      { title: 'Medical', url: '/medical', icon: HeartPulse },
       { title: 'Service Hub', url: '/service-provider-hub', icon: Cog },
     ]
   },

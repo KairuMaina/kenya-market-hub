@@ -33,6 +33,7 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AdminApp from './pages/AdminApp';
 import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistrationPage';
+import MedicalPage from './pages/Medical';
 
 function App() {
   const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ function App() {
                   <Route path="/admin/*" element={<AdminApp />} />
                   <Route path="/driver/*" element={<DriverApp />} />
                   <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
+                  <Route path="/medical" element={<MedicalPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>
