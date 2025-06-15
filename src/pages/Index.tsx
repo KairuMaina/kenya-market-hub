@@ -141,7 +141,7 @@ const Index: React.FC = () => {
                 </Button>
                 <Button 
                   size="lg" 
-                  variant="secondary" 
+                  variant="ghost" 
                   onClick={() => navigate('/auth')}
                   className="bg-white text-black border-2 border-white hover:bg-gray-200 transition-all duration-300 px-8 py-4 font-semibold"
                 >
