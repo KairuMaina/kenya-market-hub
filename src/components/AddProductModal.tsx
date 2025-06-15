@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useUploadProductImages } from '@/hooks/useProductImages';
 import ImageUpload from './ImageUpload';
 
@@ -29,13 +29,29 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     original_price: '',
     category: '',
     brand: '',
-    vendor: '',
+    vendor_id: '',
     image_url: '',
     stock_quantity: '',
     in_stock: true,
     make: '',
     model: '',
     year: ''
+  });
+
+  const { data: vendors, isLoading: vendorsLoading } = useQuery({
+    queryKey: ['vendors'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('vendors').select('id, business_name');
+      if (error) {
+        toast({
+          title: "Error fetching vendors",
+          description: error.message,
+          variant: "destructive"
+        });
+        return [];
+      }
+      return data;
+    },
   });
 
   const categories = [
@@ -87,7 +103,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
         original_price: '',
         category: '',
         brand: '',
-        vendor: '',
+        vendor_id: '',
         image_url: '',
         stock_quantity: '',
         in_stock: true,
@@ -111,6 +127,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     
     const productData = {
       ...formData,
+      vendor_id: formData.vendor_id || null,
       price: parseFloat(formData.price),
       original_price: formData.original_price ? parseFloat(formData.original_price) : null,
       stock_quantity: parseInt(formData.stock_quantity) || 0,
@@ -217,12 +234,26 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="vendor">Vendor</Label>
-              <Input
-                id="vendor"
-                value={formData.vendor}
-                onChange={(e) => handleInputChange('vendor', e.target.value)}
-              />
+              <Label htmlFor="vendor_id">Vendor</Label>
+              <Select
+                value={formData.vendor_id}
+                onValueChange={(value) => handleInputChange('vendor_id', value)}
+              >
+                <SelectTrigger id="vendor_id">
+                  <SelectValue placeholder="Select vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vendorsLoading ? (
+                     <SelectItem value="loading" disabled>Loading vendors...</SelectItem>
+                  ) : (
+                    vendors?.map((vendor) => (
+                      <SelectItem key={vendor.id} value={vendor.id}>
+                        {vendor.business_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
