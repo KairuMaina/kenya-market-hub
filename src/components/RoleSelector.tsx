@@ -102,6 +102,11 @@ const RoleSelector = () => {
     }
   };
 
+  const handleRegistrationSuccess = () => {
+    // Clear any existing errors and show success feedback
+    setRegistrationError(null);
+  };
+
   const handleRegistrationError = (error: string) => {
     setRegistrationError(error);
     // Clear error after 5 seconds
@@ -190,7 +195,7 @@ const RoleSelector = () => {
         </TabsList>
         
         <TabsContent value="register" className="space-y-6">
-          <ServiceProviderRegistration onError={handleRegistrationError} />
+          <ServiceProviderRegistration />
         </TabsContent>
         
         <TabsContent value="status" className="space-y-6">

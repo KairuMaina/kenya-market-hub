@@ -28,64 +28,77 @@ import {
   ShoppingCart,
   Users
 } from 'lucide-react';
+import { useVendorAnalytics } from '@/hooks/useVendorAnalytics';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const VendorAnalytics = () => {
-  // Mock data - in real app this would come from API
-  const salesData = [
-    { month: 'Jan', sales: 45000, orders: 120 },
-    { month: 'Feb', sales: 52000, orders: 140 },
-    { month: 'Mar', sales: 48000, orders: 110 },
-    { month: 'Apr', sales: 61000, orders: 180 },
-    { month: 'May', sales: 55000, orders: 150 },
-    { month: 'Jun', sales: 67000, orders: 200 }
-  ];
+  const { data: analyticsData, isLoading, error } = useVendorAnalytics();
 
-  const categoryData = [
-    { name: 'Electronics', value: 40, color: '#3b82f6' },
-    { name: 'Clothing', value: 30, color: '#10b981' },
-    { name: 'Home & Garden', value: 20, color: '#f59e0b' },
-    { name: 'Books', value: 10, color: '#ef4444' }
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner />
+        <span className="ml-2">Loading analytics...</span>
+      </div>
+    );
+  }
 
-  const topProducts = [
-    { name: 'iPhone 15 Pro', sales: 45, revenue: 67500, views: 1200 },
-    { name: 'Samsung Galaxy S24', sales: 38, revenue: 45600, views: 980 },
-    { name: 'MacBook Air M3', sales: 22, revenue: 110000, views: 750 },
-    { name: 'AirPods Pro', sales: 67, revenue: 20100, views: 1500 }
-  ];
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            Error loading analytics data. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-600">
+            No analytics data available yet. Start selling products to see your performance metrics.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const metrics = [
     {
       title: 'Total Revenue',
-      value: 'KSh 348,000',
+      value: `KSh ${analyticsData.totalRevenue.toLocaleString()}`,
       change: '+12.5%',
       trend: 'up',
       icon: DollarSign,
-      description: 'This month'
+      description: 'All time'
     },
     {
       title: 'Total Orders',
-      value: '1,234',
+      value: analyticsData.totalOrders.toString(),
       change: '+8.2%',
       trend: 'up',
       icon: ShoppingCart,
-      description: 'This month'
+      description: 'All time'
     },
     {
-      title: 'Products Sold',
-      value: '2,845',
+      title: 'Products Listed',
+      value: analyticsData.totalProducts.toString(),
       change: '+15.3%',
       trend: 'up',
       icon: Package,
-      description: 'This month'
+      description: 'Currently active'
     },
     {
       title: 'Average Rating',
-      value: '4.8',
+      value: analyticsData.averageRating.toString(),
       change: '+0.2',
       trend: 'up',
       icon: Star,
-      description: 'From 456 reviews'
+      description: 'Product ratings'
     }
   ];
 
@@ -127,7 +140,7 @@ const VendorAnalytics = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesData}>
+              <LineChart data={analyticsData.monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -158,35 +171,43 @@ const VendorAnalytics = () => {
             <CardDescription>Revenue distribution across product categories</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+            {analyticsData.categoryData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={analyticsData.categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      dataKey="value"
+                    >
+                      {analyticsData.categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  {analyticsData.categoryData.map((category, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span className="text-sm">{category.name}</span>
+                      <span className="text-sm text-gray-500">{category.value}%</span>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {categoryData.map((category, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <span className="text-sm">{category.name}</span>
-                  <span className="text-sm text-gray-500">{category.value}%</span>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="text-center text-gray-500 py-12">
+                No category data available yet. Add products to see distribution.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -195,37 +216,43 @@ const VendorAnalytics = () => {
       <Card>
         <CardHeader>
           <CardTitle>Top Performing Products</CardTitle>
-          <CardDescription>Your best selling products this month</CardDescription>
+          <CardDescription>Your best selling products</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <Badge variant="outline">#{index + 1}</Badge>
-                  <div>
-                    <h4 className="font-medium">{product.name}</h4>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <ShoppingCart className="h-3 w-3" />
-                        {product.sales} sold
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {product.views} views
-                      </span>
+          {analyticsData.topProducts.length > 0 ? (
+            <div className="space-y-4">
+              {analyticsData.topProducts.map((product, index) => (
+                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="outline">#{index + 1}</Badge>
+                    <div>
+                      <h4 className="font-medium">{product.name}</h4>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <ShoppingCart className="h-3 w-3" />
+                          {product.sales} sold
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {product.views} views
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-green-600">
-                    KSh {product.revenue.toLocaleString()}
+                  <div className="text-right">
+                    <div className="font-bold text-green-600">
+                      KSh {product.revenue.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-500">Revenue</div>
                   </div>
-                  <div className="text-sm text-gray-500">Revenue</div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-12">
+              No product data available yet. Add products to see performance metrics.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -239,28 +266,34 @@ const VendorAnalytics = () => {
           <div>
             <div className="flex justify-between text-sm mb-2">
               <span>Revenue Goal</span>
-              <span>KSh 348,000 / KSh 400,000</span>
+              <span>KSh {analyticsData.totalRevenue.toLocaleString()} / KSh 400,000</span>
             </div>
-            <Progress value={87} className="h-2" />
-            <p className="text-xs text-gray-500 mt-1">87% complete - KSh 52,000 remaining</p>
+            <Progress value={Math.min((analyticsData.totalRevenue / 400000) * 100, 100)} className="h-2" />
+            <p className="text-xs text-gray-500 mt-1">
+              {Math.round((analyticsData.totalRevenue / 400000) * 100)}% complete
+            </p>
           </div>
           
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>Orders Goal</span>
-              <span>1,234 / 1,500</span>
+              <span>Products Goal</span>
+              <span>{analyticsData.totalProducts} / 50</span>
             </div>
-            <Progress value={82} className="h-2" />
-            <p className="text-xs text-gray-500 mt-1">82% complete - 266 orders remaining</p>
+            <Progress value={Math.min((analyticsData.totalProducts / 50) * 100, 100)} className="h-2" />
+            <p className="text-xs text-gray-500 mt-1">
+              {Math.round((analyticsData.totalProducts / 50) * 100)}% complete
+            </p>
           </div>
           
           <div>
             <div className="flex justify-between text-sm mb-2">
               <span>Customer Satisfaction</span>
-              <span>4.8 / 5.0</span>
+              <span>{analyticsData.averageRating} / 5.0</span>
             </div>
-            <Progress value={96} className="h-2" />
-            <p className="text-xs text-gray-500 mt-1">Excellent rating from 456 reviews</p>
+            <Progress value={(analyticsData.averageRating / 5) * 100} className="h-2" />
+            <p className="text-xs text-gray-500 mt-1">
+              {analyticsData.averageRating > 0 ? 'Good rating from customers' : 'No ratings yet'}
+            </p>
           </div>
         </CardContent>
       </Card>
