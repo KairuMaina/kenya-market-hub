@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,27 +8,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserCheck, Star, Eye, Edit, Phone, Mail, Building } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { useAdminAgents, AdminAgent } from '@/hooks/useAdminAgents';
+import ViewAgentModal from '@/components/admin/ViewAgentModal';
+import EditAgentModal from '@/components/admin/EditAgentModal';
 
 const AdminAgents = () => {
-  const { data: agents, isLoading } = useQuery({
-    queryKey: ['admin-agents'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('real_estate_agents')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AdminAgent | null>(null);
+
+  const { data: agents, isLoading } = useAdminAgents();
 
   const { data: profiles } = useQuery({
     queryKey: ['admin-profiles-agents'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*');
+        .select('id, full_name, email');
       
       if (error) {
         console.error('Profiles fetch error:', error);
@@ -42,6 +37,20 @@ const AdminAgents = () => {
   const getAgentName = (userId: string) => {
     const profile = profiles?.find(p => p.id === userId);
     return profile ? (profile.full_name || profile.email || 'Unknown') : 'Unknown';
+  };
+
+  const handleViewClick = (agent: AdminAgent) => {
+    setSelectedAgent({ ...agent, full_name: getAgentName(agent.user_id) });
+    setShowViewModal(true);
+  };
+
+  const handleEditClick = (agent: AdminAgent) => {
+    setSelectedAgent({ ...agent, full_name: getAgentName(agent.user_id) });
+    setShowEditModal(true);
+  };
+  
+  const handleEditSuccess = () => {
+    setShowEditModal(false);
   };
 
   const totalAgents = agents?.length || 0;
@@ -149,17 +158,17 @@ const AdminAgents = () => {
                                 <Badge variant="default">Verified</Badge>
                               )}
                               {agent.is_active ? (
-                                <Badge variant="default">Active</Badge>
+                                <Badge variant="default" className="bg-green-600">Active</Badge>
                               ) : (
                                 <Badge variant="outline">Inactive</Badge>
                               )}
                             </div>
                           </TableCell>
                           <TableCell className="space-x-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleViewClick(agent)}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="secondary" size="sm">
+                            <Button variant="secondary" size="sm" onClick={() => handleEditClick(agent)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -172,6 +181,18 @@ const AdminAgents = () => {
             </CardContent>
           </Card>
         </div>
+
+        <ViewAgentModal
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          agent={selectedAgent}
+        />
+        <EditAgentModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          agent={selectedAgent}
+          onSuccess={handleEditSuccess}
+        />
       </AdminLayout>
     </ProtectedAdminRoute>
   );
