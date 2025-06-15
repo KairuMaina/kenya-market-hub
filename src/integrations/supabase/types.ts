@@ -513,6 +513,232 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_facilities: {
+        Row: {
+          address: string
+          created_at: string
+          email: string | null
+          facility_type: Database["public"]["Enums"]["medical_facility_type"]
+          id: string
+          is_verified: boolean | null
+          location_coordinates: unknown | null
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          email?: string | null
+          facility_type: Database["public"]["Enums"]["medical_facility_type"]
+          id?: string
+          is_verified?: boolean | null
+          location_coordinates?: unknown | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          email?: string | null
+          facility_type?: Database["public"]["Enums"]["medical_facility_type"]
+          id?: string
+          is_verified?: boolean | null
+          location_coordinates?: unknown | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_provider_applications: {
+        Row: {
+          admin_notes: string | null
+          documents: Json | null
+          email: string
+          full_name: string
+          id: string
+          license_number: string
+          phone: string
+          provider_type: Database["public"]["Enums"]["medical_provider_type"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialization_id: string | null
+          status: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          documents?: Json | null
+          email: string
+          full_name: string
+          id?: string
+          license_number: string
+          phone: string
+          provider_type: Database["public"]["Enums"]["medical_provider_type"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialization_id?: string | null
+          status?: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          documents?: Json | null
+          email?: string
+          full_name?: string
+          id?: string
+          license_number?: string
+          phone?: string
+          provider_type?: Database["public"]["Enums"]["medical_provider_type"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialization_id?: string | null
+          status?: string
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_provider_applications_specialization_id_fkey"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "medical_specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_providers: {
+        Row: {
+          created_at: string
+          facility_id: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          provider_type: Database["public"]["Enums"]["medical_provider_type"]
+          rating: number | null
+          specialization_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          facility_id?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          provider_type: Database["public"]["Enums"]["medical_provider_type"]
+          rating?: number | null
+          specialization_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          facility_id?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          provider_type?: Database["public"]["Enums"]["medical_provider_type"]
+          rating?: number | null
+          specialization_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_providers_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "medical_facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_providers_specialization_id_fkey"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "medical_specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_specializations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      medications: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          pharmacy_id: string
+          price: number
+          requires_prescription: boolean | null
+          stock_quantity: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          pharmacy_id: string
+          price: number
+          requires_prescription?: boolean | null
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          pharmacy_id?: string
+          price?: number
+          requires_prescription?: boolean | null
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "medical_facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -1863,6 +2089,13 @@ export type Database = {
     Enums: {
       driver_status: "offline" | "available" | "busy"
       listing_type: "sale" | "rent"
+      medical_facility_type: "hospital" | "clinic" | "pharmacy" | "laboratory"
+      medical_provider_type:
+        | "doctor"
+        | "nurse"
+        | "pharmacist"
+        | "lab_technician"
+        | "ambulance_driver"
       order_status_type:
         | "pending"
         | "confirmed"
@@ -2013,6 +2246,14 @@ export const Constants = {
     Enums: {
       driver_status: ["offline", "available", "busy"],
       listing_type: ["sale", "rent"],
+      medical_facility_type: ["hospital", "clinic", "pharmacy", "laboratory"],
+      medical_provider_type: [
+        "doctor",
+        "nurse",
+        "pharmacist",
+        "lab_technician",
+        "ambulance_driver",
+      ],
       order_status_type: [
         "pending",
         "confirmed",
