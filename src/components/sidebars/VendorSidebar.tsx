@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -36,7 +35,6 @@ const VendorSidebar = () => {
       items: [
         { title: 'Overview', url: '/vendor', icon: LayoutDashboard },
         { title: 'My Store', url: '/vendor/store', icon: Store },
-        { title: 'Sales', url: '/vendor/sales', icon: DollarSign },
       ]
     },
     {
@@ -44,7 +42,6 @@ const VendorSidebar = () => {
       items: [
         { title: 'All Products', url: '/vendor/products', icon: Package },
         { title: 'Add Product', url: '/vendor/products/add', icon: Plus },
-        { title: 'Orders', url: '/vendor/orders', icon: ShoppingCart },
       ]
     },
     {

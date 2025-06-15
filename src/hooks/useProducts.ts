@@ -29,6 +29,7 @@ export const useProducts = (filters?: {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  vendorId?: string;
 }) => {
   return useQuery({
     queryKey: ['products', filters],
@@ -38,18 +39,18 @@ export const useProducts = (filters?: {
         .select('*')
         .eq('in_stock', true);
 
+      if (filters?.vendorId) {
+        query = query.eq('vendor_id', filters.vendorId);
+      }
       if (filters?.category) {
         query = query.eq('category', filters.category);
       }
-
       if (filters?.search) {
         query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,brand.ilike.%${filters.search}%`);
       }
-
       if (filters?.minPrice) {
         query = query.gte('price', filters.minPrice);
       }
-
       if (filters?.maxPrice) {
         query = query.lte('price', filters.maxPrice);
       }

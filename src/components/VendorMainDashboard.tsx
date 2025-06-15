@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,41 +14,11 @@ import {
   Users
 } from 'lucide-react';
 import { useMyVendorProfile } from '@/hooks/useVendors';
+import VendorAnalytics from "@/components/VendorAnalytics";
 
 const VendorMainDashboard = () => {
   const { data: vendorProfile } = useMyVendorProfile();
   const navigate = useNavigate();
-
-  const quickStats = [
-    {
-      title: 'Total Products',
-      value: '24',
-      icon: Package,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    {
-      title: 'Orders Today',
-      value: '8',
-      icon: ShoppingCart,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
-    },
-    {
-      title: 'Revenue This Month',
-      value: 'KSH 45,000',
-      icon: DollarSign,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100'
-    },
-    {
-      title: 'Growth Rate',
-      value: '+12%',
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    }
-  ];
 
   const quickActions = [
     {
@@ -65,13 +34,6 @@ const VendorMainDashboard = () => {
       icon: Store,
       color: 'bg-blue-500',
       action: () => navigate('/vendor/store')
-    },
-    {
-      title: 'Analytics',
-      description: 'View detailed sales analytics',
-      icon: BarChart3,
-      color: 'bg-green-500',
-      action: () => navigate('/vendor/analytics')
     },
     {
       title: 'Customers',
@@ -101,25 +63,7 @@ const VendorMainDashboard = () => {
           </div>
         )}
       </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {quickStats.map((stat, index) => (
-          <Card key={index} className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <VendorAnalytics />
 
       {/* Quick Actions */}
       <Card className="shadow-lg">
