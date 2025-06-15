@@ -1,65 +1,19 @@
 
-const CACHE_NAME = 'soko-smart-v1';
-const urlsToCache = [
-  '/',
-  '/manifest.json'
-];
+const CACHE_NAME = 'soko-smart-v2';
 
-// Install event
+// Install event: skip waiting and cache essential files.
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(['/manifest.json']);
       })
   );
 });
 
-// Fetch event
-self.addEventListener('fetch', (event) => {
-  // We only want to cache GET requests for http/https protocols.
-  // This robustly checks the protocol to avoid unsupported schemes.
-  const isCacheable =
-    event.request.method === 'GET' &&
-    ['http:', 'https:'].includes(new URL(event.request.url).protocol);
-
-  if (isCacheable) {
-    event.respondWith(
-      caches.match(event.request)
-        .then((response) => {
-          // Return cached version or fetch from network
-          if (response) {
-            return response;
-          }
-          
-          return fetch(event.request).then((networkResponse) => {
-            // Check if we received a valid response.
-            // 'basic' type ensures we only cache requests from our origin.
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
-            }
-
-            // Clone the response because it's a stream and can be consumed only once.
-            const responseToCache = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                // Use .catch to handle potential errors from cache.put()
-                cache.put(event.request, responseToCache).catch(err => {
-                  console.warn(`SW: Failed to cache request for ${event.request.url}`, err);
-                });
-              });
-
-            return networkResponse;
-          });
-        })
-    );
-  }
-  // For other requests, do nothing and let the browser handle them.
-});
-
-// Activate event
+// Activate event: delete old caches and take control of clients.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -70,7 +24,63 @@ self.addEventListener('activate', (event) => {
             return caches.delete(cacheName);
           }
         })
-      );
+      ).then(() => {
+        console.log('New service worker activated and claimed clients.');
+        return self.clients.claim();
+      });
     })
+  );
+});
+
+// Fetch event: handle requests with appropriate caching strategies.
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Ignore non-http/https requests to prevent errors.
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Network-first for navigation to prevent stale HTML.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails.
+          return caches.match(request).then(response => response || caches.match('/'));
+        })
+    );
+    return;
+  }
+
+  // Cache-first for other assets for performance.
+  event.respondWith(
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(request).then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
+            return networkResponse;
+          }
+
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+
+          return networkResponse;
+        });
+      })
   );
 });
