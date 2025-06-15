@@ -17,13 +17,10 @@ import {
   UserPlus
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import ServiceProviderRegistration from '@/components/ServiceProviderRegistration';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 
 const ServiceProviderHub = () => {
   const { user } = useAuth();
-  const [showRegistration, setShowRegistration] = React.useState(false);
-  const [selectedProviderType, setSelectedProviderType] = React.useState<string>('');
   
   // Check each service provider type
   const { data: vendorProfile } = useServiceProviderProfile('vendor');
@@ -37,7 +34,7 @@ const ServiceProviderHub = () => {
       title: 'Vendor Portal',
       description: 'Sell products online and manage your e-commerce business',
       icon: Store,
-      color: 'from-blue-500 to-blue-600',
+      color: 'from-orange-500 to-orange-600',
       dashboardUrl: '/vendor',
       profile: vendorProfile
     },
@@ -46,7 +43,7 @@ const ServiceProviderHub = () => {
       title: 'Driver Portal',
       description: 'Provide transportation services and earn money driving',
       icon: Car,
-      color: 'from-green-500 to-green-600',
+      color: 'from-orange-500 to-orange-600',
       dashboardUrl: '/driver',
       profile: driverProfile
     },
@@ -55,7 +52,7 @@ const ServiceProviderHub = () => {
       title: 'Property Owner Portal',
       description: 'List and manage your real estate properties',
       icon: Building,
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-orange-500 to-orange-600',
       dashboardUrl: '/property-owner',
       profile: propertyOwnerProfile
     },
@@ -92,34 +89,10 @@ const ServiceProviderHub = () => {
   };
 
   const handleApply = (providerType: string) => {
-    setSelectedProviderType(providerType);
-    setShowRegistration(true);
+    // For now, redirect to a contact or application page
+    // This can be replaced with actual application logic later
+    alert(`Application for ${providerType} is coming soon! Please contact support.`);
   };
-
-  if (showRegistration) {
-    return (
-      <MainLayout>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowRegistration(false)}
-              className="mb-4"
-            >
-               Back to Hub
-            </Button>
-          </div>
-          <ServiceProviderRegistration 
-            providerType={selectedProviderType}
-            onSuccess={() => {
-              setShowRegistration(false);
-              window.location.reload();
-            }}
-          />
-        </div>
-      </MainLayout>
-    );
-  }
 
   return (
     <MainLayout>
@@ -191,7 +164,7 @@ const ServiceProviderHub = () => {
                       <Button 
                         onClick={() => handleApply(provider.id)}
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 border-orange-300 text-orange-600 hover:bg-orange-50"
                       >
                         {profile ? (
                           <>
@@ -214,7 +187,7 @@ const ServiceProviderHub = () => {
         </div>
 
         {/* Help Section */}
-        <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
           <CardContent className="p-6 text-center">
             <h3 className="text-lg font-semibold text-orange-900 mb-2">
               Need Help Getting Started?

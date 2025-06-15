@@ -18,7 +18,14 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Wishlist from './pages/Wishlist';
 import AdminLogin from './pages/AdminLogin';
-import NewAdminDashboard from './pages/NewAdminDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminVendors from './pages/admin/AdminVendors';
+import AdminProducts from './pages/AdminProducts';
+import AdminOrders from './pages/AdminOrders';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminReports from './pages/AdminReports';
+import AdminSettings from './pages/AdminSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import NotFound from './pages/NotFound';
@@ -33,8 +40,6 @@ import DriverApp from './pages/DriverApp';
 import PropertyOwnerApp from './pages/PropertyOwnerApp';
 import ServicesApp from './pages/ServicesApp';
 import ServiceProviderApp from './components/ServiceProviderApp';
-import ProtectedDriverRoute from './components/ProtectedDriverRoute';
-import ProtectedPropertyOwnerRoute from './components/ProtectedPropertyOwnerRoute';
 import PerformanceMonitor from './components/PerformanceMonitor';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -91,7 +96,14 @@ function App() {
                   
                   {/* Admin Routes */}
                   <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/admin/*" element={<ProtectedAdminRoute><NewAdminDashboard /></ProtectedAdminRoute>} />
+                  <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                  <Route path="/admin/users" element={<ProtectedAdminRoute><AdminUsers /></ProtectedAdminRoute>} />
+                  <Route path="/admin/vendors" element={<ProtectedAdminRoute><AdminVendors /></ProtectedAdminRoute>} />
+                  <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
+                  <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
+                  <Route path="/admin/analytics" element={<ProtectedAdminRoute><AdminAnalytics /></ProtectedAdminRoute>} />
+                  <Route path="/admin/reports" element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
+                  <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
                   
                   {/* Advanced Search Routes */}
                   <Route path="/advanced-search" element={<AdvancedProductSearch />} />
