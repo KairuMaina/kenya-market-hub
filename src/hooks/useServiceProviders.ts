@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface ServiceProviderProfile {
   id: string;
   user_id: string;
-  provider_type: 'vendor' | 'driver' | 'property_owner';
+  provider_type: 'vendor' | 'driver' | 'property_owner' | 'service_provider';
   business_name?: string;
   business_description?: string;
   phone_number?: string;
@@ -28,7 +29,8 @@ export const useServiceProviderProfile = (providerType: string) => {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // 1. Check for an existing profile in service_provider_profiles
+      const { data: profile, error: profileError } = await supabase
         .from('service_provider_profiles')
         .select('*')
         .eq('user_id', user.id)
@@ -36,8 +38,46 @@ export const useServiceProviderProfile = (providerType: string) => {
         .limit(1)
         .maybeSingle();
       
-      if (error) throw error;
-      return data as ServiceProviderProfile | null;
+      if (profileError) throw profileError;
+
+      if (profile) {
+        return profile as ServiceProviderProfile;
+      }
+
+      // 2. If no profile, check for a recent application in vendor_applications
+      // This is for non-vendor types that use the generic form
+      if (providerType !== 'vendor') {
+        const { data: application, error: applicationError } = await supabase
+          .from('vendor_applications')
+          .select('status, business_name, business_description, business_phone, business_email, business_address, submitted_at')
+          .eq('user_id', user.id)
+          .eq('service_type', providerType)
+          .order('submitted_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (applicationError) throw applicationError;
+
+        if (application && (application.status === 'pending' || application.status === 'rejected')) {
+          // Return a mock/synthetic ServiceProviderProfile object
+          return {
+            id: '', // No real profile ID yet
+            user_id: user.id,
+            provider_type: providerType,
+            verification_status: application.status as 'pending' | 'approved' | 'rejected',
+            business_name: application.business_name,
+            business_description: application.business_description,
+            phone_number: application.business_phone,
+            email: application.business_email,
+            location_address: application.business_address,
+            is_active: false,
+            created_at: application.submitted_at,
+            updated_at: application.submitted_at,
+          } as ServiceProviderProfile;
+        }
+      }
+
+      return null;
     },
     enabled: !!user,
   });
