@@ -2,413 +2,262 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Wrench, 
+  Search, 
+  Eye, 
+  Phone,
+  Mail,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  Clock
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Briefcase, Users, CheckCircle, Clock, Eye, UserCheck, Check, X, MapPin, Star } from 'lucide-react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
-import { useApprovalActions } from '@/hooks/useApprovalActions';
 
 const AdminServiceProviders = () => {
-  const { approveServiceProvider, rejectServiceProvider } = useApprovalActions();
-  const [selectedProvider, setSelectedProvider] = useState<any>(null);
-  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [rejectionNotes, setRejectionNotes] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch service providers
-  const { data: providers, isLoading: providersLoading } = useQuery({
-    queryKey: ['admin-service-providers'],
+  const { data: serviceProviders = [], isLoading } = useQuery({
+    queryKey: ['admin-service-providers', searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('🔍 Fetching admin service providers...');
+
+      let query = supabase
         .from('service_provider_profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
 
-  // Fetch profiles for provider names
-  const { data: profiles } = useQuery({
-    queryKey: ['admin-profiles-providers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) {
-        console.error('Profiles fetch error:', error);
-        return [];
+      if (searchTerm) {
+        query = query.or(`business_name.ilike.%${searchTerm}%,provider_type.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
       }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('❌ Error fetching service providers:', error);
+        throw error;
+      }
+
+      console.log('✅ Service providers fetched successfully:', data?.length || 0);
       return data || [];
-    }
+    },
   });
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'approved':
-        return 'default';
-      case 'pending':
-        return 'outline';
-      case 'rejected':
-        return 'destructive';
-      default:
-        return 'outline';
+  const getVerificationColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getProviderOwner = (userId: string) => {
-    const profile = profiles?.find(p => p.id === userId);
-    return profile ? (profile.full_name || profile.email || 'Unknown') : 'Unknown';
+  const getProviderTypeColor = (type: string) => {
+    const colors = {
+      plumber: 'bg-blue-100 text-blue-800',
+      electrician: 'bg-yellow-100 text-yellow-800',
+      painter: 'bg-green-100 text-green-800',
+      carpenter: 'bg-orange-100 text-orange-800',
+      barber: 'bg-purple-100 text-purple-800',
+      doctor: 'bg-red-100 text-red-800',
+      tutor: 'bg-indigo-100 text-indigo-800',
+      photographer: 'bg-pink-100 text-pink-800',
+      caterer: 'bg-emerald-100 text-emerald-800'
+    };
+    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleApprove = (provider: any) => {
-    setSelectedProvider(provider);
-    setIsApprovalDialogOpen(true);
+  const providerStats = {
+    total: serviceProviders.length,
+    approved: serviceProviders.filter(p => p.verification_status === 'approved').length,
+    pending: serviceProviders.filter(p => p.verification_status === 'pending').length,
+    active: serviceProviders.filter(p => p.is_active).length
   };
-
-  const handleReject = (provider: any) => {
-    setSelectedProvider(provider);
-    setIsRejectionDialogOpen(true);
-  };
-
-  const handleView = (provider: any) => {
-    setSelectedProvider(provider);
-    setIsViewModalOpen(true);
-  };
-
-  const confirmApproval = () => {
-    if (selectedProvider) {
-      approveServiceProvider.mutate({ providerId: selectedProvider.id });
-      setIsApprovalDialogOpen(false);
-      setSelectedProvider(null);
-    }
-  };
-
-  const confirmRejection = () => {
-    if (selectedProvider) {
-      rejectServiceProvider.mutate({ 
-        providerId: selectedProvider.id, 
-        notes: rejectionNotes 
-      });
-      setIsRejectionDialogOpen(false);
-      setSelectedProvider(null);
-      setRejectionNotes('');
-    }
-  };
-
-  // Calculate statistics
-  const totalProviders = providers?.length || 0;
-  const activeProviders = providers?.filter(provider => provider.is_active).length || 0;
-  const verifiedProviders = providers?.filter(provider => provider.verification_status === 'approved').length || 0;
-  const pendingProviders = providers?.filter(provider => provider.verification_status === 'pending').length || 0;
 
   return (
-    <ProtectedAdminRoute>
-      <AdminLayout>
-        <div className="space-y-4 sm:space-y-6 animate-fade-in">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Briefcase className="h-6 w-6 sm:h-8 sm:w-8" />
-              Service Provider Management
-            </h1>
-            <p className="text-indigo-100 mt-2 text-sm sm:text-base">Manage service providers and their applications</p>
-          </div>
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Wrench className="h-8 w-8" />
+          Service Providers Management
+        </h1>
+        <p className="text-orange-100 mt-2">Monitor and manage all service providers</p>
+      </div>
 
-          {/* Service Provider Statistics */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Total Providers</CardTitle>
-                <Briefcase className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{totalProviders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Active</CardTitle>
-                <UserCheck className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{activeProviders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Verified</CardTitle>
-                <CheckCircle className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{verifiedProviders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{pendingProviders}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">All Service Providers</CardTitle>
-              <CardDescription className="text-sm">View and manage service provider accounts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {providersLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading providers...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto table-responsive">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Provider</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Business</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contact</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Type</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {providers?.map((provider) => (
-                        <TableRow key={provider.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="space-y-1">
-                              <div className="font-medium">{getProviderOwner(provider.user_id)}</div>
-                              <div className="text-xs text-gray-500">ID: {provider.id.slice(-8)}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <div className="space-y-1">
-                              <div className="font-medium">{provider.business_name || 'N/A'}</div>
-                              <div className="text-xs text-gray-500 max-w-32 truncate">
-                                {provider.business_description || 'No description'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="space-y-1">
-                              <div>{provider.email || 'N/A'}</div>
-                              <div className="text-gray-500">{provider.phone_number || 'N/A'}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <Badge variant="outline" className="text-xs">
-                              {provider.provider_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {provider.is_active ? (
-                                <Badge variant="default" className="text-xs">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs">Inactive</Badge>
-                              )}
-                              <Badge variant={getStatusBadgeVariant(provider.verification_status)} className="text-xs">
-                                {provider.verification_status}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                              {provider.verification_status === 'pending' && (
-                                <>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="bg-green-500 text-white hover:bg-green-600 text-xs px-2 py-1"
-                                    onClick={() => handleApprove(provider)}
-                                    disabled={approveServiceProvider.isPending}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="bg-red-500 text-white hover:bg-red-600 text-xs px-2 py-1"
-                                    onClick={() => handleReject(provider)}
-                                    disabled={rejectServiceProvider.isPending}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="text-xs px-2 py-1"
-                                onClick={() => handleView(provider)}
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Approval Dialog */}
-          <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Approve Service Provider</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to approve {getProviderOwner(selectedProvider?.user_id)}? 
-                  This will verify their account and allow them to offer services.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={confirmApproval} disabled={approveServiceProvider.isPending}>
-                  {approveServiceProvider.isPending ? 'Approving...' : 'Approve'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Rejection Dialog */}
-          <Dialog open={isRejectionDialogOpen} onOpenChange={setIsRejectionDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reject Service Provider</DialogTitle>
-                <DialogDescription>
-                  Please provide a reason for rejecting {getProviderOwner(selectedProvider?.user_id)}.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="rejection-notes">Rejection Reason</Label>
-                  <Textarea
-                    id="rejection-notes"
-                    placeholder="Enter the reason for rejection..."
-                    value={rejectionNotes}
-                    onChange={(e) => setRejectionNotes(e.target.value)}
-                  />
-                </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Providers</p>
+                <p className="text-2xl font-bold text-gray-900">{providerStats.total}</p>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsRejectionDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={confirmRejection} 
-                  disabled={rejectServiceProvider.isPending}
-                >
-                  {rejectServiceProvider.isPending ? 'Rejecting...' : 'Reject'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              <Wrench className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-2xl font-bold text-green-600">{providerStats.approved}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* View Provider Details Modal */}
-          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Service Provider Details
-                </DialogTitle>
-                <DialogDescription>
-                  View details for {getProviderOwner(selectedProvider?.user_id)}
-                </DialogDescription>
-              </DialogHeader>
-              
-              {selectedProvider && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Provider:</span>
-                        <span className="text-sm">{getProviderOwner(selectedProvider.user_id)}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Business:</span>
-                        <span className="text-sm">{selectedProvider.business_name || 'N/A'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Type:</span>
-                        <span className="text-sm">{selectedProvider.provider_type}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Email:</span>
-                        <span className="text-sm">{selectedProvider.email || 'N/A'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Phone:</span>
-                        <span className="text-sm">{selectedProvider.phone_number || 'N/A'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Location:</span>
-                        <span className="text-sm">{selectedProvider.location_address || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {selectedProvider.business_description && (
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium">Description:</span>
-                      <p className="text-sm text-gray-600">{selectedProvider.business_description}</p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold">
-                        {selectedProvider.verification_status === 'approved' ? 'Approved' : 
-                         selectedProvider.verification_status === 'pending' ? 'Pending' : 'Rejected'}
-                      </div>
-                      <div className="text-sm text-gray-500">Verification Status</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold">
-                        {selectedProvider.is_active ? 'Active' : 'Inactive'}
-                      </div>
-                      <div className="text-sm text-gray-500">Account Status</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-        </div>
-      </AdminLayout>
-    </ProtectedAdminRoute>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{providerStats.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-2xl font-bold text-blue-600">{providerStats.active}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Registered Service Providers</CardTitle>
+              <CardDescription>
+                Manage service provider registrations and verification
+              </CardDescription>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search providers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            </div>
+          ) : serviceProviders.length === 0 ? (
+            <div className="text-center py-8">
+              <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No service providers found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Provider Info</TableHead>
+                    <TableHead>Service Type</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Verification</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {serviceProviders.map((provider) => (
+                    <TableRow key={provider.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{provider.business_name || 'Unnamed Business'}</p>
+                          <p className="text-sm text-gray-500">{provider.business_description}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getProviderTypeColor(provider.provider_type)}>
+                          {provider.provider_type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {provider.email && (
+                            <div className="flex items-center text-sm">
+                              <Mail className="h-3 w-3 mr-1" />
+                              {provider.email}
+                            </div>
+                          )}
+                          {provider.phone_number && (
+                            <div className="flex items-center text-sm">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {provider.phone_number}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {provider.location_address && (
+                          <div className="flex items-center text-sm">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {provider.location_address}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={provider.is_active ? 'default' : 'secondary'}>
+                          {provider.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getVerificationColor(provider.verification_status)}>
+                          {provider.verification_status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {provider.verification_status === 'pending' && (
+                            <>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="destructive">
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
