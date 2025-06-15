@@ -14,7 +14,8 @@ import {
   BarChart3,
   Users,
   FileText,
-  Bell
+  Bell,
+  Cog
 } from 'lucide-react';
 
 export const menuItems = [
@@ -26,6 +27,7 @@ export const menuItems = [
       { title: 'Real Estate', url: '/real-estate', icon: Building },
       { title: 'Rides', url: '/rides', icon: Car },
       { title: 'Services', url: '/services', icon: Briefcase },
+      { title: 'Service Hub', url: '/service-provider-hub', icon: Cog },
     ]
   },
   {
@@ -40,7 +42,6 @@ export const menuItems = [
     title: 'Account',
     items: [
       { title: 'Profile', url: '/profile', icon: User },
-      { title: 'Vendor Dashboard', url: '/vendor', icon: Store },
     ]
   },
   {

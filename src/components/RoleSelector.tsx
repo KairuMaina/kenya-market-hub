@@ -1,205 +1,222 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Car, Store, Building } from 'lucide-react';
-import { useRoleRedirection } from '@/hooks/useRoleRedirection';
-import { useMyVendorProfile } from '@/hooks/useVendors';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  ShoppingBag, 
+  Car, 
+  Home as HomeIcon, 
+  User, 
+  Plus,
+  Package,
+  BarChart3,
+  Settings,
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertTriangle
+} from 'lucide-react';
+import ServiceProviderRegistration from '@/components/ServiceProviderRegistration';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
+import { useMyVendorProfile } from '@/hooks/useVendors';
+import { useAuth } from '@/contexts/AuthContext';
 
 const RoleSelector = () => {
-  const navigate = useNavigate();
-  const { getAvailableApps, hasMultipleRoles } = useRoleRedirection();
+  const { user } = useAuth();
   const { data: vendorProfile } = useMyVendorProfile();
   const { data: driverProfile } = useServiceProviderProfile('driver');
   const { data: propertyProfile } = useServiceProviderProfile('property_owner');
-  
-  // Get all service provider profiles
-  const { data: plumberProfile } = useServiceProviderProfile('plumber');
-  const { data: electricianProfile } = useServiceProviderProfile('electrician');
-  const { data: painterProfile } = useServiceProviderProfile('painter');
-  const { data: carpenterProfile } = useServiceProviderProfile('carpenter');
-  const { data: barberProfile } = useServiceProviderProfile('barber');
-  const { data: doctorProfile } = useServiceProviderProfile('doctor');
-  const { data: tutorProfile } = useServiceProviderProfile('tutor');
-  const { data: photographerProfile } = useServiceProviderProfile('photographer');
-  const { data: catererProfile } = useServiceProviderProfile('caterer');
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
 
-  const getAllAvailableApps = () => {
-    const apps = [];
-    
-    // Core service provider apps
-    if (vendorProfile?.verification_status === 'approved') {
-      apps.push({ 
-        name: 'Vendor Portal', 
-        path: '/vendor', 
-        description: 'Manage products and sales',
-        color: 'orange'
-      });
+  const serviceTypes = [
+    {
+      id: 'vendor',
+      title: 'Product Vendor',
+      icon: ShoppingBag,
+      description: 'Sell products on our marketplace',
+      profile: vendorProfile,
+      color: 'from-orange-500 to-red-600'
+    },
+    {
+      id: 'driver',
+      title: 'Ride Driver',
+      icon: Car,
+      description: 'Provide taxi or motorbike rides',
+      profile: driverProfile,
+      color: 'from-blue-500 to-indigo-600'
+    },
+    {
+      id: 'property_owner',
+      title: 'Property Owner',
+      icon: HomeIcon,
+      description: 'List properties for sale or rent',
+      profile: propertyProfile,
+      color: 'from-purple-500 to-violet-600'
     }
-    
-    if (driverProfile?.verification_status === 'approved') {
-      apps.push({ 
-        name: 'Driver App', 
-        path: '/driver', 
-        description: 'Manage rides and earnings',
-        color: 'blue'
-      });
+  ];
+
+  const quickActions = [
+    {
+      title: 'Add Products',
+      icon: Package,
+      action: () => console.log('Add products'),
+      color: 'bg-orange-500',
+      enabled: vendorProfile?.verification_status === 'approved'
+    },
+    {
+      title: 'View Analytics',
+      icon: BarChart3,
+      action: () => console.log('View analytics'),
+      color: 'bg-blue-500',
+      enabled: vendorProfile?.verification_status === 'approved'
+    },
+    {
+      title: 'Ride History',
+      icon: BarChart3,
+      action: () => console.log('View ride history'),
+      color: 'bg-green-500',
+      enabled: driverProfile?.verification_status === 'approved'
+    },
+    {
+      title: 'Settings',
+      icon: Settings,
+      action: () => console.log('Settings'),
+      color: 'bg-gray-500',
+      enabled: true
     }
-    
-    if (propertyProfile?.verification_status === 'approved') {
-      apps.push({ 
-        name: 'Property Management', 
-        path: '/property-owner', 
-        description: 'Manage properties and inquiries',
-        color: 'green'
-      });
-    }
+  ];
 
-    // Other service provider types
-    const serviceProviders = [
-      { profile: plumberProfile, name: 'Plumber Dashboard', path: '/service/plumber', color: 'blue' },
-      { profile: electricianProfile, name: 'Electrician Dashboard', path: '/service/electrician', color: 'yellow' },
-      { profile: painterProfile, name: 'Painter Dashboard', path: '/service/painter', color: 'green' },
-      { profile: carpenterProfile, name: 'Carpenter Dashboard', path: '/service/carpenter', color: 'amber' },
-      { profile: barberProfile, name: 'Barber Dashboard', path: '/service/barber', color: 'pink' },
-      { profile: doctorProfile, name: 'Doctor Dashboard', path: '/service/doctor', color: 'red' },
-      { profile: tutorProfile, name: 'Tutor Dashboard', path: '/service/tutor', color: 'indigo' },
-      { profile: photographerProfile, name: 'Photography Dashboard', path: '/service/photographer', color: 'gray' },
-      { profile: catererProfile, name: 'Catering Dashboard', path: '/service/caterer', color: 'emerald' }
-    ];
-
-    serviceProviders.forEach(service => {
-      if (service.profile?.verification_status === 'approved') {
-        apps.push({
-          name: service.name,
-          path: service.path,
-          description: 'Manage jobs and clients',
-          color: service.color
-        });
-      }
-    });
-    
-    return apps;
-  };
-
-  const availableApps = getAllAvailableApps();
-
-  const getIcon = (color: string) => {
-    switch (color) {
-      case 'blue': return <Car className="h-8 w-8" />;
-      case 'orange': return <Store className="h-8 w-8" />;
-      case 'green': return <Building className="h-8 w-8" />;
-      default: return <Store className="h-8 w-8" />;
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge variant="default" className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'pending':
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="outline">Not Registered</Badge>;
     }
   };
 
-  const getColorClasses = (color: string) => {
-    const colorMap: Record<string, any> = {
-      blue: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', from: 'from-blue-500', to: 'to-indigo-600' },
-      orange: { bg: 'bg-orange-500', hover: 'hover:bg-orange-600', from: 'from-orange-500', to: 'to-red-600' },
-      green: { bg: 'bg-green-500', hover: 'hover:bg-green-600', from: 'from-green-500', to: 'to-emerald-600' },
-      yellow: { bg: 'bg-yellow-500', hover: 'hover:bg-yellow-600', from: 'from-yellow-500', to: 'to-orange-500' },
-      amber: { bg: 'bg-amber-500', hover: 'hover:bg-amber-600', from: 'from-amber-500', to: 'to-orange-600' },
-      pink: { bg: 'bg-pink-500', hover: 'hover:bg-pink-600', from: 'from-pink-500', to: 'to-rose-600' },
-      red: { bg: 'bg-red-500', hover: 'hover:bg-red-600', from: 'from-red-500', to: 'to-pink-600' },
-      indigo: { bg: 'bg-indigo-500', hover: 'hover:bg-indigo-600', from: 'from-indigo-500', to: 'to-purple-600' },
-      gray: { bg: 'bg-gray-500', hover: 'hover:bg-gray-600', from: 'from-gray-500', to: 'to-slate-600' },
-      emerald: { bg: 'bg-emerald-500', hover: 'hover:bg-emerald-600', from: 'from-emerald-500', to: 'to-green-600' }
-    };
-    return colorMap[color] || colorMap.gray;
+  const handleRegistrationError = (error: string) => {
+    setRegistrationError(error);
+    // Clear error after 5 seconds
+    setTimeout(() => setRegistrationError(null), 5000);
   };
-
-  if (availableApps.length === 0) {
-    return (
-      <div className="max-w-2xl mx-auto mt-8 p-4">
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="pt-6 text-center">
-            <h2 className="text-lg font-semibold text-yellow-800 mb-2">
-              No Service Provider Access
-            </h2>
-            <p className="text-yellow-700 mb-4">
-              You don't have access to any service provider applications yet. 
-              Apply to become a service provider to access specialized tools.
-            </p>
-            <Button 
-              onClick={() => navigate('/vendor-dashboard')}
-              className="bg-yellow-600 hover:bg-yellow-700"
-            >
-              Apply as Service Provider
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (availableApps.length === 1) {
-    // Auto-redirect for single role users
-    const app = availableApps[0];
-    navigate(app.path);
-    return null;
-  }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Application</h1>
-        <p className="text-gray-600">You have access to multiple service provider applications</p>
-        <Badge variant="outline" className="mt-2">
-          {availableApps.length} Apps Available
-        </Badge>
-      </div>
+    <div className="space-y-6">
+      {/* Registration Error Alert */}
+      {registrationError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {registrationError}
+          </AlertDescription>
+        </Alert>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {availableApps.map((app, index) => {
-          const colors = getColorClasses(app.color);
-          
-          return (
-            <Card 
-              key={index} 
-              className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-0"
-              onClick={() => navigate(app.path)}
-            >
-              <CardHeader className="pb-4">
-                <div className={`w-12 h-12 bg-gradient-to-br ${colors.from} ${colors.to} rounded-lg flex items-center justify-center text-white mb-3 mx-auto`}>
-                  {getIcon(app.color)}
+      {/* Service Types Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {serviceTypes.map((service) => (
+          <Card key={service.id} className="relative overflow-hidden">
+            <div className={`h-2 bg-gradient-to-r ${service.color}`} />
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${service.color} text-white`}>
+                    <service.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{service.title}</CardTitle>
+                    <p className="text-sm text-gray-600">{service.description}</p>
+                  </div>
                 </div>
-                <CardTitle className="text-center">{app.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600 mb-4">{app.description}</p>
-                <Button 
-                  className={`w-full ${colors.bg} ${colors.hover} text-white`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(app.path);
-                  }}
-                >
-                  Open {app.name}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                {getStatusBadge(service.profile?.verification_status)}
+                {service.profile?.verification_status === 'approved' && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const appRoutes: Record<string, string> = {
+                      vendor: '/vendor',
+                      driver: '/driver',
+                      property_owner: '/property-owner'
+                    };
+                    window.location.href = appRoutes[service.id];
+                  }}>
+                    Open Dashboard
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="text-center mt-8">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/')}
-          className="mr-4"
-        >
-          Back to Home
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/vendor-dashboard')}
-        >
-          Manage Applications
-        </Button>
-      </div>
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                onClick={action.action}
+                disabled={!action.enabled}
+              >
+                <action.icon className="h-6 w-6" />
+                <span className="text-sm">{action.title}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Registration Tabs */}
+      <Tabs defaultValue="register" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="register">Register Services</TabsTrigger>
+          <TabsTrigger value="status">Application Status</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="register" className="space-y-6">
+          <ServiceProviderRegistration onError={handleRegistrationError} />
+        </TabsContent>
+        
+        <TabsContent value="status" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {serviceTypes.map((service) => (
+                  <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <service.icon className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <h3 className="font-medium">{service.title}</h3>
+                        <p className="text-sm text-gray-500">{service.description}</p>
+                      </div>
+                    </div>
+                    {getStatusBadge(service.profile?.verification_status)}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

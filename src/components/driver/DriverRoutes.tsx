@@ -162,9 +162,7 @@ const DriverRoutes = () => {
             {savedRoutes.map((route) => (
               <div key={route.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <Bookmark className={`h-4 w-4 ${route.i
-
-? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
+                  <Bookmark className={`h-4 w-4 ${route.isFavorite ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
                   <div>
                     <h4 className="font-medium">{route.name}</h4>
                     <p className="text-sm text-gray-600">{route.from} → {route.to}</p>
