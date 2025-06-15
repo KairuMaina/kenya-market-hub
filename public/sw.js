@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'soko-smart-v1';
 const urlsToCache = [
   '/',
@@ -18,8 +19,12 @@ self.addEventListener('install', (event) => {
 // Fetch event
 self.addEventListener('fetch', (event) => {
   // We only want to cache GET requests for http/https protocols.
-  // Other schemes like 'chrome-extension://' should be ignored.
-  if (event.request.method === 'GET' && event.request.url.startsWith('http')) {
+  // This robustly checks the protocol to avoid unsupported schemes.
+  const isCacheable =
+    event.request.method === 'GET' &&
+    ['http:', 'https:'].includes(new URL(event.request.url).protocol);
+
+  if (isCacheable) {
     event.respondWith(
       caches.match(event.request)
         .then((response) => {
@@ -28,21 +33,25 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
           
-          return fetch(event.request).then((response) => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+          return fetch(event.request).then((networkResponse) => {
+            // Check if we received a valid response.
+            // 'basic' type ensures we only cache requests from our origin.
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
             }
 
             // Clone the response because it's a stream and can be consumed only once.
-            const responseToCache = response.clone();
+            const responseToCache = networkResponse.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                cache.put(event.request, responseToCache);
+                // Use .catch to handle potential errors from cache.put()
+                cache.put(event.request, responseToCache).catch(err => {
+                  console.warn(`SW: Failed to cache request for ${event.request.url}`, err);
+                });
               });
 
-            return response;
+            return networkResponse;
           });
         })
     );
