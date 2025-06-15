@@ -12,7 +12,7 @@ import { useAddFareCalculation, NewFareData } from '@/hooks/useRidePricing';
 import { Loader2 } from 'lucide-react';
 
 const fareSchema = z.object({
-  vehicle_type: z.enum(['sedan', 'suv', 'van', 'boda']),
+  vehicle_type: z.enum(['taxi', 'motorbike']),
   base_fare: z.coerce.number().min(0, "Base fare must be non-negative"),
   per_km_rate: z.coerce.number().min(0, "Rate per KM must be non-negative"),
   per_minute_rate: z.coerce.number().min(0, "Rate per minute must be non-negative"),
@@ -30,7 +30,7 @@ const AddFareModal: React.FC<AddFareModalProps> = ({ isOpen, onOpenChange }) => 
   const form = useForm<NewFareData>({
     resolver: zodResolver(fareSchema),
     defaultValues: {
-      vehicle_type: 'sedan',
+      vehicle_type: 'taxi',
       base_fare: 0,
       per_km_rate: 0,
       per_minute_rate: 0,
@@ -71,10 +71,8 @@ const AddFareModal: React.FC<AddFareModalProps> = ({ isOpen, onOpenChange }) => 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="sedan">Sedan</SelectItem>
-                      <SelectItem value="suv">SUV</SelectItem>
-                      <SelectItem value="van">Van</SelectItem>
-                      <SelectItem value="boda">Boda</SelectItem>
+                      <SelectItem value="taxi">Taxi</SelectItem>
+                      <SelectItem value="motorbike">Motorbike</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

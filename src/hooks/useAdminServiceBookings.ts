@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -47,9 +46,14 @@ const getServiceBookings = async (): Promise<ServiceBookingAdminView[]> => {
     if (providerError) console.error("Error fetching providers:", providerError);
     if (categoryError) console.error("Error fetching categories:", categoryError);
     
-    const customersMap = new Map<string, string | null>(customers?.map(c => [c.id, c.full_name]) || []);
-    const providersMap = new Map<string, string | null>(providers?.map(p => [p.id, p.business_name]) || []);
-    const categoriesMap = new Map<string, string | null>(categories?.map(c => [c.id, c.name]) || []);
+    const customersMap = new Map<string, string | null>();
+    customers?.forEach(c => c.id && customersMap.set(c.id, c.full_name));
+    
+    const providersMap = new Map<string, string | null>();
+    providers?.forEach(p => p.id && providersMap.set(p.id, p.business_name));
+    
+    const categoriesMap = new Map<string, string | null>();
+    categories?.forEach(c => c.id && categoriesMap.set(c.id, c.name));
 
     return bookings.map(booking => ({
         id: booking.id,
