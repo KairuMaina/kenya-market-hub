@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
+import { useMyVendorProfile } from '@/hooks/useVendors';
 import { useNavigate } from 'react-router-dom';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
 
@@ -26,7 +28,7 @@ const ServiceProviderHub = () => {
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   
   // Check each service provider type
-  const { data: vendorProfile } = useServiceProviderProfile('vendor');
+  const { data: vendorProfile } = useMyVendorProfile();
   const { data: driverProfile } = useServiceProviderProfile('driver');
   const { data: propertyOwnerProfile } = useServiceProviderProfile('property_owner');
   const { data: serviceProviderProfile } = useServiceProviderProfile('service_provider');
@@ -156,14 +158,12 @@ const ServiceProviderHub = () => {
 
                   <div className="flex space-x-3">
                     {canAccess ? (
-                      <Button 
-                        asChild 
+                      <Button
+                        onClick={() => navigate(provider.dashboardUrl)}
                         className={`flex-1 bg-gradient-to-r ${provider.color} hover:opacity-90`}
                       >
-                        <a href={provider.dashboardUrl}>
-                          Go to Dashboard
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </a>
+                        Go to Dashboard
+                        <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     ) : (
                       <Button 
