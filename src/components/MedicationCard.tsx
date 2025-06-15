@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +59,7 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ medication }) => {
       </CardContent>
       <CardFooter className="flex items-center justify-between pt-4">
         <p className="text-xl font-bold text-gray-800">Ksh {medication.price.toFixed(2)}</p>
-        <Button size="sm" disabled={!medication.stock_quantity || medication.stock_quantity <= 0} onClick={handleAddToCart} className="w-auto">
+        <Button size="sm" disabled={!medication.stock_quantity || medication.stock_quantity <= 0} onClick={handleAddToCart}>
           <ShoppingCart className="mr-2 h-4 w-4" />
           Add to Cart
         </Button>

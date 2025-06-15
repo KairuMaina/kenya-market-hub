@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
@@ -29,7 +28,7 @@ const WishlistButton = ({ productId, size = 'sm' }: WishlistButtonProps) => {
       size={size}
       onClick={handleClick}
       disabled={isLoading || toggleWishlist.isPending}
-      className={`${isInWishlist ? 'bg-red-500 hover:bg-red-600' : ''} w-auto`}
+      className={`${isInWishlist ? 'bg-red-500 hover:bg-red-600' : ''}`}
     >
       <Heart 
         className={`h-4 w-4 ${size !== 'sm' ? 'mr-2' : ''} ${

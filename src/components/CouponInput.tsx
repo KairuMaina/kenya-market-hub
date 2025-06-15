@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,7 +86,6 @@ const CouponInput = ({
         <Button 
           onClick={handleApplyCoupon}
           disabled={!couponCode.trim() || validateCoupon.isPending}
-          className="w-auto"
         >
           {validateCoupon.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
