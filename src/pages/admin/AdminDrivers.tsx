@@ -36,7 +36,7 @@ const AdminDrivers = () => {
         .from('drivers')
         .select(`
           *,
-          profiles!inner(email, full_name, phone)
+          profiles(email, full_name, phone)
         `)
         .order('created_at', { ascending: false });
 
