@@ -44,6 +44,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
     if (!open) {
       setFormData(initialFormData);
       setSelectedFiles([]);
+      console.log('[AddProductModal] Modal closed, form reset');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -105,9 +106,9 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
         }
       }
       toast({ title: "Product added successfully!" });
-      // Request modal close, let useEffect reset it
       onOpenChange(false);
       onSuccess();
+      console.log('[AddProductModal] Product added: closing modal');
     },
     onError: (error: any) => {
       toast({ 
@@ -117,6 +118,14 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
       });
     }
   });
+
+  // Make sure any overlay click and escape key will close the modal properly
+  const handleDialogOpenChange = (openValue: boolean) => {
+    onOpenChange(openValue);
+    if (!openValue) {
+      console.log('[AddProductModal] Modal openChange (Dialog overlay/esc):', openValue);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +138,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
       year: formData.year ? parseInt(formData.year) : null,
     };
     addProduct.mutate(productData);
+    console.log('[AddProductModal] Submit form: started mutation');
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -144,12 +154,13 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
   };
 
   const handleCancel = () => {
-    onOpenChange(false); // Triggers the parent to set open=false
-    // No need to manually reset here, it's handled by useEffect above
+    onOpenChange(false);
+    // No need to reset here, handled by useEffect
+    console.log('[AddProductModal] Cancel clicked: closing modal');
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
@@ -157,6 +168,15 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
             Fill in the product details to add it to your inventory.
           </DialogDescription>
         </DialogHeader>
+        <button
+          type="button"
+          className="absolute z-50 top-3 right-3 px-2 py-1 bg-red-200 text-red-700 rounded hover:bg-red-300"
+          onClick={() => {
+            handleCancel();
+          }}
+        >
+          Close X
+        </button>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">

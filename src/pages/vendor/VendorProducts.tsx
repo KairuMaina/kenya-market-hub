@@ -19,6 +19,14 @@ const VendorProducts = () => {
   const handleProductAdded = () => {
     queryClient.invalidateQueries({ queryKey: ['products'] });
     // The modal already closes itself because AddProductModal now does onOpenChange(false)
+    // Set showAddProduct to false just in case
+    setShowAddProduct(false);
+    console.log('[VendorProducts] Product added, closing modal');
+  };
+
+  const handleAddProductModalOpenChange = (open: boolean) => {
+    setShowAddProduct(open);
+    console.log(`[VendorProducts] Modal open changed: ${open}`);
   };
 
   return (
@@ -66,7 +74,7 @@ const VendorProducts = () => {
       </Card>
       <AddProductModal 
         open={showAddProduct} 
-        onOpenChange={setShowAddProduct} 
+        onOpenChange={handleAddProductModalOpenChange} 
         onSuccess={handleProductAdded} 
       />
     </div>
