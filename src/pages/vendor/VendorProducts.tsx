@@ -6,13 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AddProductModal from '@/components/AddProductModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 const VendorProducts = () => {
   const { data: vendorProfile } = useMyVendorProfile();
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useProducts({ vendorId: vendorProfile?.id });
-  // (Above, we'll update useProducts for vendorId filter in the next step)
+
+  // Handle successful product addition: close modal and re-fetch products
+  const handleProductAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+    // The modal already closes itself because AddProductModal now does onOpenChange(false)
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +64,11 @@ const VendorProducts = () => {
           )}
         </CardContent>
       </Card>
-      <AddProductModal open={showAddProduct} onOpenChange={setShowAddProduct} onSuccess={() => {}} />
+      <AddProductModal 
+        open={showAddProduct} 
+        onOpenChange={setShowAddProduct} 
+        onSuccess={handleProductAdded} 
+      />
     </div>
   );
 };

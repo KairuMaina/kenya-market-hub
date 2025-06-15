@@ -76,6 +76,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
       return data;
     },
     onSuccess: async (newProduct) => {
+      let hadImageError = false;
       // Upload images if any were selected
       if (selectedFiles.length > 0) {
         try {
@@ -85,6 +86,7 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
             isPrimary: true
           });
         } catch (error) {
+          hadImageError = true;
           console.error('Error uploading images:', error);
           toast({
             title: "Product added but image upload failed",
@@ -93,8 +95,9 @@ const AddProductModal = ({ open, onOpenChange, onSuccess }: AddProductModalProps
           });
         }
       }
-      
       toast({ title: "Product added successfully!" });
+      // Close modal and signal success to parent for refetching
+      onOpenChange(false);
       onSuccess();
       setFormData({
         name: '',
