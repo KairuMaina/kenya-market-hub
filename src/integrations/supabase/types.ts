@@ -1595,6 +1595,7 @@ export type Database = {
           business_address: string | null
           business_description: string | null
           business_email: string | null
+          business_license: string | null
           business_name: string
           business_phone: string | null
           commission_rate: number | null
@@ -1613,6 +1614,7 @@ export type Database = {
           business_address?: string | null
           business_description?: string | null
           business_email?: string | null
+          business_license?: string | null
           business_name: string
           business_phone?: string | null
           commission_rate?: number | null
@@ -1631,6 +1633,7 @@ export type Database = {
           business_address?: string | null
           business_description?: string | null
           business_email?: string | null
+          business_license?: string | null
           business_name?: string
           business_phone?: string | null
           commission_rate?: number | null
