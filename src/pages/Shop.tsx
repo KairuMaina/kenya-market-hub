@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -44,9 +45,9 @@ const Shop = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-8 sm:space-y-12">
-        {/* Hero Section with Image Slideshow */}
-        <section className="relative h-[60vh] sm:h-[80vh] rounded-xl overflow-hidden shadow-2xl animate-fade-in">
+      <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+        {/* Hero Section - More prominent on mobile */}
+        <section className="relative h-[70vh] sm:h-[75vh] lg:h-[80vh] rounded-xl overflow-hidden shadow-2xl animate-fade-in">
           <div className="absolute inset-0">
             {heroImages.map((image, index) => (
               <div
@@ -65,27 +66,27 @@ const Shop = () => {
             ))}
           </div>
           
-          <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-4 sm:p-8">
+          <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-4 sm:p-6 lg:p-8">
             <div className="max-w-4xl animate-scale-in">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                 Shop at{' '}
                 <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
                   Soko Smart
                 </span>
               </h1>
-              <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 max-w-2xl mx-auto">
+              <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 opacity-90 max-w-2xl mx-auto">
                 Discover amazing products from trusted vendors across Kenya
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link to="/products">
-                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3">
-                    <ShoppingBag className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-8 py-4 text-lg">
+                    <ShoppingBag className="mr-2 h-5 w-5" />
                     Start Shopping
                   </Button>
                 </Link>
                 {!user && (
                   <Link to="/auth">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-6 sm:px-8 py-3">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-8 py-4 text-lg">
                       Join Today
                     </Button>
                   </Link>
@@ -99,7 +100,7 @@ const Shop = () => {
             {heroImages.map((_, index) => (
               <button
                 key={index}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentImageIndex ? 'bg-white' : 'bg-white/50'
                 }`}
                 onClick={() => setCurrentImageIndex(index)}
@@ -108,47 +109,27 @@ const Shop = () => {
           </div>
         </section>
 
-        {/* Advanced Search Section */}
-        <section className="animate-slide-in-up">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold">Find What You're Looking For</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-              className="text-sm"
-            >
-              {showAdvancedSearch ? 'Hide Filters' : 'Advanced Search'}
-            </Button>
+        {/* Features Section - Optimized for mobile */}
+        <section className="animate-slide-in-left">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {[
+              { icon: Truck, title: 'Fast Delivery', desc: 'Quick nationwide shipping' },
+              { icon: Shield, title: 'Secure Shopping', desc: 'Protected transactions' },
+              { icon: Star, title: 'Quality Products', desc: 'Verified vendors only' },
+              { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
+            ].map((feature, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
+                <CardContent className="p-3 sm:p-4 lg:p-6">
+                  <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 mx-auto mb-2 sm:mb-3 lg:mb-4 text-orange-500" />
+                  <h3 className="font-semibold text-xs sm:text-sm lg:text-base mb-1 sm:mb-2">{feature.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-tight">{feature.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          
-          {showAdvancedSearch && (
-            <ShopAdvancedSearch 
-              onFiltersChange={handleFiltersChange}
-              onSearch={handleSearch}
-              className="animate-fade-in"
-            />
-          )}
         </section>
 
-        {/* Features Section */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-slide-in-left">
-          {[
-            { icon: Truck, title: 'Fast Delivery', desc: 'Quick nationwide shipping' },
-            { icon: Shield, title: 'Secure Shopping', desc: 'Protected transactions' },
-            { icon: Star, title: 'Quality Products', desc: 'Verified vendors only' },
-            { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
-          ].map((feature, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-              <CardContent className="p-4 sm:p-6">
-                <feature.icon className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-orange-500" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">{feature.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">{feature.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-
-        {/* Featured Products */}
+        {/* Featured Products - Prioritized display */}
         <section className="animate-slide-in-right">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
             <div>
@@ -174,16 +155,16 @@ const Shop = () => {
                     className="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute top-2 right-2">
-                    <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs">
                       {product.in_stock ? 'In Stock' : 'Out of Stock'}
                     </Badge>
                   </div>
                 </div>
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 px-4 pt-4">
                   <CardTitle className="text-base sm:text-lg line-clamp-1">{product.name}</CardTitle>
                   <CardDescription className="line-clamp-2 text-xs sm:text-sm">{product.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 px-4 pb-4">
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center space-x-1">
                       <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
@@ -203,7 +184,7 @@ const Shop = () => {
                         </span>
                       )}
                     </div>
-                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white transition-all duration-300 hover:scale-105">
+                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white transition-all duration-300 hover:scale-105 text-xs px-3 py-2">
                       Add to Cart
                     </Button>
                   </div>
@@ -211,6 +192,28 @@ const Shop = () => {
               </Card>
             ))}
           </div>
+        </section>
+
+        {/* Advanced Search Section - Condensed for mobile */}
+        <section className="animate-slide-in-up">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Find What You're Looking For</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className="text-sm"
+            >
+              {showAdvancedSearch ? 'Hide Filters' : 'Advanced Search'}
+            </Button>
+          </div>
+          
+          {showAdvancedSearch && (
+            <ShopAdvancedSearch 
+              onFiltersChange={handleFiltersChange}
+              onSearch={handleSearch}
+              className="animate-fade-in"
+            />
+          )}
         </section>
 
         {/* Call to Action */}
