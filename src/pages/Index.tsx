@@ -8,19 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import MainLayout from '@/components/MainLayout';
 import { 
   Globe, 
-  Search, 
   ShieldCheck, 
   Truck, 
   ArrowRight, 
   ShoppingBag, 
   Building, 
-  Car, 
-  TrendingUp, 
-  Shield, 
-  Headphones,
-  Star,
-  Heart,
-  Zap
+  Car
 } from 'lucide-react';
 
 const Index: React.FC = () => {
@@ -221,80 +214,6 @@ const Index: React.FC = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </section>
-
-        {/* Features Highlight */}
-        <section className="animate-slide-in-left">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Why Choose Soko Smart?</h2>
-            <p className="text-gray-600">Experience the best of Kenya's digital marketplace</p>
-          </div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: Shield, title: 'Secure & Trusted', desc: 'Protected transactions' },
-              { icon: Zap, title: 'Fast & Reliable', desc: 'Quick service delivery' },
-              { icon: Star, title: 'Quality Assured', desc: 'Verified providers only' },
-              { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
-            ].map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-md transition-all duration-300">
-                <CardContent className="p-4">
-                  <feature.icon className="h-8 w-8 mx-auto mb-3 text-orange-500" />
-                  <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
-                  <p className="text-xs text-gray-600">{feature.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Search Section */}
-        <section className="text-center bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl animate-slide-in-right">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-            Find What You Need
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-xl mx-auto">
-            Use our powerful search tools to quickly locate products, properties, and services across our platform
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/search')}
-              className="border-blue-500 text-blue-600 hover:bg-blue-50"
-            >
-              <Search className="h-4 w-4 mr-2" />
-              Quick Search
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/advanced-search')}
-              className="border-purple-500 text-purple-600 hover:bg-purple-50"
-            >
-              Advanced Search
-            </Button>
-          </div>
-        </section>
-
-        {/* Call to Action */}
-        <section className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-xl text-center shadow-lg">
-          <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
-          <p className="mb-5 opacity-90 max-w-xl mx-auto">
-            Join thousands of satisfied customers on Kenya's leading digital platform
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/shop">
-              <Button size="lg" variant="secondary" className="shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Start Shopping
-              </Button>
-            </Link>
-            <Link to="/vendor-dashboard">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-orange-600 transition-all duration-300">
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Become a Provider
-              </Button>
-            </Link>
           </div>
         </section>
       </div>

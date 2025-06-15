@@ -36,7 +36,7 @@ const AdminDrivers = () => {
         .from('drivers')
         .select(`
           *,
-          profiles!drivers_user_id_fkey(email, full_name)
+          profiles!inner(email, full_name, phone)
         `)
         .order('created_at', { ascending: false });
 
@@ -224,7 +224,7 @@ const AdminDrivers = () => {
                               <div>
                                 <p className="font-medium">{driver.profiles?.full_name || 'Unknown Driver'}</p>
                                 <p className="text-sm text-gray-500">{driver.profiles?.email}</p>
-                                <p className="text-sm text-gray-500">{driver.phone}</p>
+                                <p className="text-sm text-gray-500">{driver.profiles?.phone || driver.phone_number}</p>
                               </div>
                             </TableCell>
                             <TableCell>

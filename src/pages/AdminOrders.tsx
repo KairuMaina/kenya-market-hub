@@ -35,7 +35,7 @@ const AdminOrders = () => {
         .from('orders')
         .select(`
           *,
-          profiles!orders_user_id_fkey(email, full_name)
+          profiles!inner(email, full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -95,12 +95,12 @@ const AdminOrders = () => {
   const orders = ordersData?.orders || [];
   const orderStats = {
     total: orders.length,
-    pending: orders.filter(o => o.order_status === 'pending').length,
-    processing: orders.filter(o => o.order_status === 'processing').length,
-    delivered: orders.filter(o => o.order_status === 'delivered').length
+    pending: orders.filter(o => o.status === 'pending').length,
+    processing: orders.filter(o => o.status === 'processing').length,
+    delivered: orders.filter(o => o.status === 'delivered').length
   };
 
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
   return (
     <ProtectedAdminRoute>
@@ -221,7 +221,6 @@ const AdminOrders = () => {
                         <TableRow className="bg-gradient-to-r from-blue-50 to-blue-100">
                           <TableHead className="font-semibold">Order ID</TableHead>
                           <TableHead className="font-semibold">Customer</TableHead>
-                          <TableHead className="font-semibold">Items</TableHead>
                           <TableHead className="font-semibold">Total</TableHead>
                           <TableHead className="font-semibold">Status</TableHead>
                           <TableHead className="font-semibold">Date</TableHead>
@@ -243,18 +242,13 @@ const AdminOrders = () => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="font-semibold text-blue-600">
-                                {Array.isArray(order.order_items) ? order.order_items.length : 0} items
-                              </span>
-                            </TableCell>
-                            <TableCell>
                               <span className="font-bold text-green-600">
-                                KSh {(order.total || 0).toLocaleString()}
+                                KSh {(order.total_amount || 0).toLocaleString()}
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getStatusColor(order.order_status || 'pending')}>
-                                {order.order_status?.replace('_', ' ') || 'Pending'}
+                              <Badge className={getStatusColor(order.status || 'pending')}>
+                                {order.status?.replace('_', ' ') || 'Pending'}
                               </Badge>
                             </TableCell>
                             <TableCell>
