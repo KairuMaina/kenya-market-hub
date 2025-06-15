@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,7 +25,6 @@ import PropertyDetail from '@/pages/PropertyDetail';
 import PropertyOwnerApp from '@/pages/PropertyOwnerApp';
 import VendorApp from '@/pages/VendorApp';
 import VendorDashboard from '@/pages/vendor/VendorDashboard';
-import VendorAnalyticsPage from '@/pages/vendor/VendorAnalyticsPage';
 import NotFound from '@/pages/NotFound';
 import DriverApp from '@/pages/DriverApp';
 import SoundEffects from '@/components/SoundEffects';
@@ -34,6 +32,7 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AdminApp from './pages/AdminApp';
 import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistrationPage';
+import VendorAnalyticsPage from './pages/vendor/VendorAnalyticsPage';
 
 function App() {
   const queryClient = new QueryClient();
