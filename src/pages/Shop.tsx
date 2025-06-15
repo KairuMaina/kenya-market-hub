@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -105,26 +104,6 @@ const Shop = () => {
                 }`}
                 onClick={() => setCurrentImageIndex(index)}
               />
-            ))}
-          </div>
-        </section>
-
-        {/* Features Section - Optimized for mobile */}
-        <section className="animate-slide-in-left">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {[
-              { icon: Truck, title: 'Fast Delivery', desc: 'Quick nationwide shipping' },
-              { icon: Shield, title: 'Secure Shopping', desc: 'Protected transactions' },
-              { icon: Star, title: 'Quality Products', desc: 'Verified vendors only' },
-              { icon: Heart, title: '24/7 Support', desc: 'Always here to help' }
-            ].map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-                <CardContent className="p-3 sm:p-4 lg:p-6">
-                  <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 mx-auto mb-2 sm:mb-3 lg:mb-4 text-orange-500" />
-                  <h3 className="font-semibold text-xs sm:text-sm lg:text-base mb-1 sm:mb-2">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 leading-tight">{feature.desc}</p>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </section>
