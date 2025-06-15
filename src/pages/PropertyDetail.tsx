@@ -1,346 +1,396 @@
 
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useProperty, useIncrementPropertyViews, useCreatePropertyInquiry } from '@/hooks/useProperties';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, MapPin, Bed, Bath, Square, Eye, Phone, Mail, Calendar, ExternalLink } from 'lucide-react';
-import MainLayout from '@/components/MainLayout';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Bed, 
+  Bath, 
+  Square, 
+  Eye, 
+  Calendar,
+  Phone,
+  Mail,
+  Share2,
+  Heart,
+  ExternalLink
+} from 'lucide-react';
 import PropertyInquiryModal from '@/components/PropertyInquiryModal';
-import MapBox from '@/components/MapBox';
-import { useProperty, useIncrementPropertyViews } from '@/hooks/useProperties';
-import { Property } from '@/hooks/useProperties';
+import LazyImage from '@/components/LazyImage';
+import SEOHead from '@/components/SEOHead';
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [showInquiryModal, setShowInquiryModal] = React.useState(false);
+  const { toast } = useToast();
   
   const { data: property, isLoading, error } = useProperty(id!);
   const incrementViews = useIncrementPropertyViews();
+  const createInquiry = useCreatePropertyInquiry();
 
   useEffect(() => {
-    if (property) {
-      incrementViews.mutate(property.id);
+    if (property && id) {
+      incrementViews.mutate(id);
     }
-  }, [property, incrementViews]);
+  }, [property, id]);
 
-  const formatPrice = (price: number, type: string) => {
-    const formatted = new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      minimumFractionDigits: 0,
-    }).format(price);
-    
-    return type === 'rent' ? `${formatted}/month` : formatted;
-  };
-
-  const getPropertyTypeLabel = (type: string) => {
-    const labels = {
-      house: 'House',
-      apartment: 'Apartment',
-      land: 'Land',
-      commercial: 'Commercial',
-      office: 'Office'
-    };
-    return labels[type as keyof typeof labels] || type;
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: property?.title,
+          text: property?.description,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: 'Link Copied',
+        description: 'Property link copied to clipboard',
+      });
+    }
   };
 
   if (isLoading) {
     return (
-      <MainLayout>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-lg">Loading property details...</div>
-        </div>
-      </MainLayout>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
   if (error || !property) {
     return (
-      <MainLayout>
-        <div className="flex flex-col justify-center items-center min-h-screen space-y-4">
-          <div className="text-lg text-red-600">Property not found</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Property Not Found</h2>
+          <p className="text-gray-600 mb-4">The property you're looking for doesn't exist.</p>
           <Button onClick={() => navigate('/real-estate')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Properties
           </Button>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
-  // Prepare map data
-  const mapCenter: [number, number] = property.location_coordinates 
-    ? [property.location_coordinates.x, property.location_coordinates.y]
-    : [36.8219, -1.2921]; // Default to Nairobi
-
-  const mapMarkers = [{
-    id: property.id,
-    coordinates: mapCenter,
-    title: property.title,
-    color: '#9333ea',
-    onClick: () => {}
-  }];
+  const primaryImage = property.images?.[0] || '/placeholder.svg';
+  const coordinates = property.location_coordinates ? 
+    [property.location_coordinates.lat, property.location_coordinates.lng] : null;
 
   return (
-    <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <>
+      <SEOHead 
+        title={`${property.title} - Soko Smart`}
+        description={property.description || `${property.property_type} for ${property.listing_type} in ${property.city || property.location_address}`}
+        image={primaryImage}
+      />
+      
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/real-estate')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Properties
-          </Button>
-          <div className="flex items-center text-sm text-gray-500">
-            <Eye className="h-4 w-4 mr-1" />
-            <span>{property.views_count} views</span>
-          </div>
-        </div>
-
-        {/* Property Images */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="aspect-video">
-            <img 
-              src={property.images?.[0] || '/placeholder.svg'} 
-              alt={property.title}
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {property.images?.slice(1, 5).map((image, index) => (
-              <div key={index} className="aspect-square">
-                <img 
-                  src={image} 
-                  alt={`${property.title} ${index + 2}`}
-                  className="w-full h-full object-cover rounded-lg"
-                />
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Heart className="h-4 w-4" />
+                </Button>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Property Info */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex gap-2 mb-2">
-                      <Badge className="bg-purple-600">
-                        {getPropertyTypeLabel(property.property_type)}
-                      </Badge>
-                      <Badge variant="outline">
-                        For {property.listing_type === 'sale' ? 'Sale' : 'Rent'}
-                      </Badge>
-                      {property.is_featured && (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                          Featured
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-2xl mb-2">{property.title}</CardTitle>
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{property.location_address}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-purple-600">
-                      {formatPrice(property.price, property.listing_type)}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {property.bedrooms && (
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <Bed className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                      <div className="font-semibold">{property.bedrooms}</div>
-                      <div className="text-sm text-gray-600">Bedrooms</div>
-                    </div>
-                  )}
-                  {property.bathrooms && (
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <Bath className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                      <div className="font-semibold">{property.bathrooms}</div>
-                      <div className="text-sm text-gray-600">Bathrooms</div>
-                    </div>
-                  )}
-                  {property.area_sqm && (
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <Square className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                      <div className="font-semibold">{property.area_sqm}m²</div>
-                      <div className="text-sm text-gray-600">Area</div>
-                    </div>
-                  )}
-                </div>
-
-                {property.description && (
-                  <>
-                    <Separator className="my-4" />
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Description</h3>
-                      <p className="text-gray-700 leading-relaxed">{property.description}</p>
-                    </div>
-                  </>
-                )}
-
-                {property.amenities && property.amenities.length > 0 && (
-                  <>
-                    <Separator className="my-4" />
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Amenities</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {property.amenities.map((amenity, index) => (
-                          <Badge key={index} variant="secondary">{amenity}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {property.features && property.features.length > 0 && (
-                  <>
-                    <Separator className="my-4" />
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Features</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {property.features.map((feature, index) => (
-                          <Badge key={index} variant="outline">{feature}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Map */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Location</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 rounded-lg overflow-hidden">
-                  <MapBox
-                    center={mapCenter}
-                    zoom={15}
-                    markers={mapMarkers}
-                    className="w-full h-full"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Property Images */}
+              <Card className="overflow-hidden">
+                <div className="aspect-video relative">
+                  <LazyImage
+                    src={primaryImage}
+                    alt={property.title}
+                    className="w-full h-full object-cover"
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Virtual Tour */}
-            {property.virtual_tour_url && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Virtual Tour</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => window.open(property.virtual_tour_url, '_blank')}
+                  {property.is_featured && (
+                    <Badge className="absolute top-4 left-4 bg-yellow-500">
+                      Featured
+                    </Badge>
+                  )}
+                  <Badge 
+                    className="absolute top-4 right-4"
+                    variant={property.listing_type === 'sale' ? 'default' : 'secondary'}
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Take Virtual Tour
-                  </Button>
+                    For {property.listing_type === 'sale' ? 'Sale' : 'Rent'}
+                  </Badge>
+                </div>
+                
+                {property.images && property.images.length > 1 && (
+                  <div className="p-4">
+                    <div className="grid grid-cols-4 gap-2">
+                      {property.images.slice(1, 5).map((image, index) => (
+                        <div key={index} className="aspect-square relative">
+                          <LazyImage
+                            src={image}
+                            alt={`${property.title} - Image ${index + 2}`}
+                            className="w-full h-full object-cover rounded-md"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* Property Details */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        {property.title}
+                      </h1>
+                      <div className="flex items-center text-gray-600 mb-4">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {property.location_address}
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" />
+                          {property.views_count || 0} views
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          Listed {new Date(property.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Key Features */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {property.bedrooms && (
+                        <div className="flex items-center gap-2">
+                          <Bed className="h-5 w-5 text-gray-400" />
+                          <span>{property.bedrooms} Bedrooms</span>
+                        </div>
+                      )}
+                      {property.bathrooms && (
+                        <div className="flex items-center gap-2">
+                          <Bath className="h-5 w-5 text-gray-400" />
+                          <span>{property.bathrooms} Bathrooms</span>
+                        </div>
+                      )}
+                      {property.area_sqm && (
+                        <div className="flex items-center gap-2">
+                          <Square className="h-5 w-5 text-gray-400" />
+                          <span>{property.area_sqm} sq m</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="capitalize">
+                          {property.property_type}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Description */}
+                    {property.description && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Description</h3>
+                        <p className="text-gray-600 leading-relaxed">
+                          {property.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Amenities */}
+                    {property.amenities && property.amenities.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Amenities</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {property.amenities.map((amenity, index) => (
+                            <Badge key={index} variant="secondary">
+                              {amenity}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Features */}
+                    {property.features && property.features.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Features</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {property.features.map((feature, index) => (
+                            <Badge key={index} variant="outline">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Virtual Tour */}
+                    {property.virtual_tour_url && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Virtual Tour</h3>
+                        <Button variant="outline" asChild>
+                          <a 
+                            href={property.virtual_tour_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Take Virtual Tour
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+            </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {property.contact_phone && (
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 mr-2 text-purple-600" />
-                    <span>{property.contact_phone}</span>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Price & Action */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center space-y-4">
+                    <div>
+                      <div className="text-3xl font-bold text-green-600">
+                        KSH {property.price.toLocaleString()}
+                        {property.listing_type === 'rent' && (
+                          <span className="text-lg text-gray-500">/month</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <PropertyInquiryModal 
+                      property={property}
+                      trigger={
+                        <Button size="lg" className="w-full">
+                          {property.listing_type === 'sale' ? 'Make Inquiry' : 'Request Viewing'}
+                        </Button>
+                      }
+                    />
                   </div>
-                )}
-                {property.contact_email && (
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-purple-600" />
-                    <span>{property.contact_email}</span>
-                  </div>
-                )}
-                {property.available_from && (
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-                    <span>Available from {new Date(property.available_from).toLocaleDateString()}</span>
-                  </div>
-                )}
-                <Button 
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600"
-                  onClick={() => setShowInquiryModal(true)}
-                >
-                  <Phone className="mr-2 h-4 w-4" />
-                  Send Inquiry
-                </Button>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Property Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Property Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Property ID:</span>
-                  <span className="font-medium">{property.id.slice(0, 8)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <Badge variant="outline">{property.status}</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Listed:</span>
-                  <span className="font-medium">
-                    {new Date(property.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                {property.county && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">County:</span>
-                    <span className="font-medium">{property.county}</span>
+              {/* Contact Information */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    {property.contact_phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <a 
+                          href={`tel:${property.contact_phone}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {property.contact_phone}
+                        </a>
+                      </div>
+                    )}
+                    {property.contact_email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <a 
+                          href={`mailto:${property.contact_email}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {property.contact_email}
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
-                {property.city && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">City:</span>
-                    <span className="font-medium">{property.city}</span>
+                </CardContent>
+              </Card>
+
+              {/* Location Map */}
+              {coordinates && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Location</h3>
+                    <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                      <p className="text-gray-500">Map integration coming soon</p>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">
+                      {property.location_address}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Additional Info */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Property Details</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Property Type:</span>
+                      <span className="capitalize">{property.property_type}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Listing Type:</span>
+                      <span className="capitalize">For {property.listing_type}</span>
+                    </div>
+                    {property.city && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">City:</span>
+                        <span>{property.city}</span>
+                      </div>
+                    )}
+                    {property.county && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">County:</span>
+                        <span>{property.county}</span>
+                      </div>
+                    )}
+                    {property.available_from && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Available From:</span>
+                        <span>{new Date(property.available_from).toLocaleDateString()}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-
-        {/* Property Inquiry Modal */}
-        <PropertyInquiryModal
-          isOpen={showInquiryModal}
-          onClose={() => setShowInquiryModal(false)}
-          property={property}
-        />
       </div>
-    </MainLayout>
+    </>
   );
 };
 
