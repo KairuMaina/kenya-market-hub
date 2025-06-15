@@ -1,8 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Search, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Building, Car, Briefcase, Users, TrendingUp, Shield, Headphones } from 'lucide-react';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();

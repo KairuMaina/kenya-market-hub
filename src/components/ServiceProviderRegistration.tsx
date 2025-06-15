@@ -5,201 +5,270 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Car, Store, Home, Wrench } from 'lucide-react';
-import { useCreateServiceProviderProfile } from '@/hooks/useServiceProviders';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ShoppingBag, 
+  Car, 
+  Building, 
+  Wrench,
+  Zap,
+  Paintbrush,
+  Hammer,
+  Scissors,
+  Stethoscope,
+  GraduationCap,
+  Camera,
+  Utensils
+} from 'lucide-react';
+import { useVendorApplication } from '@/hooks/useVendors';
+import { useServiceProviderRegistration } from '@/hooks/useServiceProviders';
+import { useToast } from '@/hooks/use-toast';
 
-interface ServiceProviderRegistrationProps {
-  onRegistered?: () => void;
-}
+const ServiceProviderRegistration = () => {
+  const [activeTab, setActiveTab] = useState('vendor');
+  const [formData, setFormData] = useState({
+    business_name: '',
+    business_description: '',
+    business_address: '',
+    business_phone: '',
+    business_email: '',
+    service_type: '',
+    license_number: '',
+    experience_years: '',
+    service_areas: ''
+  });
 
-const ServiceProviderRegistration: React.FC<ServiceProviderRegistrationProps> = ({ onRegistered }) => {
-  const [providerType, setProviderType] = useState<'vendor' | 'driver' | 'property_owner'>('driver');
-  const [businessName, setBusinessName] = useState('');
-  const [businessDescription, setBusinessDescription] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [locationAddress, setLocationAddress] = useState('');
+  const vendorMutation = useVendorApplication();
+  const serviceProviderMutation = useServiceProviderRegistration();
+  const { toast } = useToast();
 
-  const createProfile = useCreateServiceProviderProfile();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    createProfile.mutate({
-      provider_type: providerType,
-      business_name: businessName,
-      business_description: businessDescription,
-      phone_number: phoneNumber,
-      email: email,
-      location_address: locationAddress,
-      verification_status: 'pending',
-      is_active: true,
-    }, {
-      onSuccess: () => {
-        onRegistered?.();
-        // Reset form
-        setBusinessName('');
-        setBusinessDescription('');
-        setPhoneNumber('');
-        setEmail('');
-        setLocationAddress('');
-      }
-    });
-  };
-
-  const providerTypes = [
-    {
-      value: 'driver',
-      icon: Car,
-      title: 'Ride Driver',
-      description: 'Provide taxi or motorbike rides'
-    },
-    {
-      value: 'vendor',
-      icon: Store,
-      title: 'Product Vendor',
-      description: 'Sell products on our marketplace'
-    },
-    {
-      value: 'property_owner',
-      icon: Home,
-      title: 'Property Owner',
-      description: 'List properties for sale or rent'
-    }
+  const serviceTypes = [
+    { id: 'vendor', title: 'Product Vendor', icon: ShoppingBag, description: 'Sell products on our marketplace', color: 'from-orange-500 to-red-600' },
+    { id: 'driver', title: 'Ride Driver', icon: Car, description: 'Provide taxi or motorbike rides', color: 'from-blue-500 to-indigo-600' },
+    { id: 'property_owner', title: 'Property Owner', icon: Building, description: 'List properties for sale or rent', color: 'from-purple-500 to-violet-600' },
+    { id: 'plumber', title: 'Plumber', icon: Wrench, description: 'Plumbing and water system services', color: 'from-blue-600 to-cyan-600' },
+    { id: 'electrician', title: 'Electrician', icon: Zap, description: 'Electrical installation and repair', color: 'from-yellow-500 to-orange-500' },
+    { id: 'painter', title: 'Painter', icon: Paintbrush, description: 'Interior and exterior painting', color: 'from-green-500 to-teal-600' },
+    { id: 'carpenter', title: 'Carpenter', icon: Hammer, description: 'Furniture and woodwork services', color: 'from-amber-600 to-orange-600' },
+    { id: 'barber', title: 'Barber/Salon', icon: Scissors, description: 'Hair cutting and styling services', color: 'from-pink-500 to-rose-600' },
+    { id: 'doctor', title: 'Doctor', icon: Stethoscope, description: 'Medical consultation services', color: 'from-red-500 to-pink-600' },
+    { id: 'tutor', title: 'Tutor', icon: GraduationCap, description: 'Educational and tutoring services', color: 'from-indigo-500 to-purple-600' },
+    { id: 'photographer', title: 'Photographer', icon: Camera, description: 'Photography and videography', color: 'from-gray-600 to-slate-700' },
+    { id: 'caterer', title: 'Caterer', icon: Utensils, description: 'Food and catering services', color: 'from-emerald-500 to-green-600' }
   ];
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (activeTab === 'vendor') {
+        await vendorMutation.mutateAsync({
+          business_name: formData.business_name,
+          business_description: formData.business_description,
+          business_address: formData.business_address,
+          business_phone: formData.business_phone,
+          business_email: formData.business_email
+        });
+      } else {
+        await serviceProviderMutation.mutateAsync({
+          service_type: activeTab,
+          business_name: formData.business_name,
+          business_description: formData.business_description,
+          business_address: formData.business_address,
+          business_phone: formData.business_phone,
+          business_email: formData.business_email,
+          license_number: formData.license_number,
+          experience_years: parseInt(formData.experience_years) || 0,
+          service_areas: formData.service_areas.split(',').map(area => area.trim())
+        });
+      }
+      
+      // Reset form
+      setFormData({
+        business_name: '',
+        business_description: '',
+        business_address: '',
+        business_phone: '',
+        business_email: '',
+        service_type: '',
+        license_number: '',
+        experience_years: '',
+        service_areas: ''
+      });
+      
+      toast({
+        title: 'Application submitted successfully!',
+        description: 'We will review your application and get back to you soon.'
+      });
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+    }
+  };
+
+  const selectedService = serviceTypes.find(service => service.id === activeTab);
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wrench className="h-5 w-5" />
-          Become a Service Provider
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Service Type Selection */}
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Select Service Type</Label>
-            <RadioGroup
-              value={providerType}
-              onValueChange={(value) => setProviderType(value as 'vendor' | 'driver' | 'property_owner')}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
-            >
-              {providerTypes.map((type) => (
-                <div key={type.value} className="relative">
-                  <RadioGroupItem
-                    value={type.value}
-                    id={type.value}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={type.value}
-                    className="flex flex-col items-center justify-center p-6 border-2 border-muted rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                  >
-                    <type.icon className="h-8 w-8 mb-2" />
-                    <div className="text-center">
-                      <div className="font-medium">{type.title}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {type.description}
-                      </div>
-                    </div>
-                  </Label>
+    <div className="space-y-6">
+      {/* Service Type Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Choose Service Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {serviceTypes.map((service) => (
+              <Button
+                key={service.id}
+                variant={activeTab === service.id ? "default" : "outline"}
+                className={`h-auto p-4 flex flex-col items-center space-y-2 ${
+                  activeTab === service.id 
+                    ? `bg-gradient-to-r ${service.color} text-white hover:opacity-90` 
+                    : ''
+                }`}
+                onClick={() => setActiveTab(service.id)}
+              >
+                <service.icon className="h-6 w-6" />
+                <div className="text-center">
+                  <h3 className="font-semibold text-sm">{service.title}</h3>
+                  <p className="text-xs opacity-80">{service.description}</p>
                 </div>
-              ))}
-            </RadioGroup>
+              </Button>
+            ))}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Business Information */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="businessName">
-                {providerType === 'driver' ? 'Driver Name' : 'Business Name'} *
-              </Label>
-              <Input
-                id="businessName"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder={providerType === 'driver' ? 'Your full name' : 'Enter business name'}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="businessDescription">
-                {providerType === 'driver' ? 'Experience & Vehicle Details' : 'Business Description'} *
-              </Label>
-              <Textarea
-                id="businessDescription"
-                value={businessDescription}
-                onChange={(e) => setBusinessDescription(e.target.value)}
-                placeholder={
-                  providerType === 'driver' 
-                    ? 'Describe your driving experience, vehicle type, and any additional services...'
-                    : 'Describe your business and services...'
-                }
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Registration Form */}
+      {selectedService && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg bg-gradient-to-r ${selectedService.color} text-white`}>
+                <selectedService.icon className="h-5 w-5" />
+              </div>
               <div>
-                <Label htmlFor="phoneNumber">Phone Number *</Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+254 7XX XXX XXX"
-                  required
-                />
+                <CardTitle>Register as {selectedService.title}</CardTitle>
+                <p className="text-sm text-gray-600">{selectedService.description}</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="business_name">Business Name *</Label>
+                  <Input
+                    id="business_name"
+                    value={formData.business_name}
+                    onChange={(e) => handleInputChange('business_name', e.target.value)}
+                    placeholder="Enter your business name"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="business_phone">Phone Number *</Label>
+                  <Input
+                    id="business_phone"
+                    value={formData.business_phone}
+                    onChange={(e) => handleInputChange('business_phone', e.target.value)}
+                    placeholder="+254 XXX XXX XXX"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="business_email">Business Email *</Label>
                 <Input
-                  id="email"
+                  id="business_email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  value={formData.business_email}
+                  onChange={(e) => handleInputChange('business_email', e.target.value)}
+                  placeholder="business@example.com"
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="locationAddress">
-                {providerType === 'driver' ? 'Primary Operating Area' : 'Business Location'}
-              </Label>
-              <Input
-                id="locationAddress"
-                value={locationAddress}
-                onChange={(e) => setLocationAddress(e.target.value)}
-                placeholder={
-                  providerType === 'driver' 
-                    ? 'e.g., Nairobi CBD, Westlands, Kasarani'
-                    : 'Enter your business address'
+              <div>
+                <Label htmlFor="business_address">Business Address *</Label>
+                <Input
+                  id="business_address"
+                  value={formData.business_address}
+                  onChange={(e) => handleInputChange('business_address', e.target.value)}
+                  placeholder="Enter your business address"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="business_description">Business Description *</Label>
+                <Textarea
+                  id="business_description"
+                  value={formData.business_description}
+                  onChange={(e) => handleInputChange('business_description', e.target.value)}
+                  placeholder="Describe your business and services"
+                  required
+                />
+              </div>
+
+              {/* Additional fields for service providers */}
+              {activeTab !== 'vendor' && activeTab !== 'driver' && activeTab !== 'property_owner' && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="license_number">License Number</Label>
+                      <Input
+                        id="license_number"
+                        value={formData.license_number}
+                        onChange={(e) => handleInputChange('license_number', e.target.value)}
+                        placeholder="Professional license number"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="experience_years">Years of Experience</Label>
+                      <Input
+                        id="experience_years"
+                        type="number"
+                        value={formData.experience_years}
+                        onChange={(e) => handleInputChange('experience_years', e.target.value)}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="service_areas">Service Areas</Label>
+                    <Input
+                      id="service_areas"
+                      value={formData.service_areas}
+                      onChange={(e) => handleInputChange('service_areas', e.target.value)}
+                      placeholder="Areas you serve (comma separated)"
+                    />
+                  </div>
+                </>
+              )}
+
+              <Button 
+                type="submit" 
+                className={`w-full bg-gradient-to-r ${selectedService.color} text-white hover:opacity-90`}
+                disabled={vendorMutation.isPending || serviceProviderMutation.isPending}
+              >
+                {(vendorMutation.isPending || serviceProviderMutation.isPending) 
+                  ? 'Submitting...' 
+                  : `Register as ${selectedService.title}`
                 }
-              />
-            </div>
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={createProfile.isPending}
-          >
-            {createProfile.isPending ? 'Submitting...' : 'Register as Service Provider'}
-          </Button>
-
-          <p className="text-sm text-muted-foreground text-center">
-            Your application will be reviewed and you'll be notified once approved.
-          </p>
-        </form>
-      </CardContent>
-    </Card>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

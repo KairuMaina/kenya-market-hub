@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { useMyVendorProfile } from '@/hooks/useVendors';
 
 const VendorMainDashboard = () => {
   const { data: vendorProfile } = useMyVendorProfile();
+  const navigate = useNavigate();
 
   const quickStats = [
     {
@@ -55,28 +57,28 @@ const VendorMainDashboard = () => {
       description: 'List a new product in your store',
       icon: Plus,
       color: 'bg-orange-500',
-      href: '/vendor/products/add'
+      action: () => navigate('/vendor/products/add')
     },
     {
       title: 'View Store',
       description: 'See how customers view your store',
       icon: Store,
       color: 'bg-blue-500',
-      href: '/vendor/store'
+      action: () => navigate('/vendor/store')
     },
     {
       title: 'Analytics',
       description: 'View detailed sales analytics',
       icon: BarChart3,
       color: 'bg-green-500',
-      href: '/vendor/analytics'
+      action: () => navigate('/vendor/analytics')
     },
     {
       title: 'Customers',
       description: 'Manage customer relationships',
       icon: Users,
       color: 'bg-purple-500',
-      href: '/vendor/customers'
+      action: () => navigate('/vendor/customers')
     }
   ];
 
@@ -131,7 +133,7 @@ const VendorMainDashboard = () => {
                 key={index}
                 variant="outline"
                 className="h-auto p-4 flex flex-col items-start text-left space-y-2 hover:shadow-md transition-shadow"
-                onClick={() => console.log(`Navigate to ${action.href}`)}
+                onClick={action.action}
               >
                 <div className={`p-2 rounded-lg ${action.color} text-white`}>
                   <action.icon className="h-5 w-5" />
