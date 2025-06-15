@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProductImages } from '@/hooks/useProductImages';
 import ProductReviews from './ProductReviews';
 import WishlistButton from './WishlistButton';
+import LazyImage from '@/components/LazyImage';
 
 interface ProductDetailModalProps {
   open: boolean;
@@ -74,7 +74,7 @@ const ProductDetailModal = ({ open, onOpenChange, product }: ProductDetailModalP
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-              <img 
+              <LazyImage 
                 src={images[currentImageIndex]} 
                 alt={product.name}
                 className="w-full h-full object-cover"
@@ -120,7 +120,7 @@ const ProductDetailModal = ({ open, onOpenChange, product }: ProductDetailModalP
                       index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
                     }`}
                   >
-                    <img 
+                    <LazyImage 
                       src={image} 
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover"

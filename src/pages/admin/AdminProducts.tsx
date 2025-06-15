@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Package, Eye, TrendingUp, ShoppingCart, Star, DollarSign } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import LazyImage from '@/components/LazyImage';
 
 const AdminProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -142,7 +142,7 @@ const AdminProducts = () => {
                         <TableRow key={product.id} className="hover:bg-gray-50">
                           <TableCell className="text-xs sm:text-sm">
                             <div className="flex items-center gap-3">
-                              <img 
+                              <LazyImage 
                                 src={product.image_url || '/placeholder.svg'} 
                                 alt={product.name}
                                 className="w-10 h-10 rounded-lg object-cover"
@@ -214,7 +214,7 @@ const AdminProducts = () => {
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="md:w-1/3">
-                      <img 
+                      <LazyImage 
                         src={selectedProduct.image_url || '/placeholder.svg'} 
                         alt={selectedProduct.name}
                         className="w-full rounded-lg object-cover"

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +6,8 @@ import { Star, ShoppingCart, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import WishlistButton from './WishlistButton';
+import { useProductImages } from '@/hooks/useProductImages';
+import LazyImage from '@/components/LazyImage';
 
 interface ProductPreviewModalProps {
   open: boolean;
@@ -18,15 +19,19 @@ const ProductPreviewModal = ({ open, onOpenChange, product }: ProductPreviewModa
   const { addToCart } = useCart();
   const { toast } = useToast();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { data: productImages } = useProductImages(product?.id);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [product?.id]);
 
   if (!product) return null;
 
-  // Mock multiple images for demo - in real app this would come from product data
-  const images = [
-    product.image_url || '/placeholder.svg',
-    product.image_url || '/placeholder.svg',
-    product.image_url || '/placeholder.svg'
-  ];
+  const images = productImages && productImages.length > 0
+    ? productImages.map(img => img.image_url)
+    : product.image_url
+      ? [product.image_url]
+      : ['/placeholder.svg'];
 
   const handleAddToCart = () => {
     addToCart({
@@ -67,7 +72,7 @@ const ProductPreviewModal = ({ open, onOpenChange, product }: ProductPreviewModa
             {/* Image Section */}
             <div className="relative bg-gray-50">
               <div className="aspect-square relative overflow-hidden">
-                <img 
+                <LazyImage 
                   src={images[currentImageIndex]} 
                   alt={product.name}
                   className="w-full h-full object-cover"
@@ -113,7 +118,7 @@ const ProductPreviewModal = ({ open, onOpenChange, product }: ProductPreviewModa
                         index === currentImageIndex ? 'border-orange-500' : 'border-gray-200'
                       }`}
                     >
-                      <img 
+                      <LazyImage 
                         src={image} 
                         alt={`${product.name} ${index + 1}`}
                         className="w-full h-full object-cover"

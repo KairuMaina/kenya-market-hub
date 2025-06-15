@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import WishlistButton from '@/components/WishlistButton';
 import RecentlyViewed from '@/components/RecentlyViewed';
+import LazyImage from '@/components/LazyImage';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -292,7 +292,7 @@ const Products = () => {
               >
                 <CardContent className="p-0">
                   <div className="relative">
-                    <img 
+                    <LazyImage 
                       src={product.image_url || '/placeholder.svg'} 
                       alt={product.name}
                       className="w-full h-48 object-cover"

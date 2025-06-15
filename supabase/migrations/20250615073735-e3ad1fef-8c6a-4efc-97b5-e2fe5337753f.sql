@@ -1,0 +1,21 @@
+
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Pro Smartphone X';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Ultra HD 4K TV';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Noise-Cancelling Headphones';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Men''s Classic T-Shirt';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1602293589914-9e1957a2a5e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Women''s Denim Jeans';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1551028719-00167b16eac5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Leather Jacket';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'The Silent Observer';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1589998059171-988d887df646?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'History of Kenya';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1565610222536-421f24022e47?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Non-Stick Cookware Set';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1628359354215-c8f74a983174?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Robotic Vacuum Cleaner';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1614392350702-53434ac6c5e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Scented Candle Set';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1589134220273-69ec59449a65?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'All-Season Car Tires';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1627993356883-5c8a7732479f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Engine Oil 5L';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Professional Football';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1591291621164-2c6367723315?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Yoga Mat';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1607006841162-a54b38827727?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Vitamin C Serum';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1591135467462-646450a8a61a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Sunscreen SPF 50';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Organic Coffee Beans';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1563588973-228775432a79?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Extra Virgin Olive Oil';
+UPDATE public.products SET image_url = 'https://images.unsplash.com/photo-1600898234383-a99f1025bd48?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' WHERE name = 'Quinoa 1kg';
