@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,7 +8,7 @@ export const useApprovalActions = () => {
   const { toast } = useToast();
 
   const approveVendorApplication = useMutation({
-    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
+    mutationFn: async ({ applicationId }: { applicationId: string }) => {
       const { data, error } = await supabase.rpc('approve_vendor_application', {
         application_id: applicationId
       });
@@ -16,8 +17,9 @@ export const useApprovalActions = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
       queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       toast({ title: 'Vendor application approved successfully!' });
     },
     onError: (error: any) => {
@@ -40,7 +42,8 @@ export const useApprovalActions = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       toast({ title: 'Vendor application rejected' });
     },
     onError: (error: any) => {

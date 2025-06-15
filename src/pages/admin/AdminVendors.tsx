@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +15,14 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useAdminVendors, useUpdateVendorStatus } from '@/hooks/useAdminVendors';
-import { useVendorApplications, useApproveVendorApplication, useRejectVendorApplication } from '@/hooks/useVendors';
+import { useVendorApplications } from '@/hooks/useVendors';
+import { useApprovalActions } from '@/hooks/useApprovalActions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,16 +35,18 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import VendorApplicationModal from '@/components/admin/VendorApplicationModal';
 
 const AdminVendors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: vendorsData, isLoading: vendorsLoading, error: vendorsError } = useAdminVendors(currentPage, 10, searchTerm);
   const { data: applications, isLoading: applicationsLoading } = useVendorApplications();
   const updateVendorStatus = useUpdateVendorStatus();
-  const approveApplication = useApproveVendorApplication();
-  const rejectApplication = useRejectVendorApplication();
+  const { approveVendorApplication, rejectVendorApplication } = useApprovalActions();
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -52,7 +55,7 @@ const AdminVendors = () => {
 
   const handleApproveApplication = async (applicationId: string) => {
     try {
-      await approveApplication.mutateAsync(applicationId);
+      await approveVendorApplication.mutateAsync({ applicationId });
     } catch (error) {
       console.error('Error approving application:', error);
     }
@@ -60,7 +63,7 @@ const AdminVendors = () => {
 
   const handleRejectApplication = async (applicationId: string) => {
     try {
-      await rejectApplication.mutateAsync({ applicationId });
+      await rejectVendorApplication.mutateAsync({ applicationId });
     } catch (error) {
       console.error('Error rejecting application:', error);
     }
@@ -72,6 +75,11 @@ const AdminVendors = () => {
     } catch (error) {
       console.error('Error updating vendor status:', error);
     }
+  };
+
+  const handleViewApplication = (application: any) => {
+    setSelectedApplication(application);
+    setIsModalOpen(true);
   };
 
   if (vendorsError) {
@@ -275,7 +283,7 @@ const AdminVendors = () => {
                             <div className="flex items-center justify-between">
                               <div className="space-y-2">
                                 <h3 className="font-semibold text-lg">{app.business_name}</h3>
-                                <p className="text-sm text-gray-600">{app.business_description}</p>
+                                <p className="text-sm text-gray-600 truncate max-w-md">{app.business_description}</p>
                                 <div className="flex items-center space-x-4 text-sm">
                                   <span><strong>Email:</strong> {app.business_email}</span>
                                   <span><strong>Phone:</strong> {app.business_phone}</span>
@@ -285,6 +293,14 @@ const AdminVendors = () => {
                                 </p>
                               </div>
                               <div className="flex items-center space-x-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleViewApplication(app)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
@@ -352,6 +368,11 @@ const AdminVendors = () => {
             </TabsContent>
           </Tabs>
         </div>
+        <VendorApplicationModal 
+          application={selectedApplication}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </AdminLayout>
     </ProtectedAdminRoute>
   );
