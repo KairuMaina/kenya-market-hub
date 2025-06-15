@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,6 +187,11 @@ const AdminServiceProviders = () => {
   const verifiedProviders = providers?.filter(provider => provider.verification_status === 'approved').length || 0;
   const pendingProviders = providers?.filter(provider => provider.verification_status === 'pending').length || 0;
 
+  // Find only truly pending (not rejected) applications
+  const pendingOnlyApplications = pendingApplications?.filter(
+    (app: any) => app.status === 'pending'
+  ) ?? [];
+
   return (
     <ProtectedAdminRoute>
       <AdminLayout>
@@ -198,6 +202,108 @@ const AdminServiceProviders = () => {
               Service Provider Management
             </h1>
             <p className="text-indigo-100 mt-2 text-sm sm:text-base">Manage service providers, applications, and their approvals</p>
+          </div>
+
+          {/* -- NEW: Pending Applications Card/Section (Prominent) -- */}
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-yellow-300 mb-2">
+            <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 mb-2 text-yellow-700">
+              <Clock className="h-5 w-5 text-yellow-600" />
+              Pending Service Provider Applications
+            </h2>
+            {pendingLoading ? (
+              <div className="flex items-center gap-2 py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                <span className="text-sm">Loading applications...</span>
+              </div>
+            ) : pendingOnlyApplications.length === 0 ? (
+              <div className="text-sm text-gray-600 py-4">
+                No pending service provider applications found.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">Applicant</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Business</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contact</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Type</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingOnlyApplications.map((application: any) => (
+                      <TableRow key={application.id} className="hover:bg-yellow-50">
+                        <TableCell className="text-xs sm:text-sm">
+                          <div className="font-medium">{getProviderOwner(application.user_id)}</div>
+                          <div className="text-xs text-gray-500">ID: {application.id.slice(-8)}</div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                          <div className="font-medium">{application.business_name || 'N/A'}</div>
+                          <div className="text-xs text-gray-500 max-w-32 truncate">
+                            {application.business_description || 'No description'}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                          <div className="space-y-1">
+                            <div>{application.business_email || 'N/A'}</div>
+                            <div className="text-gray-500">{application.business_phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                          <Badge variant="outline" className="text-xs">
+                            {application.service_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="bg-green-500 text-white hover:bg-green-600 text-xs px-2 py-1"
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setApplicationModalOpen(true);
+                              }}
+                              aria-label="Approve"
+                              title="Approve"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="bg-red-500 text-white hover:bg-red-600 text-xs px-2 py-1"
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setApplicationModalOpen(true);
+                              }}
+                              aria-label="Reject"
+                              title="Reject"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs px-2 py-1"
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setApplicationModalOpen(true);
+                              }}
+                              aria-label="View"
+                              title="View"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
 
           {/* Service Provider Statistics */}
