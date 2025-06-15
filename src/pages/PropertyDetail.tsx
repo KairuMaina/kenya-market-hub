@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProperty, useIncrementPropertyViews, useCreatePropertyInquiry } from '@/hooks/useProperties';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +29,7 @@ const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
   
   const { data: property, isLoading, error } = useProperty(id!);
   const incrementViews = useIncrementPropertyViews();
@@ -58,6 +60,10 @@ const PropertyDetail = () => {
         description: 'Property link copied to clipboard',
       });
     }
+  };
+
+  const handleInquiryClick = () => {
+    setShowInquiryModal(true);
   };
 
   if (isLoading) {
@@ -293,9 +299,9 @@ const PropertyDetail = () => {
                       </div>
                     </div>
                     
-                    <PropertyInquiryModal 
-                      property={property}
-                    />
+                    <Button onClick={handleInquiryClick} className="w-full">
+                      Make Inquiry
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -383,6 +389,13 @@ const PropertyDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Property Inquiry Modal */}
+        <PropertyInquiryModal
+          isOpen={showInquiryModal}
+          onClose={() => setShowInquiryModal(false)}
+          property={property}
+        />
       </div>
     </>
   );

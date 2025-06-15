@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
@@ -137,7 +138,6 @@ const RealEstate = () => {
             <div className="h-[600px] rounded-lg overflow-hidden border">
               <PropertyMapView
                 properties={filteredProperties}
-                onViewDetails={handleViewDetails}
               />
             </div>
           ) : (
