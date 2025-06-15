@@ -32,6 +32,9 @@ const DriverAnalytics = () => {
     );
   }
 
+  // Workaround for type issue from the hook.
+  const typedAnalyticsData = analyticsData as any;
+
   const formatHour = (hour: number) => {
     if (hour === 0) return '12 AM';
     if (hour < 12) return `${hour} AM`;
@@ -40,10 +43,10 @@ const DriverAnalytics = () => {
   };
 
   const metrics = [
-    { label: 'Peak Hours', value: analyticsData.peak_hours ? `${formatHour(analyticsData.peak_hours.hour)} - ${formatHour(analyticsData.peak_hours.hour + 1)}` : 'N/A', icon: Clock, color: 'blue' },
-    { label: 'Best Day', value: analyticsData.best_day?.day_name || 'N/A', icon: TrendingUp, color: 'green' },
-    { label: 'Top Area', value: analyticsData.top_destination?.address || 'N/A', icon: MapPin, color: 'purple' },
-    { label: 'Avg Rating', value: (analyticsData.average_rating || 0).toFixed(1), icon: Star, color: 'yellow' }
+    { label: 'Peak Hours', value: typedAnalyticsData.peak_hours ? `${formatHour(typedAnalyticsData.peak_hours.hour)} - ${formatHour(typedAnalyticsData.peak_hours.hour + 1)}` : 'N/A', icon: Clock, color: 'blue' },
+    { label: 'Best Day', value: typedAnalyticsData.best_day?.day_name || 'N/A', icon: TrendingUp, color: 'green' },
+    { label: 'Top Area', value: typedAnalyticsData.top_destination?.address || 'N/A', icon: MapPin, color: 'purple' },
+    { label: 'Avg Rating', value: (typedAnalyticsData.average_rating || 0).toFixed(1), icon: Star, color: 'yellow' }
   ];
 
   return (
@@ -79,15 +82,15 @@ const DriverAnalytics = () => {
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 rounded-lg">
               <h3 className="font-semibold text-blue-800">Peak Performance Time</h3>
-              <p className="text-sm text-blue-700">{analyticsData.peak_hours ? `You get the most rides around ${formatHour(analyticsData.peak_hours.hour)}.` : 'Not enough data to determine peak hours.'}</p>
+              <p className="text-sm text-blue-700">{typedAnalyticsData.peak_hours ? `You get the most rides around ${formatHour(typedAnalyticsData.peak_hours.hour)}.` : 'Not enough data to determine peak hours.'}</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <h3 className="font-semibold text-green-800">High-Demand Areas</h3>
-              <p className="text-sm text-green-700">{analyticsData.top_destination ? `${analyticsData.top_destination.address} is your most frequent destination.` : 'Not enough data for high-demand areas.'}</p>
+              <p className="text-sm text-green-700">{typedAnalyticsData.top_destination ? `${typedAnalyticsData.top_destination.address} is your most frequent destination.` : 'Not enough data for high-demand areas.'}</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
               <h3 className="font-semibold text-orange-800">Busiest Day</h3>
-              <p className="text-sm text-orange-700">{analyticsData.best_day ? `Your busiest day is ${analyticsData.best_day.day_name}.` : 'Not enough data to determine busiest day.'}</p>
+              <p className="text-sm text-orange-700">{typedAnalyticsData.best_day ? `Your busiest day is ${typedAnalyticsData.best_day.day_name}.` : 'Not enough data to determine busiest day.'}</p>
             </div>
           </div>
         </CardContent>

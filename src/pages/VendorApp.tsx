@@ -1,10 +1,12 @@
 
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import VendorLayout from '@/components/layouts/VendorLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProtectedVendorRoute from '@/components/ProtectedVendorRoute';
 import VendorMainDashboard from '@/components/VendorMainDashboard';
+import VendorAnalytics from '@/components/vendor/VendorAnalytics';
 
 const VendorApp = () => {
   const { user, loading } = useAuth();
@@ -27,7 +29,10 @@ const VendorApp = () => {
   return (
     <ProtectedVendorRoute>
       <VendorLayout>
-        <VendorMainDashboard />
+        <Routes>
+          <Route index element={<VendorMainDashboard />} />
+          <Route path="analytics" element={<VendorAnalytics />} />
+        </Routes>
       </VendorLayout>
     </ProtectedVendorRoute>
   );
