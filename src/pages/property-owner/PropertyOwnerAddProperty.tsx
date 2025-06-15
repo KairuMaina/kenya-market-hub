@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState }from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,24 +8,82 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useCreateProperty, PropertyFormData } from '@/hooks/usePropertyManagement';
+import PropertyImageManager from '@/components/property-owner/PropertyImageManager';
 
 const PropertyOwnerAddProperty = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createProperty = useCreateProperty();
+  
+  const [formData, setFormData] = useState<PropertyFormData>({
+    title: '',
+    description: '',
+    property_type: 'apartment' as const,
+    listing_type: 'sale' as const,
+    price: 0,
+    bedrooms: 0,
+    bathrooms: 0,
+    area_sqm: 0,
+    location_address: '',
+    county: '',
+    city: '',
+    amenities: [],
+    features: [],
+    is_featured: false,
+    contact_phone: '',
+    contact_email: '',
+    available_from: ''
+  });
+
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+
+  const handleInputChange = (field: keyof PropertyFormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAmenityChange = (amenity: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: checked 
+        ? [...(prev.amenities || []), amenity]
+        : (prev.amenities || []).filter(a => a !== amenity)
+    }));
+  };
+
+  const handleNewImagesUpload = (files: File[]) => {
+    setNewImageFiles(prev => [...prev, ...files]);
+    
+    // Create preview URLs
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setUploadedImages(prev => [...prev, ...newPreviews]);
+  };
+
+  const handleImagesChange = (images: string[]) => {
+    setUploadedImages(images);
+    // Note: This is a simplified approach. In a real app, you'd need to track
+    // which images are new files vs existing URLs more carefully
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // TODO: Implement property creation logic
-    setTimeout(() => {
-      toast({ title: 'Property added successfully!' });
+    try {
+      await createProperty.mutateAsync({
+        propertyData: formData,
+        images: newImageFiles
+      });
+      
       navigate('/property-owner/properties');
-      setIsSubmitting(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to create property:', error);
+    }
   };
+
+  const amenityOptions = [
+    'Swimming Pool', 'Gym', 'Parking', 'Security', 'Garden', 'Balcony',
+    'Air Conditioning', 'Elevator', 'Backup Generator', 'CCTV'
+  ];
 
   return (
     <div className="space-y-6">
@@ -57,8 +115,13 @@ const PropertyOwnerAddProperty = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Property Title</label>
-                  <Input placeholder="e.g., Modern 3BR Apartment in Westlands" required />
+                  <label className="block text-sm font-medium mb-2">Property Title *</label>
+                  <Input 
+                    placeholder="e.g., Modern 3BR Apartment in Westlands" 
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    required 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Description</label>
@@ -66,12 +129,18 @@ const PropertyOwnerAddProperty = () => {
                     placeholder="Describe your property..." 
                     rows={4}
                     className="resize-none"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Property Type</label>
-                    <Select required>
+                    <label className="block text-sm font-medium mb-2">Property Type *</label>
+                    <Select 
+                      value={formData.property_type}
+                      onValueChange={(value) => handleInputChange('property_type', value)}
+                      required
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -85,8 +154,12 @@ const PropertyOwnerAddProperty = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Listing Type</label>
-                    <Select required>
+                    <label className="block text-sm font-medium mb-2">Listing Type *</label>
+                    <Select 
+                      value={formData.listing_type}
+                      onValueChange={(value) => handleInputChange('listing_type', value)}
+                      required
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select listing type" />
                       </SelectTrigger>
@@ -107,17 +180,30 @@ const PropertyOwnerAddProperty = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Full Address</label>
-                  <Input placeholder="e.g., 123 Westlands Road, Nairobi" required />
+                  <label className="block text-sm font-medium mb-2">Full Address *</label>
+                  <Input 
+                    placeholder="e.g., 123 Westlands Road, Nairobi" 
+                    value={formData.location_address}
+                    onChange={(e) => handleInputChange('location_address', e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">City</label>
-                    <Input placeholder="e.g., Nairobi" />
+                    <Input 
+                      placeholder="e.g., Nairobi" 
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">County</label>
-                    <Input placeholder="e.g., Nairobi County" />
+                    <Input 
+                      placeholder="e.g., Nairobi County" 
+                      value={formData.county}
+                      onChange={(e) => handleInputChange('county', e.target.value)}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -132,29 +218,63 @@ const PropertyOwnerAddProperty = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Bedrooms</label>
-                    <Input type="number" min="0" placeholder="0" />
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={formData.bedrooms || ''}
+                      onChange={(e) => handleInputChange('bedrooms', parseInt(e.target.value) || 0)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Bathrooms</label>
-                    <Input type="number" min="0" placeholder="0" />
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={formData.bathrooms || ''}
+                      onChange={(e) => handleInputChange('bathrooms', parseInt(e.target.value) || 0)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Area (m²)</label>
-                    <Input type="number" min="0" placeholder="0" />
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={formData.area_sqm || ''}
+                      onChange={(e) => handleInputChange('area_sqm', parseInt(e.target.value) || 0)}
+                    />
                   </div>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium mb-3">Amenities</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['Swimming Pool', 'Gym', 'Parking', 'Security', 'Garden', 'Balcony'].map((amenity) => (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {amenityOptions.map((amenity) => (
                       <div key={amenity} className="flex items-center space-x-2">
-                        <Checkbox id={amenity} />
+                        <Checkbox 
+                          id={amenity}
+                          checked={formData.amenities?.includes(amenity) || false}
+                          onCheckedChange={(checked) => handleAmenityChange(amenity, !!checked)}
+                        />
                         <label htmlFor={amenity} className="text-sm">{amenity}</label>
                       </div>
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Images</CardTitle>
+                <CardDescription>Upload high-quality images of your property</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PropertyImageManager
+                  images={uploadedImages}
+                  onImagesChange={handleImagesChange}
+                  onNewImagesUpload={handleNewImagesUpload}
+                  maxImages={10}
+                />
               </CardContent>
             </Card>
           </div>
@@ -167,11 +287,21 @@ const PropertyOwnerAddProperty = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Price (KSh)</label>
-                  <Input type="number" min="0" placeholder="0" required />
+                  <label className="block text-sm font-medium mb-2">Price (KSh) *</label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    value={formData.price || ''}
+                    onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
+                    required 
+                  />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="featured" />
+                  <Checkbox 
+                    id="featured"
+                    checked={formData.is_featured}
+                    onCheckedChange={(checked) => handleInputChange('is_featured', !!checked)}
+                  />
                   <label htmlFor="featured" className="text-sm">Mark as Featured (+10% visibility)</label>
                 </div>
               </CardContent>
@@ -185,11 +315,28 @@ const PropertyOwnerAddProperty = () => {
               <CardContent className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone Number</label>
-                  <Input placeholder="+254 XXX XXX XXX" />
+                  <Input 
+                    placeholder="+254 XXX XXX XXX" 
+                    value={formData.contact_phone}
+                    onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Email</label>
-                  <Input type="email" placeholder="your@email.com" />
+                  <Input 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    value={formData.contact_email}
+                    onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Available From</label>
+                  <Input 
+                    type="date" 
+                    value={formData.available_from}
+                    onChange={(e) => handleInputChange('available_from', e.target.value)}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -197,9 +344,9 @@ const PropertyOwnerAddProperty = () => {
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-              disabled={isSubmitting}
+              disabled={createProperty.isPending}
             >
-              {isSubmitting ? 'Adding Property...' : 'Add Property'}
+              {createProperty.isPending ? 'Adding Property...' : 'Add Property'}
             </Button>
           </div>
         </div>
