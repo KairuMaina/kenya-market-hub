@@ -2097,7 +2097,15 @@ export type Database = {
     Enums: {
       driver_status: "offline" | "available" | "busy"
       listing_type: "sale" | "rent"
-      medical_facility_type: "hospital" | "clinic" | "pharmacy" | "laboratory"
+      medical_facility_type:
+        | "hospital"
+        | "clinic"
+        | "pharmacy"
+        | "laboratory"
+        | "Hospital"
+        | "Clinic"
+        | "Pharmacy"
+        | "Laboratory"
       medical_provider_type:
         | "doctor"
         | "nurse"
@@ -2254,7 +2262,16 @@ export const Constants = {
     Enums: {
       driver_status: ["offline", "available", "busy"],
       listing_type: ["sale", "rent"],
-      medical_facility_type: ["hospital", "clinic", "pharmacy", "laboratory"],
+      medical_facility_type: [
+        "hospital",
+        "clinic",
+        "pharmacy",
+        "laboratory",
+        "Hospital",
+        "Clinic",
+        "Pharmacy",
+        "Laboratory",
+      ],
       medical_provider_type: [
         "doctor",
         "nurse",
