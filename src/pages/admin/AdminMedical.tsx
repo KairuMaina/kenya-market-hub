@@ -13,7 +13,7 @@ import {
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useAdminMedicalProviders, useMedicalProviderApplications } from '@/hooks/useAdminMedical';
-import { useApprovalActions } from '@/hooks/useApprovalActions';
+import { useMedicalProviderApproval } from '@/hooks/useApprovalActions/useMedicalProviderApproval';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const AdminMedical = () => {
   const { data: providers, isLoading: providersLoading, error: providersError } = useAdminMedicalProviders();
   const { data: applications, isLoading: applicationsLoading, error: applicationsError } = useMedicalProviderApplications();
-  const { approveMedicalProviderApplication, rejectMedicalProviderApplication } = useApprovalActions();
+  const { approveMedicalProviderApplication, rejectMedicalProviderApplication } = useMedicalProviderApproval();
 
   const handleApproveApplication = async (applicationId: string) => {
     await approveMedicalProviderApplication.mutateAsync({ applicationId });
