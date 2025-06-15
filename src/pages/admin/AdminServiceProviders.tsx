@@ -85,6 +85,7 @@ const AdminServiceProviders = () => {
   };
 
   // ----- Approval and rejection for pending applications -----
+  const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [applicationRejectionNotes, setApplicationRejectionNotes] = useState('');
 
