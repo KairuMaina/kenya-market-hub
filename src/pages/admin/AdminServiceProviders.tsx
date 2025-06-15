@@ -89,7 +89,7 @@ const AdminServiceProviders = () => {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [applicationRejectionNotes, setApplicationRejectionNotes] = useState('');
 
-  // Approve: create a row in service_provider_profiles and update application status to "approved"
+  // Approve: create or update a row in service_provider_profiles and update application status to "approved"
   const handleApproveApplication = async (application: any) => {
     try {
       // Only allow provider_type: vendor, driver, property_owner, service_provider
@@ -100,25 +100,50 @@ const AdminServiceProviders = () => {
         provider_type = 'service_provider';
       }
 
-      const { data: inserted, error: profileError } = await supabase
+      // Check if a profile already exists for this user and provider type
+      const { data: existingProfile, error: checkError } = await supabase
         .from('service_provider_profiles')
-        .insert([{
-          user_id: application.user_id,
-          provider_type,
-          business_name: application.business_name,
-          business_description: application.business_description,
-          phone_number: application.business_phone,
-          email: application.business_email,
-          location_address: application.business_address,
-          verification_status: 'approved',
-          is_active: true,
-          // Store the actual service_type in 'documents'
-          documents: {
-            service_type: application.service_type,
-            ...(application.documents || {})
-          }
-        }]);
-      if (profileError) throw profileError;
+        .select('id')
+        .eq('user_id', application.user_id)
+        .eq('provider_type', provider_type)
+        .maybeSingle();
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      const profileData = {
+        business_name: application.business_name,
+        business_description: application.business_description,
+        phone_number: application.business_phone,
+        email: application.business_email,
+        location_address: application.business_address,
+        verification_status: 'approved' as const,
+        is_active: true,
+        documents: {
+          service_type: application.service_type,
+          ...(application.documents || {}),
+        },
+      };
+
+      if (existingProfile) {
+        // If profile exists, update it
+        const { error: profileError } = await supabase
+          .from('service_provider_profiles')
+          .update(profileData)
+          .eq('id', existingProfile.id);
+        if (profileError) throw profileError;
+      } else {
+        // If not, insert a new one
+        const { error: profileError } = await supabase
+          .from('service_provider_profiles')
+          .insert({
+            ...profileData,
+            user_id: application.user_id,
+            provider_type,
+          });
+        if (profileError) throw profileError;
+      }
 
       // update the vendor_applications row to "approved"
       const { error: applicationError } = await supabase
@@ -130,7 +155,7 @@ const AdminServiceProviders = () => {
         .eq('id', application.id);
       if (applicationError) throw applicationError;
 
-      toast({ title: 'Application Approved', description: 'Service provider profile created and application marked approved.' });
+      toast({ title: 'Application Approved', description: 'Service provider profile created/updated and application marked approved.' });
       setApplicationModalOpen(false);
       setSelectedApplication(null);
       queryClient.invalidateQueries({ queryKey: ['admin-service-provider-applications'] });
@@ -139,6 +164,7 @@ const AdminServiceProviders = () => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
+
   // Reject: update application row to "rejected" and store notes
   const handleRejectApplication = async (application: any, notes: string) => {
     try {
