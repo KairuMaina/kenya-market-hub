@@ -33,7 +33,8 @@ export const useServiceProviderApproval = () => {
   });
 
   const rejectServiceProvider = useMutation({
-    mutationFn: async ({ providerId }: { providerId: string }) => {
+    mutationFn: async ({ providerId, notes }: { providerId: string, notes?: string }) => {
+      // Notes are captured from UI but not stored as service_provider_profiles has no admin_notes column.
       const { error } = await supabase
         .from('service_provider_profiles')
         .update({ 

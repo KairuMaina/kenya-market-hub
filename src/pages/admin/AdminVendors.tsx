@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useAdminVendors, useUpdateVendorStatus } from '@/hooks/useAdminVendors';
 import { useVendorApplications } from '@/hooks/useVendors';
-import { useApprovalActions } from '@/hooks/useApprovalActions';
+import { useVendorApproval } from '@/hooks/useApprovalActions/useVendorApproval';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +47,7 @@ const AdminVendors = () => {
   const { data: vendorsData, isLoading: vendorsLoading, error: vendorsError } = useAdminVendors(currentPage, 10, searchTerm);
   const { data: applications, isLoading: applicationsLoading } = useVendorApplications();
   const updateVendorStatus = useUpdateVendorStatus();
-  const { approveVendorApplication, rejectVendorApplication } = useApprovalActions();
+  const { approveVendorApplication, rejectVendorApplication } = useVendorApproval();
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);

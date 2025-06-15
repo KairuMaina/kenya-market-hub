@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Briefcase, Users, CheckCircle, Clock, Eye, UserCheck, Check, X, MapPin, Star, Building, FileText, Mail, Phone } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
-import { useApprovalActions } from '@/hooks/useApprovalActions';
+import { useServiceProviderApproval } from '@/hooks/useApprovalActions/useServiceProviderApproval';
 import { useToast } from '@/hooks/use-toast';
 import PendingApplicationsTable from "@/components/admin/PendingApplicationsTable";
 import ProvidersTable from "@/components/admin/ProvidersTable";
@@ -20,7 +21,7 @@ const AdminServiceProviders = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   // service_provider_profiles approval actions
-  const { approveServiceProvider, rejectServiceProvider } = useApprovalActions();
+  const { approveServiceProvider, rejectServiceProvider } = useServiceProviderApproval();
   // local states for dialogs
   const [selectedProvider, setSelectedProvider] = useState<any>(null);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
