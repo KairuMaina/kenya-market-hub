@@ -1,9 +1,11 @@
+
 import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import LazyImage from './LazyImage';
+import ProductPreviewModal from './ProductPreviewModal';
 import { useCart } from '@/contexts/CartContext';
 import { useToggleWishlist, useIsInWishlist } from '@/hooks/useWishlist';
 import { cn } from '@/lib/utils';
@@ -34,6 +36,7 @@ const OptimizedProductCard = memo<OptimizedProductCardProps>(({
   const { addToCart } = useCart();
   const toggleWishlist = useToggleWishlist();
   const { data: isInWishlist } = useIsInWishlist(product.id);
+  const [showPreview, setShowPreview] = React.useState(false);
 
   const discountedPrice = product.discount_percentage 
     ? product.price * (1 - product.discount_percentage / 100)
@@ -55,6 +58,10 @@ const OptimizedProductCard = memo<OptimizedProductCardProps>(({
     toggleWishlist.mutate(product.id);
   };
 
+  const handleCardClick = () => {
+    setShowPreview(true);
+  };
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -70,99 +77,107 @@ const OptimizedProductCard = memo<OptimizedProductCardProps>(({
   };
 
   return (
-    <Card className={cn(
-      'group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer',
-      className
-    )}>
-      <CardContent className="p-4">
-        <div className="relative">
-          <div className="aspect-square mb-3 overflow-hidden rounded-lg bg-gray-100">
-            <LazyImage
-              src={product.image_url || '/placeholder.svg'}
-              alt={product.name}
-              className="w-full h-full"
-            />
-          </div>
-          
-          {product.discount_percentage && (
-            <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-              -{product.discount_percentage}%
-            </Badge>
-          )}
-          
-          {showQuickActions && (
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-8 w-8 p-0"
-                onClick={handleToggleWishlist}
-              >
-                <Heart 
-                  className={cn(
-                    'h-4 w-4',
-                    isInWishlist ? 'fill-red-500 text-red-500' : ''
-                  )} 
-                />
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]">
-            {product.name}
-          </h3>
-          
-          {product.description && (
-            <p className="text-xs text-gray-600 line-clamp-2">
-              {product.description}
-            </p>
-          )}
-
-          {product.rating && product.reviews_count && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                {renderStars(product.rating)}
-              </div>
-              <span className="text-xs text-gray-500">
-                ({product.reviews_count})
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-orange-600">
-                KSh {discountedPrice.toLocaleString()}
-              </span>
-              {product.discount_percentage && (
-                <span className="text-xs text-gray-500 line-through">
-                  KSh {product.price.toLocaleString()}
-                </span>
-              )}
+    <>
+      <Card className={cn(
+        'group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer border-orange-100 hover:border-orange-200',
+        className
+      )} onClick={handleCardClick}>
+        <CardContent className="p-4">
+          <div className="relative">
+            <div className="aspect-square mb-3 overflow-hidden rounded-lg bg-gray-100">
+              <LazyImage
+                src={product.image_url || '/placeholder.svg'}
+                alt={product.name}
+                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
             
+            {product.discount_percentage && (
+              <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+                -{product.discount_percentage}%
+              </Badge>
+            )}
+            
             {showQuickActions && (
-              <Button
-                size="sm"
-                onClick={handleAddToCart}
-                className="h-8 px-3 text-xs"
-              >
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                Add
-              </Button>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                  onClick={handleToggleWishlist}
+                >
+                  <Heart 
+                    className={cn(
+                      'h-4 w-4',
+                      isInWishlist ? 'fill-red-500 text-red-500' : ''
+                    )} 
+                  />
+                </Button>
+              </div>
             )}
           </div>
 
-          {product.category && (
-            <Badge variant="outline" className="text-xs">
-              {product.category}
-            </Badge>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]">
+              {product.name}
+            </h3>
+            
+            {product.description && (
+              <p className="text-xs text-gray-600 line-clamp-2">
+                {product.description}
+              </p>
+            )}
+
+            {product.rating && product.reviews_count && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center">
+                  {renderStars(product.rating)}
+                </div>
+                <span className="text-xs text-gray-500">
+                  ({product.reviews_count})
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-orange-600">
+                  KSh {discountedPrice.toLocaleString()}
+                </span>
+                {product.discount_percentage && (
+                  <span className="text-xs text-gray-500 line-through">
+                    KSh {product.price.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              
+              {showQuickActions && (
+                <Button
+                  size="sm"
+                  onClick={handleAddToCart}
+                  className="h-8 px-3 text-xs bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+                >
+                  <ShoppingCart className="h-3 w-3 mr-1" />
+                  Add
+                </Button>
+              )}
+            </div>
+
+            {product.category && (
+              <Badge variant="outline" className="text-xs border-orange-200 text-orange-600">
+                {product.category}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <ProductPreviewModal
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        product={product}
+      />
+    </>
   );
 });
 

@@ -2,8 +2,7 @@
 import React from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { WifiOff, ArrowLeft } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
 import ServicesSidebar from '../sidebars/ServicesSidebar';
 import UserNav from '../UserNav';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
@@ -17,23 +16,14 @@ const ServicesLayout = ({ children }: ServicesLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-green-50">
+      <div className="min-h-screen flex w-full bg-orange-50">
         <ServicesSidebar />
         <main className="flex-1">
-          <div className="sticky top-0 z-40 flex items-center justify-between border-b border-green-200 bg-white px-3 sm:px-6 py-3 shadow-sm">
+          <div className="sticky top-0 z-40 flex items-center justify-between border-b border-orange-200 bg-white px-3 sm:px-6 py-3 shadow-sm">
             <div className="flex items-center gap-2 sm:gap-4">
-              <SidebarTrigger className="hover:bg-green-50 hover:text-green-600" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/'}
-                className="hover:bg-green-50 hover:text-green-600"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Main App
-              </Button>
+              <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600" />
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-xs sm:text-sm">S</span>
                 </div>
                 <div>

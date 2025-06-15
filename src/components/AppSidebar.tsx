@@ -112,7 +112,7 @@ const AppSidebar = () => {
                         className="w-full relative"
                         isActive={isActive}
                       >
-                        <a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                        <a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
                           <item.icon className="h-4 w-4" />
                           <span className="font-medium">{item.title}</span>
                           {item.title === 'Cart' && <CartQuantityBadge />}
@@ -129,7 +129,7 @@ const AppSidebar = () => {
       
       <SidebarFooter className="p-4 border-t">
         <div className="text-xs text-gray-500 text-center">
-          © 2024 Soko Smart
+          © 2025 Soko Smart by Milleast.tech
         </div>
       </SidebarFooter>
     </Sidebar>

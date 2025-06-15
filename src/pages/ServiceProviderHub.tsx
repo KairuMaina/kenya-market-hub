@@ -1,75 +1,232 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import RoleSelector from '@/components/RoleSelector';
-import { useRoleRedirection } from '@/hooks/useRoleRedirection';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Store, 
+  Car, 
+  Building, 
+  Wrench,
+  CheckCircle, 
+  Clock, 
+  XCircle, 
+  ArrowRight,
+  Plus,
+  UserPlus
+} from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import ServiceProviderRegistration from '@/components/ServiceProviderRegistration';
+import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 
 const ServiceProviderHub = () => {
-  const { user, loading } = useAuth();
-  const { isLoading, hasAnyApprovedRole, getAvailableApps } = useRoleRedirection();
+  const { user } = useAuth();
+  const [showRegistration, setShowRegistration] = React.useState(false);
+  const [selectedProviderType, setSelectedProviderType] = React.useState<string>('');
+  
+  // Check each service provider type
+  const { data: vendorProfile } = useServiceProviderProfile('vendor');
+  const { data: driverProfile } = useServiceProviderProfile('driver');
+  const { data: propertyOwnerProfile } = useServiceProviderProfile('property_owner');
+  const { data: serviceProviderProfile } = useServiceProviderProfile('service_provider');
 
-  if (loading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="text-center animate-pulse">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading service provider access...</p>
-        </div>
-      </div>
-    );
-  }
+  const serviceProviderTypes = [
+    {
+      id: 'vendor',
+      title: 'Vendor Portal',
+      description: 'Sell products online and manage your e-commerce business',
+      icon: Store,
+      color: 'from-blue-500 to-blue-600',
+      dashboardUrl: '/vendor',
+      profile: vendorProfile
+    },
+    {
+      id: 'driver',
+      title: 'Driver Portal',
+      description: 'Provide transportation services and earn money driving',
+      icon: Car,
+      color: 'from-green-500 to-green-600',
+      dashboardUrl: '/driver',
+      profile: driverProfile
+    },
+    {
+      id: 'property_owner',
+      title: 'Property Owner Portal',
+      description: 'List and manage your real estate properties',
+      icon: Building,
+      color: 'from-purple-500 to-purple-600',
+      dashboardUrl: '/property-owner',
+      profile: propertyOwnerProfile
+    },
+    {
+      id: 'service_provider',
+      title: 'Services Portal',
+      description: 'Offer professional services and manage bookings',
+      icon: Wrench,
+      color: 'from-orange-500 to-orange-600',
+      dashboardUrl: '/services-app',
+      profile: serviceProviderProfile
+    }
+  ];
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // If user has approved roles, show app selector
-  if (hasAnyApprovedRole) {
-    const availableApps = getAvailableApps();
+  const getStatusBadge = (profile: any) => {
+    if (!profile) {
+      return <Badge variant="outline" className="text-gray-500">Not Applied</Badge>;
+    }
     
+    switch (profile.verification_status) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="outline" className="text-gray-500">Not Applied</Badge>;
+    }
+  };
+
+  const canAccessDashboard = (profile: any) => {
+    return profile && profile.verification_status === 'approved';
+  };
+
+  const handleApply = (providerType: string) => {
+    setSelectedProviderType(providerType);
+    setShowRegistration(true);
+  };
+
+  if (showRegistration) {
     return (
       <MainLayout>
-        <div className="max-w-4xl mx-auto py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Service Provider Hub</h1>
-            <p className="text-gray-600">Select your service provider dashboard</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRegistration(false)}
+              className="mb-4"
+            >
+               Back to Hub
+            </Button>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableApps.map((app) => (
-              <div key={app.path} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div className={`w-16 h-16 bg-gradient-to-br from-${app.color}-500 to-${app.color}-600 rounded-lg flex items-center justify-center mb-4 mx-auto`}>
-                  <span className="text-white text-2xl font-bold">
-                    {app.name.charAt(0)}
-                  </span>
-                </div>
-                <h3 className="text-xl font-semibold text-center mb-2">{app.name}</h3>
-                <p className="text-gray-600 text-center mb-4">{app.description}</p>
-                <button
-                  onClick={() => window.location.href = app.path}
-                  className={`w-full bg-gradient-to-r from-${app.color}-500 to-${app.color}-600 text-white py-2 px-4 rounded-lg hover:opacity-90 transition-opacity`}
-                >
-                  Open Dashboard
-                </button>
-              </div>
-            ))}
-          </div>
+          <ServiceProviderRegistration 
+            providerType={selectedProviderType}
+            onSuccess={() => {
+              setShowRegistration(false);
+              window.location.reload();
+            }}
+          />
         </div>
       </MainLayout>
     );
   }
 
-  // If no approved roles, show registration interface
   return (
     <MainLayout>
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Service Provider Registration</h1>
-          <p className="text-gray-600">Apply to become a service provider and grow your business</p>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Service Provider Hub
+          </h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Join thousands of service providers across Kenya. Choose your service type below to get started 
+            or access your existing dashboard.
+          </p>
         </div>
-        <RoleSelector />
+
+        {/* Service Provider Types Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {serviceProviderTypes.map((provider) => {
+            const profile = provider.profile;
+            const canAccess = canAccessDashboard(profile);
+            
+            return (
+              <Card key={provider.id} className="hover:shadow-lg transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-3 rounded-lg bg-gradient-to-r ${provider.color} text-white`}>
+                        <provider.icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">{provider.title}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {provider.description}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    {getStatusBadge(profile)}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {profile && profile.verification_status === 'pending' && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-sm text-yellow-800">
+                        Your application is under review. We'll notify you once it's processed.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {profile && profile.verification_status === 'rejected' && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-800">
+                        Your application was rejected. Please contact support or apply again.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3">
+                    {canAccess ? (
+                      <Button 
+                        asChild 
+                        className={`flex-1 bg-gradient-to-r ${provider.color} hover:opacity-90`}
+                      >
+                        <a href={provider.dashboardUrl}>
+                          Go to Dashboard
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => handleApply(provider.id)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {profile ? (
+                          <>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Reapply
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Apply Now
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Help Section */}
+        <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold text-orange-900 mb-2">
+              Need Help Getting Started?
+            </h3>
+            <p className="text-orange-700 mb-4">
+              Our support team is here to help you through the application process.
+            </p>
+            <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+              Contact Support
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

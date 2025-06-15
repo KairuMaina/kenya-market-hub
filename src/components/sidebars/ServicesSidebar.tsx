@@ -6,9 +6,11 @@ import {
   Settings, 
   User, 
   Home,
-  Wrench
+  Wrench,
+  ArrowLeft
 } from 'lucide-react';
-import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import SidebarSection from '../sidebar/SidebarSection';
 
 const ServicesSidebar = () => {
@@ -27,7 +29,7 @@ const ServicesSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
             <Wrench className="h-4 w-4 text-white" />
           </div>
           <div>
@@ -41,6 +43,20 @@ const ServicesSidebar = () => {
         <SidebarSection title="Main" items={mainItems} />
         <SidebarSection title="Account" items={accountItems} />
       </SidebarContent>
+
+      <SidebarFooter className="p-4 border-t">
+        <Button
+          variant="outline"
+          onClick={() => window.location.href = '/'}
+          className="w-full justify-start border-orange-200 text-orange-600 hover:bg-orange-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Main App
+        </Button>
+        <div className="text-xs text-gray-500 text-center mt-2">
+          © 2025 Soko Smart by Milleast.tech
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };

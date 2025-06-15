@@ -31,6 +31,7 @@ import ServiceProviderHub from './pages/ServiceProviderHub';
 import VendorApp from './pages/VendorApp';
 import DriverApp from './pages/DriverApp';
 import PropertyOwnerApp from './pages/PropertyOwnerApp';
+import ServicesApp from './pages/ServicesApp';
 import ServiceProviderApp from './components/ServiceProviderApp';
 import ProtectedDriverRoute from './components/ProtectedDriverRoute';
 import ProtectedPropertyOwnerRoute from './components/ProtectedPropertyOwnerRoute';
@@ -75,6 +76,7 @@ function App() {
                   <Route path="/vendor/*" element={<VendorApp />} />
                   <Route path="/driver/*" element={<DriverApp />} />
                   <Route path="/property-owner/*" element={<PropertyOwnerApp />} />
+                  <Route path="/services-app/*" element={<ServicesApp />} />
                   
                   {/* Service Provider Type Apps */}
                   <Route path="/plumber" element={<ServiceProviderApp serviceType="plumber" />} />
