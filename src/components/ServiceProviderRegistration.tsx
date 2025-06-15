@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,11 +24,28 @@ import { useVendorApplication } from '@/hooks/useVendors';
 import { useServiceProviderRegistration } from '@/hooks/useServiceProviderRegistration';
 
 const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) => {
-  const [activeTab, setActiveTab] = useState(initialTab || 'vendor');
+  const serviceTypes = [
+    { id: 'vendor', title: 'Product Vendor', icon: ShoppingBag, description: 'Sell products on our marketplace', color: 'from-orange-500 to-red-600' },
+    { id: 'driver', title: 'Ride Driver', icon: Car, description: 'Provide taxi or motorbike rides', color: 'from-blue-500 to-indigo-600' },
+    { id: 'property_owner', title: 'Property Owner', icon: Building, description: 'List properties for sale or rent', color: 'from-purple-500 to-violet-600' },
+    { id: 'plumber', title: 'Plumber', icon: Wrench, description: 'Plumbing and water system services', color: 'from-blue-600 to-cyan-600' },
+    { id: 'electrician', title: 'Electrician', icon: Zap, description: 'Electrical installation and repair', color: 'from-yellow-500 to-orange-500' },
+    { id: 'painter', title: 'Painter', icon: Paintbrush, description: 'Interior and exterior painting', color: 'from-green-500 to-teal-600' },
+    { id: 'carpenter', title: 'Carpenter', icon: Hammer, description: 'Furniture and woodwork services', color: 'from-amber-600 to-orange-600' },
+    { id: 'barber', title: 'Barber/Salon', icon: Scissors, description: 'Hair cutting and styling services', color: 'from-pink-500 to-rose-600' },
+    { id: 'doctor', title: 'Doctor', icon: Stethoscope, description: 'Medical consultation services', color: 'from-red-500 to-pink-600' },
+    { id: 'tutor', title: 'Tutor', icon: GraduationCap, description: 'Educational and tutoring services', color: 'from-indigo-500 to-purple-600' },
+    { id: 'photographer', title: 'Photographer', icon: Camera, description: 'Photography and videography', color: 'from-gray-600 to-slate-700' },
+    { id: 'caterer', title: 'Caterer', icon: Utensils, description: 'Food and catering services', color: 'from-emerald-500 to-green-600' }
+  ];
+
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialTab) {
+    if (initialTab && serviceTypes.some(s => s.id === initialTab)) {
       setActiveTab(initialTab);
+    } else {
+      setActiveTab(null);
     }
   }, [initialTab]);
 
@@ -46,27 +64,13 @@ const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) =>
   const vendorMutation = useVendorApplication();
   const serviceProviderMutation = useServiceProviderRegistration();
 
-  const serviceTypes = [
-    { id: 'vendor', title: 'Product Vendor', icon: ShoppingBag, description: 'Sell products on our marketplace', color: 'from-orange-500 to-red-600' },
-    { id: 'driver', title: 'Ride Driver', icon: Car, description: 'Provide taxi or motorbike rides', color: 'from-blue-500 to-indigo-600' },
-    { id: 'property_owner', title: 'Property Owner', icon: Building, description: 'List properties for sale or rent', color: 'from-purple-500 to-violet-600' },
-    { id: 'plumber', title: 'Plumber', icon: Wrench, description: 'Plumbing and water system services', color: 'from-blue-600 to-cyan-600' },
-    { id: 'electrician', title: 'Electrician', icon: Zap, description: 'Electrical installation and repair', color: 'from-yellow-500 to-orange-500' },
-    { id: 'painter', title: 'Painter', icon: Paintbrush, description: 'Interior and exterior painting', color: 'from-green-500 to-teal-600' },
-    { id: 'carpenter', title: 'Carpenter', icon: Hammer, description: 'Furniture and woodwork services', color: 'from-amber-600 to-orange-600' },
-    { id: 'barber', title: 'Barber/Salon', icon: Scissors, description: 'Hair cutting and styling services', color: 'from-pink-500 to-rose-600' },
-    { id: 'doctor', title: 'Doctor', icon: Stethoscope, description: 'Medical consultation services', color: 'from-red-500 to-pink-600' },
-    { id: 'tutor', title: 'Tutor', icon: GraduationCap, description: 'Educational and tutoring services', color: 'from-indigo-500 to-purple-600' },
-    { id: 'photographer', title: 'Photographer', icon: Camera, description: 'Photography and videography', color: 'from-gray-600 to-slate-700' },
-    { id: 'caterer', title: 'Caterer', icon: Utensils, description: 'Food and catering services', color: 'from-emerald-500 to-green-600' }
-  ];
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeTab) return; // Should not happen if form is visible
     
     try {
       if (activeTab === 'vendor') {
@@ -109,7 +113,7 @@ const ServiceProviderRegistration = ({ initialTab }: { initialTab?: string }) =>
     }
   };
 
-  const selectedService = serviceTypes.find(service => service.id === activeTab);
+  const selectedService = activeTab ? serviceTypes.find(service => service.id === activeTab) : null;
 
   return (
     <div className="space-y-6">
