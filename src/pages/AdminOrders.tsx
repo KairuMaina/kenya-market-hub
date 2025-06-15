@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,7 @@ const AdminOrders = () => {
         .from('orders')
         .select(`
           *,
-          profiles!orders_user_id_fkey(email, full_name)
+          profiles(email, full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -63,6 +64,23 @@ const AdminOrders = () => {
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      console.log('Order status updated successfully');
+    } catch (error) {
+      console.error('Error updating order status:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -268,8 +286,9 @@ const AdminOrders = () => {
                                   variant="outline" 
                                   size="sm"
                                   className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                                  onClick={() => updateOrderStatus(order.id, 'processing')}
                                 >
-                                  Update
+                                  Process
                                 </Button>
                               </div>
                             </TableCell>

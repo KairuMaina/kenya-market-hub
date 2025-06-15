@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ const AdminDrivers = () => {
         .from('drivers')
         .select(`
           *,
-          profiles!drivers_user_id_fkey(email, full_name, phone)
+          profiles(email, full_name, phone)
         `)
         .order('created_at', { ascending: false });
 
@@ -64,6 +65,23 @@ const AdminDrivers = () => {
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
+  };
+
+  const verifyDriver = async (driverId: string) => {
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          is_verified: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', driverId);
+
+      if (error) throw error;
+      console.log('Driver verified successfully');
+    } catch (error) {
+      console.error('Error verifying driver:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -269,6 +287,7 @@ const AdminDrivers = () => {
                                   <Button 
                                     size="sm"
                                     className="bg-green-600 hover:bg-green-700 text-white"
+                                    onClick={() => verifyDriver(driver.id)}
                                   >
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
