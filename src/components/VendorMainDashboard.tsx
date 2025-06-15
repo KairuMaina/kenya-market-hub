@@ -71,7 +71,7 @@ const VendorMainDashboard = () => {
 
       if (error) throw error;
       // Aggregate sales by product
-      const byProduct = {};
+      const byProduct: Record<string, { name: string; sales: number }> = {};
       (orderItems || []).forEach((item) => {
         const pid = item.product_id;
         if (!byProduct[pid]) {
