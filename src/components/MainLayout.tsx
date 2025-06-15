@@ -22,7 +22,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 py-3 shadow-sm">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600" />
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3 md:hidden">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
                   <img 
                     alt="Soko Smart Logo" 
