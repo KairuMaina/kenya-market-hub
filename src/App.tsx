@@ -24,8 +24,6 @@ import AdminVendors from './pages/admin/AdminVendors';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminProducts from './pages/AdminProducts';
 import AdminOrders from './pages/AdminOrders';
-import AdminProperties from './pages/admin/AdminProperties';
-import AdminServiceProviders from './pages/admin/AdminServiceProviders';
 import AdminAnalytics from './pages/AdminAnalytics';
 import AdminReports from './pages/AdminReports';
 import AdminSettings from './pages/AdminSettings';
@@ -105,8 +103,6 @@ function App() {
                   <Route path="/admin/drivers" element={<ProtectedAdminRoute><AdminDrivers /></ProtectedAdminRoute>} />
                   <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
                   <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
-                  <Route path="/admin/properties" element={<ProtectedAdminRoute><AdminProperties /></ProtectedAdminRoute>} />
-                  <Route path="/admin/service-providers" element={<ProtectedAdminRoute><AdminServiceProviders /></ProtectedAdminRoute>} />
                   <Route path="/admin/analytics" element={<ProtectedAdminRoute><AdminAnalytics /></ProtectedAdminRoute>} />
                   <Route path="/admin/reports" element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
                   <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
