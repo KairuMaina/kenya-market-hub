@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,23 +25,37 @@ const AdminDrivers = () => {
         .from('drivers')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      if (driversError) throw driversError;
 
-      // Fetch user profiles separately
+      if (driversError) {
+        console.error("Supabase driversError:", driversError);
+        throw driversError;
+      }
+      if (!driversData) {
+        console.warn("No drivers data from Supabase.");
+        return [];
+      }
       const userIds = [...new Set(driversData.map(driver => driver.user_id))];
+      if (!userIds.length) {
+        console.warn("No userIds for drivers found.");
+        return [];
+      }
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, full_name, phone')
         .in('id', userIds);
-      
-      if (profilesError) throw profilesError;
+
+      if (profilesError) {
+        console.error("Supabase profilesError:", profilesError);
+        throw profilesError;
+      }
 
       // Combine the data
       const driversWithProfiles = driversData.map(driver => ({
         ...driver,
         user_profile: profilesData.find(profile => profile.id === driver.user_id)
       }));
+
+      console.log("Drivers fetched:", driversWithProfiles);
 
       return driversWithProfiles || [];
     }

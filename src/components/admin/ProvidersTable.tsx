@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -84,7 +83,16 @@ const ProvidersTable: React.FC<ProvidersTableProps> = ({
                   ) : (
                     <Badge variant="outline" className="text-xs">Inactive</Badge>
                   )}
-                  <Badge variant={getStatusBadgeVariant(provider.verification_status)} className="text-xs">
+                  <Badge
+                    variant={
+                      getStatusBadgeVariant(provider.verification_status) as
+                        | "default"
+                        | "secondary"
+                        | "destructive"
+                        | "outline"
+                    }
+                    className="text-xs"
+                  >
                     {provider.verification_status}
                   </Badge>
                 </div>

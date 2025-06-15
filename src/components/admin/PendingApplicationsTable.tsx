@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -76,7 +75,16 @@ const PendingApplicationsTable: React.FC<PendingApplicationsTableProps> = ({
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs">
+                <Badge
+                  variant={
+                    getStatusBadgeVariant(application.status) as
+                      | "default"
+                      | "secondary"
+                      | "destructive"
+                      | "outline"
+                  }
+                  className="text-xs"
+                >
                   {application.status}
                 </Badge>
               </TableCell>
