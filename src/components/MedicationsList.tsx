@@ -1,9 +1,32 @@
 
 import React from 'react';
 import { useMedications } from '@/hooks/useMedications';
-import MedicationCard from '@/components/MedicationCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Pill } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const MedicationCard = ({ medication }: { medication: any }) => (
+  <Card className="overflow-hidden shadow-lg flex flex-col h-full">
+    <CardHeader className="p-4 bg-gray-50">
+      <CardTitle className="text-lg font-semibold">{medication.name}</CardTitle>
+      <CardDescription className="text-sm text-gray-600">{medication.category}</CardDescription>
+    </CardHeader>
+    <CardContent className="p-4 flex-grow">
+      <p className="text-sm text-gray-700">More details about this medication will be available soon.</p>
+    </CardContent>
+    <div className="p-4 pt-0 flex flex-col gap-2">
+      <div className="flex gap-2 flex-wrap">
+        <Button size="sm" variant="outline" className="flex-grow min-w-[120px]" onClick={() => alert('Add ' + medication.name + ' to cart')}>
+          Add to Cart
+        </Button>
+        <Button size="sm" variant="ghost" className="flex-grow min-w-[120px]" onClick={() => alert('View details for ' + medication.name)}>
+          Details
+        </Button>
+      </div>
+    </div>
+  </Card>
+);
 
 const MedicationsList = () => {
   const { data: medications, isLoading, error } = useMedications();

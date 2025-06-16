@@ -103,13 +103,7 @@ const Shop = () => {
                     Start Shopping
                   </Button>
                 </Link>
-                {!user && (
-                  <Link to="/auth">
-                    <Button variant="outline" size="lg" className="hidden sm:inline-block w-full sm:w-auto border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 px-8 py-4 text-lg">
-                      Join Today
-                    </Button>
-                  </Link>
-                )}
+                {/* Removed Join Today button as per request */}
               </div>
             </div>
           </div>
