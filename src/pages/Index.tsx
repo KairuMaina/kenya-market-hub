@@ -112,44 +112,44 @@ const Index: React.FC = () => {
             ))}
           </div>
           
-          <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-6">
-            <div className="max-w-4xl animate-scale-in">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm mr-4">
-                  <currentSlide.icon className="h-8 w-8" />
+              <div className="relative z-10 h-full flex items-center justify-center text-center text-white p-6">
+                <div className="max-w-4xl animate-scale-in">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm mr-4">
+                      <currentSlide.icon className="h-8 w-8" />
+                    </div>
+                    <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">
+                      {currentSlide.service}
+                    </Badge>
+                  </div>
+                  
+                  <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                    {currentSlide.title}
+                  </h1>
+                  <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                    {currentSlide.description}
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-start mb-6">
+                    <Button 
+                      size="lg" 
+                      onClick={() => navigate(currentSlide.path)}
+                      className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-8 py-4"
+                    >
+                      <currentSlide.icon className="mr-2 h-5 w-5" />
+                      {currentSlide.action}
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      variant="ghost" 
+                      onClick={() => navigate('/auth')}
+                      className="hidden bg-white text-black border-2 border-white hover:bg-gray-200 transition-all duration-300 px-8 py-4 font-semibold"
+                    >
+                      Join Soko Smart
+                    </Button>
+                  </div>
                 </div>
-                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">
-                  {currentSlide.service}
-                </Badge>
               </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-                {currentSlide.title}
-              </h1>
-              <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-                {currentSlide.description}
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button 
-                  size="lg" 
-                  onClick={() => navigate(currentSlide.path)}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-8 py-4"
-                >
-                  <currentSlide.icon className="mr-2 h-5 w-5" />
-                  {currentSlide.action}
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="ghost" 
-                  onClick={() => navigate('/auth')}
-                  className="bg-white text-black border-2 border-white hover:bg-gray-200 transition-all duration-300 px-8 py-4 font-semibold"
-                >
-                  Join Soko Smart
-                </Button>
-              </div>
-            </div>
-          </div>
 
           {/* Enhanced Slideshow Indicators */}
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 max-w-full overflow-x-auto px-4 sm:px-0">
