@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +22,7 @@ const providerTypes = [
   { value: 'physiotherapist', label: 'Physiotherapist' },
 ] as const;
 
-const providerTypeValues = providerTypes.map(p => p.value);
+const providerTypeValues = providerTypes.map(p => p.value) as [string, ...string[]];
 
 const formSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
@@ -49,7 +50,17 @@ const MedicalProviderRegistrationForm = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    applyMutation.mutate(values);
+    // Ensure all required fields are present
+    const applicationData = {
+      full_name: values.full_name,
+      email: values.email,
+      phone: values.phone,
+      provider_type: values.provider_type,
+      specialization_id: values.specialization_id,
+      license_number: values.license_number,
+    };
+    
+    applyMutation.mutate(applicationData);
   };
 
   return (
