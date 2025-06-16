@@ -1,4 +1,3 @@
-
 import { 
   Home, 
   ShoppingBag, 
@@ -30,6 +29,7 @@ export const menuItems = [
       { title: 'Services', url: '/services', icon: Briefcase },
       { title: 'Medical', url: '/medical', icon: HeartPulse },
       { title: 'Service Hub', url: '/service-provider-hub', icon: Cog },
+      { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
     ]
   },
   {
@@ -56,6 +56,7 @@ export const menuItems = [
       { title: 'Reports', url: '/admin/reports', icon: FileText },
       { title: 'Settings', url: '/admin/settings', icon: Settings },
       { title: 'Notifications', url: '/admin/notifications', icon: Bell },
+      { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
     ]
   }
 ];

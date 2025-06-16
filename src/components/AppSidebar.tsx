@@ -56,6 +56,8 @@ const AppSidebar = () => {
         section.title === 'Main' || 
         section.title === 'Account'
       );
+    } else if (activeSection === 'job-board') {
+      return menuItems.filter(section => section.title === 'Admin');
     } else {
       // For main section, show everything except admin
       return menuItems.filter(section => section.title !== 'Admin');
