@@ -1,4 +1,4 @@
-git import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMedicalProviders } from '@/hooks/useMedical';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -103,7 +103,7 @@ const MedicalProvidersList = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <ProviderSkeletons />
       </div>
     );
@@ -149,15 +149,17 @@ const MedicalProvidersList = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-      {selectedProvider && (
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sortedProviders.map((provider) => (
+          <ProviderCard
             key={provider.id}
             provider={provider}
             onClick={() => setSelectedProvider(provider)}
           />
         ))}
       </div>
+
+      {selectedProvider && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedProvider(null)}
