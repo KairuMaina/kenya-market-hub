@@ -152,7 +152,7 @@ const Index: React.FC = () => {
           </div>
 
           {/* Enhanced Slideshow Indicators */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 max-w-full overflow-x-auto px-4 sm:px-0">
             {heroSlides.map((slide, index) => (
               <button
                 key={index}
@@ -164,7 +164,7 @@ const Index: React.FC = () => {
                 <div className={`w-3 h-3 rounded-full mb-1 transition-all duration-300 ${
                   index === currentSlideIndex ? 'bg-white scale-125' : 'bg-white/70'
                 }`} />
-                <span className="text-xs text-white/80 font-medium">{slide.service}</span>
+                <span className="text-xs text-white/80 font-medium whitespace-nowrap">{slide.service}</span>
               </button>
             ))}
           </div>
