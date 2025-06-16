@@ -130,7 +130,7 @@ const Index: React.FC = () => {
                     {currentSlide.description}
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-start mb-6">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
                     <Button 
                       size="lg" 
                       onClick={() => navigate(currentSlide.path)}
