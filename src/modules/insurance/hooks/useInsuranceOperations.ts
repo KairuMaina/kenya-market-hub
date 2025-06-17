@@ -97,7 +97,7 @@ export const useUpdateClaimStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ claimId, status }: { claimId: status: string }) => 
+    mutationFn: ({ claimId, status }: { claimId: string; status: string }) => 
       updateClaimStatus(claimId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['insurance-claims'] });
