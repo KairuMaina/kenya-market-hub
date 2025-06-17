@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -34,6 +33,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import AdminApp from './pages/AdminApp';
 import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistrationPage';
 import MedicalPage from './pages/Medical';
+import Jobs from './pages/Jobs';
+import JobDetail from './pages/JobDetail';
 
 function App() {
   const queryClient = new QueryClient();
@@ -73,6 +74,8 @@ function App() {
                   <Route path="/driver/*" element={<DriverApp />} />
                   <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
                   <Route path="/medical" element={<MedicalPage />} />
+                  <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/jobs/:id" element={<JobDetail />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>

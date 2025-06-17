@@ -22,7 +22,7 @@ import AdminReports from './admin/AdminReports';
 import AdminNotifications from './admin/AdminNotifications';
 import AdminSettings from './admin/AdminSettings';
 import AdminMedical from './admin/AdminMedical';
-import JobBoard from './admin/JobBoard';
+import JobBoardEnhanced from './admin/JobBoardEnhanced';
 
 const AdminApp = () => {
   const { user, loading } = useAuth();
@@ -64,7 +64,7 @@ const AdminApp = () => {
         <Route path="medical" element={<AdminMedical />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings" element={<AdminSettings />} />
-        <Route path="job-board" element={<JobBoard />} />
+        <Route path="job-board" element={<JobBoardEnhanced />} />
       </Routes>
     </ProtectedAdminRoute>
   );
