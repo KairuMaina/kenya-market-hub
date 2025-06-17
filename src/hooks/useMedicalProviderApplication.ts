@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,7 +28,7 @@ export const useMedicalProviderApplication = () => {
         .from('medical_provider_applications')
         .insert({
           ...applicationData,
-          provider_type: applicationData.provider_type, // Ensure correct type is passed
+          provider_type: applicationData.provider_type as ProviderType,
           user_id: user.id,
         })
         .select()
@@ -46,7 +47,6 @@ export const useMedicalProviderApplication = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['medical-provider-application-status', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['my-medical-provider-profile', user?.id] });
-
     },
     onError: (error: any) => {
       toast({
