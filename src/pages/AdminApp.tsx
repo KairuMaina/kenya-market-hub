@@ -23,6 +23,7 @@ import AdminNotifications from './admin/AdminNotifications';
 import AdminSettings from './admin/AdminSettings';
 import AdminMedical from './admin/AdminMedical';
 import JobBoardEnhanced from './admin/JobBoardEnhanced';
+import AdminInsurance from '@/modules/insurance/pages/AdminInsurance';
 
 const AdminApp = () => {
   const { user, loading } = useAuth();
@@ -62,6 +63,7 @@ const AdminApp = () => {
         <Route path="service-providers" element={<AdminServiceProviders />} />
         <Route path="service-bookings" element={<AdminServiceBookings />} />
         <Route path="medical" element={<AdminMedical />} />
+        <Route path="insurance" element={<AdminInsurance />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="job-board" element={<JobBoardEnhanced />} />

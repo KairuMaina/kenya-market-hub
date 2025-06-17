@@ -35,6 +35,8 @@ import ServiceProviderRegistrationPage from './pages/ServiceProviderRegistration
 import MedicalPage from './pages/Medical';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
+import Insurance from './modules/insurance/pages/Insurance';
+import AdminInsurance from './modules/insurance/pages/AdminInsurance';
 
 function App() {
   const queryClient = new QueryClient();
@@ -74,6 +76,7 @@ function App() {
                   <Route path="/driver/*" element={<DriverApp />} />
                   <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
                   <Route path="/medical" element={<MedicalPage />} />
+                  <Route path="/insurance" element={<Insurance />} />
                   <Route path="/jobs" element={<Jobs />} />
                   <Route path="/jobs/:id" element={<JobDetail />} />
                   <Route path="*" element={<NotFound />} />

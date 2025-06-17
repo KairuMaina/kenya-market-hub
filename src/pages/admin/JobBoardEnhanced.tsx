@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { getJobs, deleteJob, createJob, updateJob, JobFilters } from '@/integrations/supabase/jobBoardApi';
+import { getJobs, deleteJob, createJob, updateJob } from '@/integrations/supabase/jobBoardApi';
+import type { JobFilters as JobFiltersType } from '@/integrations/supabase/jobBoardApi';
 import MainLayout from '@/components/MainLayout';
 import JobFilters from '@/components/job-board/JobFilters';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +40,7 @@ const JobBoardEnhanced: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
-  const [filters, setFilters] = useState<JobFilters>({
+  const [filters, setFilters] = useState<JobFiltersType>({
     jobTypes: [],
     remoteOptions: [],
     experienceLevels: [],
@@ -100,7 +101,7 @@ const JobBoardEnhanced: React.FC = () => {
     }
   };
 
-  const handleFiltersChange = (newFilters: JobFilters) => {
+  const handleFiltersChange = (newFilters: JobFiltersType) => {
     setFilters(newFilters);
     setCurrentPage(1);
   };

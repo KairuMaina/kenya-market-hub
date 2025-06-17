@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { getPublicJobs, JobFilters } from '@/integrations/supabase/jobBoardApi';
+import { getPublicJobs, JobFilters as JobFiltersType } from '@/integrations/supabase/jobBoardApi';
 import MainLayout from '@/components/MainLayout';
 import JobCard from '@/components/job-board/JobCard';
 import JobFilters from '@/components/job-board/JobFilters';
@@ -26,7 +26,7 @@ const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
-  const [filters, setFilters] = useState<JobFilters>({
+  const [filters, setFilters] = useState<JobFiltersType>({
     jobTypes: [],
     remoteOptions: [],
     experienceLevels: [],
@@ -65,7 +65,7 @@ const Jobs: React.FC = () => {
     }
   };
 
-  const handleFiltersChange = (newFilters: JobFilters) => {
+  const handleFiltersChange = (newFilters: JobFiltersType) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
   };

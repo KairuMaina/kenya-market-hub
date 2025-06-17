@@ -22,7 +22,8 @@ import {
   Truck,
   ShieldCheck,
   LifeBuoy,
-  DollarSign
+  DollarSign,
+  Shield
 } from 'lucide-react';
 
 export const menuItems = [
@@ -35,6 +36,8 @@ export const menuItems = [
       { title: 'Rides', url: '/rides', icon: Car },
       { title: 'Services', url: '/services', icon: Briefcase },
       { title: 'Medical', url: '/medical', icon: HeartPulse },
+      { title: 'Insurance Hub', url: '/insurance', icon: Shield },
+      { title: 'Jobs', url: '/jobs', icon: Briefcase },
       { title: 'Service Hub', url: '/service-provider-hub', icon: Cog },
     ]
   },
@@ -72,6 +75,7 @@ export const menuItems = [
       { title: 'Service Providers', url: '/admin/service-providers', icon: ShieldCheck },
       { title: 'Service Bookings', url: '/admin/service-bookings', icon: CalendarClock },
       { title: 'Medical Mgmt', url: '/admin/medical', icon: LifeBuoy },
+      { title: 'Insurance Hub', url: '/admin/insurance', icon: Shield },
       { title: 'Notifications', url: '/admin/notifications', icon: Bell },
       { title: 'Settings', url: '/admin/settings', icon: Settings },
       { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
