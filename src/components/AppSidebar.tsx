@@ -28,7 +28,7 @@ import {
   UtensilsCrossed,
   Calendar,
   MessageCircle,
-  Users
+  Settings
 } from 'lucide-react';
 
 const AppSidebar = () => {
@@ -65,7 +65,7 @@ const AppSidebar = () => {
     { icon: ShoppingCart, label: 'Cart', path: '/cart', hasQuantityBadge: true },
     { icon: Heart, label: 'Wishlist', path: '/wishlist' },
     { icon: User, label: 'Profile', path: '/profile' },
-    { icon: Users, label: 'Service Hub', path: '/service-hub' }
+    { icon: Settings, label: 'Service Hub', path: '/service-hub' }
   ];
 
   return (

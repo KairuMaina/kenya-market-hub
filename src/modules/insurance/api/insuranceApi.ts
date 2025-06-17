@@ -15,9 +15,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     coverageType: 'Individual',
     features: ['In-patient care', 'Out-patient services', 'Emergency coverage', 'Dental care'],
     terms: '12 months coverage with renewable option',
-    isActive: true,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
+    isActive: true
   },
   {
     id: '2',
@@ -30,9 +28,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     coverageType: 'Vehicle',
     features: ['Third party liability', 'Legal expenses', '24/7 roadside assistance'],
     terms: '12 months coverage for private vehicles',
-    isActive: true,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
+    isActive: true
   },
   {
     id: '3',
@@ -45,9 +41,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     coverageType: 'Individual',
     features: ['Death benefit', 'Savings component', 'Critical illness cover', 'Disability benefit'],
     terms: 'Long-term policy with maturity benefits',
-    isActive: true,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
+    isActive: true
   },
   {
     id: '4',
@@ -60,9 +54,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     coverageType: 'Business',
     features: ['Fire and perils', 'Theft coverage', 'Business interruption', 'Equipment breakdown'],
     terms: 'Annual renewable policy for commercial properties',
-    isActive: true,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
+    isActive: true
   }
 ];
 
@@ -107,14 +99,12 @@ export const getInsurancePlanById = async (id: string): Promise<InsurancePlan | 
   return mockInsurancePlans.find(plan => plan.id === id) || null;
 };
 
-export const createInsurancePolicy = async (policyData: Omit<InsurancePolicy, 'id' | 'createdAt' | 'updatedAt'>): Promise<InsurancePolicy> => {
+export const createInsurancePolicy = async (policyData: Omit<InsurancePolicy, 'id'>): Promise<InsurancePolicy> => {
   await new Promise(resolve => setTimeout(resolve, 500));
   
   const newPolicy: InsurancePolicy = {
     ...policyData,
-    id: `policy_${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    id: `policy_${Date.now()}`
   };
   
   return newPolicy;
@@ -130,28 +120,24 @@ export const getUserPolicies = async (userId: string): Promise<InsurancePolicy[]
       userId,
       planId: '1',
       policyNumber: 'POL-2024-001',
-      status: 'active',
+      status: 'Active',
       startDate: '2024-01-01',
       endDate: '2024-12-31',
       premiumAmount: 15000,
       coverageAmount: 500000,
-      beneficiaries: ['John Doe Spouse', 'Jane Doe Child'],
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01'
+      beneficiaries: ['John Doe Spouse', 'Jane Doe Child']
     }
   ];
   
   return mockPolicies;
 };
 
-export const createInsuranceClaim = async (claimData: Omit<InsuranceClaim, 'id' | 'createdAt' | 'updatedAt'>): Promise<InsuranceClaim> => {
+export const createInsuranceClaim = async (claimData: Omit<InsuranceClaim, 'id'>): Promise<InsuranceClaim> => {
   await new Promise(resolve => setTimeout(resolve, 500));
   
   const newClaim: InsuranceClaim = {
     ...claimData,
-    id: `claim_${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    id: `claim_${Date.now()}`
   };
   
   return newClaim;
@@ -168,11 +154,12 @@ export const getInsuranceClaims = async (userId?: string): Promise<InsuranceClai
       claimNumber: 'CLM-2024-001',
       claimType: 'Medical',
       claimAmount: 50000,
-      status: 'pending',
+      status: 'Pending',
       description: 'Hospital treatment for emergency surgery',
-      documents: ['receipt_1.pdf', 'medical_report.pdf'],
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-15'
+      documents: [
+        { id: '1', name: 'receipt_1.pdf', url: '/documents/receipt_1.pdf', uploadedAt: '2024-01-15' },
+        { id: '2', name: 'medical_report.pdf', url: '/documents/medical_report.pdf', uploadedAt: '2024-01-15' }
+      ]
     }
   ];
   
@@ -189,7 +176,7 @@ export const updateInsurancePlan = async (id: string, updates: Partial<Insurance
   
   const planIndex = mockInsurancePlans.findIndex(plan => plan.id === id);
   if (planIndex !== -1) {
-    mockInsurancePlans[planIndex] = { ...mockInsurancePlans[planIndex], ...updates, updatedAt: new Date().toISOString() };
+    mockInsurancePlans[planIndex] = { ...mockInsurancePlans[planIndex], ...updates };
     return mockInsurancePlans[planIndex];
   }
   
@@ -217,11 +204,12 @@ export const updateClaimStatus = async (claimId: string, status: string): Promis
     claimNumber: 'CLM-2024-001',
     claimType: 'Medical',
     claimAmount: 50000,
-    status: status as 'pending' | 'approved' | 'rejected' | 'processing',
+    status: status as 'Pending' | 'Under Review' | 'Approved' | 'Rejected' | 'Paid',
     description: 'Hospital treatment for emergency surgery',
-    documents: ['receipt_1.pdf', 'medical_report.pdf'],
-    createdAt: '2024-01-15',
-    updatedAt: new Date().toISOString()
+    documents: [
+      { id: '1', name: 'receipt_1.pdf', url: '/documents/receipt_1.pdf', uploadedAt: '2024-01-15' },
+      { id: '2', name: 'medical_report.pdf', url: '/documents/medical_report.pdf', uploadedAt: '2024-01-15' }
+    ]
   };
   
   return mockClaim;

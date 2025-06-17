@@ -1,35 +1,59 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { insuranceApi } from '../api/insuranceApi';
-import { InsurancePlan } from '../types';
+import { toast } from '@/hooks/use-toast';
+import { createInsurancePolicy, createInsuranceClaim, updateInsurancePlan, deleteInsurancePlan, updateClaimStatus } from '../api/insuranceApi';
+import { InsurancePolicy, InsuranceClaim, InsurancePlan } from '../types';
 
-export const useInsuranceOperations = () => {
+export const useCreatePolicy = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  const createPlanMutation = useMutation({
-    mutationFn: (plan: Omit<InsurancePlan, 'id'>) => insuranceApi.createInsurancePlan(plan),
+  return useMutation({
+    mutationFn: (policyData: Omit<InsurancePolicy, 'id'>) => createInsurancePolicy(policyData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['insurance-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['user-policies'] });
       toast({
         title: 'Success',
-        description: 'Insurance plan created successfully',
+        description: 'Insurance policy created successfully',
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: 'Error',
-        description: 'Failed to create insurance plan',
+        description: 'Failed to create insurance policy',
         variant: 'destructive',
       });
-      console.error('Create plan error:', error);
     },
   });
+};
 
-  const updatePlanMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<InsurancePlan> }) =>
-      insuranceApi.updateInsurancePlan(id, updates),
+export const useCreateClaim = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (claimData: Omit<InsuranceClaim, 'id'>) => createInsuranceClaim(claimData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insurance-claims'] });
+      toast({
+        title: 'Success',
+        description: 'Insurance claim submitted successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit insurance claim',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useUpdatePlan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<InsurancePlan> }) => 
+      updateInsurancePlan(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['insurance-plans'] });
       toast({
@@ -37,18 +61,21 @@ export const useInsuranceOperations = () => {
         description: 'Insurance plan updated successfully',
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: 'Error',
         description: 'Failed to update insurance plan',
         variant: 'destructive',
       });
-      console.error('Update plan error:', error);
     },
   });
+};
 
-  const deletePlanMutation = useMutation({
-    mutationFn: (id: string) => insuranceApi.deleteInsurancePlan(id),
+export const useDeletePlan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteInsurancePlan(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['insurance-plans'] });
       toast({
@@ -56,59 +83,35 @@ export const useInsuranceOperations = () => {
         description: 'Insurance plan deleted successfully',
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: 'Error',
         description: 'Failed to delete insurance plan',
         variant: 'destructive',
       });
-      console.error('Delete plan error:', error);
     },
   });
+};
 
-  const purchasePolicyMutation = useMutation({
-    mutationFn: (policyData: any) => insuranceApi.createInsurancePolicy(policyData),
+export const useUpdateClaimStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ claimId, status }: { claimId: string; status: string }) => 
+      updateClaimStatus(claimId, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-policies'] });
+      queryClient.invalidateQueries({ queryKey: ['insurance-claims'] });
       toast({
         title: 'Success',
-        description: 'Policy purchased successfully',
+        description: 'Claim status updated successfully',
       });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: 'Error',
-        description: 'Failed to purchase policy',
+        description: 'Failed to update claim status',
         variant: 'destructive',
       });
-      console.error('Purchase policy error:', error);
     },
   });
-
-  const fileClaimMutation = useMutation({
-    mutationFn: (claimData: any) => insuranceApi.createInsuranceClaim(claimData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-claims'] });
-      toast({
-        title: 'Success',
-        description: 'Claim filed successfully',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to file claim',
-        variant: 'destructive',
-      });
-      console.error('File claim error:', error);
-    },
-  });
-
-  return {
-    createPlan: createPlanMutation,
-    updatePlan: updatePlanMutation,
-    deletePlan: deletePlanMutation,
-    purchasePolicy: purchasePolicyMutation,
-    fileClaim: fileClaimMutation,
-  };
 };
