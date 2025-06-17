@@ -20,6 +20,8 @@ import Shop from '@/pages/Shop';
 import Rides from '@/pages/Rides';
 import Services from '@/pages/Services';
 import ServiceProviderHub from '@/pages/ServiceProviderHub';
+import ServiceHub from '@/pages/ServiceHub';
+import ChatForums from '@/pages/ChatForums';
 import ServicesApp from '@/pages/ServicesApp';
 import RealEstate from '@/pages/RealEstate';
 import PropertyDetail from '@/pages/PropertyDetail';
@@ -69,6 +71,8 @@ function App() {
                   <Route path="/rides/*" element={<Rides />} />
                   <Route path="/services/*" element={<Services />} />
                   <Route path="/service-provider-hub" element={<ServiceProviderHub />} />
+                  <Route path="/service-hub" element={<ServiceHub />} />
+                  <Route path="/chat-forums" element={<ChatForums />} />
                   <Route path="/services-app/*" element={<ServicesApp />} />
                   <Route path="/real-estate/*" element={<RealEstate />} />
                   <Route path="/property/:id" element={<PropertyDetail />} />

@@ -1,211 +1,228 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { InsurancePlan, InsurancePolicy, InsuranceClaim } from '../types';
+// Mock Insurance API - replace with actual Supabase calls when insurance tables are created
+import { InsurancePlan, InsurancePolicy, InsuranceClaim, InsuranceFilters } from '../types';
 
-export const insuranceApi = {
-  // Insurance Plans
-  async createInsurancePlan(plan: Omit<InsurancePlan, 'id'>) {
-    const { data, error } = await supabase
-      .from('insurance_plans')
-      .insert([{
-        provider_id: plan.providerId,
-        provider_name: plan.providerName,
-        category: plan.category,
-        name: plan.name,
-        description: plan.description,
-        coverage_type: plan.coverageType,
-        premium: plan.premium,
-        coverage_amount: plan.coverageAmount,
-        features: plan.features,
-        terms: plan.terms,
-        is_active: plan.isActive
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapPlanFromDb(data);
+// Mock data for insurance plans
+const mockInsurancePlans: InsurancePlan[] = [
+  {
+    id: '1',
+    name: 'Comprehensive Health Insurance',
+    description: 'Complete medical coverage including in-patient, out-patient, and emergency services.',
+    category: 'Medical',
+    providerName: 'Kenya Medical Insurance',
+    premium: 15000,
+    coverageAmount: 500000,
+    coverageType: 'Individual',
+    features: ['In-patient care', 'Out-patient services', 'Emergency coverage', 'Dental care'],
+    terms: '12 months coverage with renewable option',
+    isActive: true,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   },
-
-  async updateInsurancePlan(id: string, updates: Partial<InsurancePlan>) {
-    const { data, error } = await supabase
-      .from('insurance_plans')
-      .update({
-        provider_id: updates.providerId,
-        provider_name: updates.providerName,
-        category: updates.category,
-        name: updates.name,
-        description: updates.description,
-        coverage_type: updates.coverageType,
-        premium: updates.premium,
-        coverage_amount: updates.coverageAmount,
-        features: updates.features,
-        terms: updates.terms,
-        is_active: updates.isActive
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapPlanFromDb(data);
+  {
+    id: '2',
+    name: 'Third Party Motor Insurance',
+    description: 'Basic motor vehicle insurance covering third party damages and injuries.',
+    category: 'Motor',
+    providerName: 'Auto Shield Kenya',
+    premium: 8000,
+    coverageAmount: 1000000,
+    coverageType: 'Vehicle',
+    features: ['Third party liability', 'Legal expenses', '24/7 roadside assistance'],
+    terms: '12 months coverage for private vehicles',
+    isActive: true,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   },
-
-  async deleteInsurancePlan(id: string) {
-    const { error } = await supabase
-      .from('insurance_plans')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+  {
+    id: '3',
+    name: 'Life Assurance Plan',
+    description: 'Life insurance with savings component and death benefit coverage.',
+    category: 'Life/Accident',
+    providerName: 'Life Plus Insurance',
+    premium: 25000,
+    coverageAmount: 2000000,
+    coverageType: 'Individual',
+    features: ['Death benefit', 'Savings component', 'Critical illness cover', 'Disability benefit'],
+    terms: 'Long-term policy with maturity benefits',
+    isActive: true,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   },
-
-  async getInsurancePlans() {
-    const { data, error } = await supabase
-      .from('insurance_plans')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data?.map(this.mapPlanFromDb) || [];
-  },
-
-  // Insurance Policies
-  async createInsurancePolicy(policy: Omit<InsurancePolicy, 'id' | 'createdAt' | 'updatedAt'>) {
-    const { data, error } = await supabase
-      .from('insurance_policies')
-      .insert([{
-        user_id: policy.userId,
-        provider_id: policy.providerId,
-        provider_name: policy.providerName,
-        category: policy.category,
-        policy_number: policy.policyNumber,
-        policy_name: policy.policyName,
-        coverage_type: policy.coverageType,
-        premium: policy.premium,
-        coverage_amount: policy.coverageAmount,
-        start_date: policy.startDate,
-        end_date: policy.endDate,
-        status: policy.status
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapPolicyFromDb(data);
-  },
-
-  async getUserPolicies(userId: string) {
-    const { data, error } = await supabase
-      .from('insurance_policies')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data?.map(this.mapPolicyFromDb) || [];
-  },
-
-  // Insurance Claims
-  async createInsuranceClaim(claim: Omit<InsuranceClaim, 'id' | 'submittedAt'>) {
-    const { data, error } = await supabase
-      .from('insurance_claims')
-      .insert([{
-        policy_id: claim.policyId,
-        claim_number: claim.claimNumber,
-        description: claim.description,
-        claim_amount: claim.claimAmount,
-        status: claim.status
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapClaimFromDb(data);
-  },
-
-  async getUserClaims(userId: string) {
-    const { data, error } = await supabase
-      .from('insurance_claims')
-      .select(`
-        *,
-        insurance_policies!inner(user_id)
-      `)
-      .eq('insurance_policies.user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data?.map(this.mapClaimFromDb) || [];
-  },
-
-  async updateClaimStatus(claimId: string, status: string, adminNotes?: string) {
-    const { data, error } = await supabase
-      .from('insurance_claims')
-      .update({
-        status,
-        admin_notes: adminNotes,
-        processed_at: new Date().toISOString()
-      })
-      .eq('id', claimId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapClaimFromDb(data);
-  },
-
-  // Helper mapping functions
-  mapPlanFromDb(data: any): InsurancePlan {
-    return {
-      id: data.id,
-      providerId: data.provider_id,
-      providerName: data.provider_name,
-      category: data.category,
-      name: data.name,
-      description: data.description,
-      coverageType: data.coverage_type,
-      premium: data.premium,
-      coverageAmount: data.coverage_amount,
-      features: data.features,
-      terms: data.terms,
-      isActive: data.is_active
-    };
-  },
-
-  mapPolicyFromDb(data: any): InsurancePolicy {
-    return {
-      id: data.id,
-      userId: data.user_id,
-      providerId: data.provider_id,
-      providerName: data.provider_name,
-      category: data.category,
-      policyNumber: data.policy_number,
-      policyName: data.policy_name,
-      coverageType: data.coverage_type,
-      premium: data.premium,
-      coverageAmount: data.coverage_amount,
-      startDate: data.start_date,
-      endDate: data.end_date,
-      status: data.status,
-      documents: [],
-      claims: [],
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
-  },
-
-  mapClaimFromDb(data: any): InsuranceClaim {
-    return {
-      id: data.id,
-      policyId: data.policy_id,
-      claimNumber: data.claim_number,
-      description: data.description,
-      claimAmount: data.claim_amount,
-      status: data.status,
-      submittedAt: data.created_at,
-      processedAt: data.processed_at,
-      documents: [],
-      adminNotes: data.admin_notes
-    };
+  {
+    id: '4',
+    name: 'Business Property Insurance',
+    description: 'Comprehensive coverage for business premises, equipment, and stock.',
+    category: 'Business/Property',
+    providerName: 'Commercial Guard',
+    premium: 45000,
+    coverageAmount: 5000000,
+    coverageType: 'Business',
+    features: ['Fire and perils', 'Theft coverage', 'Business interruption', 'Equipment breakdown'],
+    terms: 'Annual renewable policy for commercial properties',
+    isActive: true,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   }
+];
+
+export const getInsurancePlans = async (filters?: InsuranceFilters): Promise<InsurancePlan[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  let filteredPlans = [...mockInsurancePlans];
+  
+  if (filters) {
+    if (filters.categories && filters.categories.length > 0) {
+      filteredPlans = filteredPlans.filter(plan => 
+        filters.categories!.includes(plan.category)
+      );
+    }
+    
+    if (filters.providers && filters.providers.length > 0) {
+      filteredPlans = filteredPlans.filter(plan => 
+        filters.providers!.includes(plan.providerName)
+      );
+    }
+    
+    if (filters.premiumRange) {
+      filteredPlans = filteredPlans.filter(plan => 
+        plan.premium >= filters.premiumRange!.min && 
+        plan.premium <= filters.premiumRange!.max
+      );
+    }
+    
+    if (filters.coverageTypes && filters.coverageTypes.length > 0) {
+      filteredPlans = filteredPlans.filter(plan => 
+        filters.coverageTypes!.includes(plan.coverageType)
+      );
+    }
+  }
+  
+  return filteredPlans;
+};
+
+export const getInsurancePlanById = async (id: string): Promise<InsurancePlan | null> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return mockInsurancePlans.find(plan => plan.id === id) || null;
+};
+
+export const createInsurancePolicy = async (policyData: Omit<InsurancePolicy, 'id' | 'createdAt' | 'updatedAt'>): Promise<InsurancePolicy> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const newPolicy: InsurancePolicy = {
+    ...policyData,
+    id: `policy_${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  return newPolicy;
+};
+
+export const getUserPolicies = async (userId: string): Promise<InsurancePolicy[]> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Mock user policies
+  const mockPolicies: InsurancePolicy[] = [
+    {
+      id: 'policy_1',
+      userId,
+      planId: '1',
+      policyNumber: 'POL-2024-001',
+      status: 'active',
+      startDate: '2024-01-01',
+      endDate: '2024-12-31',
+      premiumAmount: 15000,
+      coverageAmount: 500000,
+      beneficiaries: ['John Doe Spouse', 'Jane Doe Child'],
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01'
+    }
+  ];
+  
+  return mockPolicies;
+};
+
+export const createInsuranceClaim = async (claimData: Omit<InsuranceClaim, 'id' | 'createdAt' | 'updatedAt'>): Promise<InsuranceClaim> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const newClaim: InsuranceClaim = {
+    ...claimData,
+    id: `claim_${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  return newClaim;
+};
+
+export const getInsuranceClaims = async (userId?: string): Promise<InsuranceClaim[]> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Mock claims data
+  const mockClaims: InsuranceClaim[] = [
+    {
+      id: 'claim_1',
+      policyId: 'policy_1',
+      claimNumber: 'CLM-2024-001',
+      claimType: 'Medical',
+      claimAmount: 50000,
+      status: 'pending',
+      description: 'Hospital treatment for emergency surgery',
+      documents: ['receipt_1.pdf', 'medical_report.pdf'],
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-15'
+    }
+  ];
+  
+  return userId ? mockClaims : mockClaims;
+};
+
+// Admin functions
+export const getAllInsurancePlans = async (): Promise<InsurancePlan[]> => {
+  return getInsurancePlans();
+};
+
+export const updateInsurancePlan = async (id: string, updates: Partial<InsurancePlan>): Promise<InsurancePlan> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const planIndex = mockInsurancePlans.findIndex(plan => plan.id === id);
+  if (planIndex !== -1) {
+    mockInsurancePlans[planIndex] = { ...mockInsurancePlans[planIndex], ...updates, updatedAt: new Date().toISOString() };
+    return mockInsurancePlans[planIndex];
+  }
+  
+  throw new Error('Insurance plan not found');
+};
+
+export const deleteInsurancePlan = async (id: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const planIndex = mockInsurancePlans.findIndex(plan => plan.id === id);
+  if (planIndex !== -1) {
+    mockInsurancePlans.splice(planIndex, 1);
+  } else {
+    throw new Error('Insurance plan not found');
+  }
+};
+
+export const updateClaimStatus = async (claimId: string, status: string): Promise<InsuranceClaim> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Mock claim update
+  const mockClaim: InsuranceClaim = {
+    id: claimId,
+    policyId: 'policy_1',
+    claimNumber: 'CLM-2024-001',
+    claimType: 'Medical',
+    claimAmount: 50000,
+    status: status as 'pending' | 'approved' | 'rejected' | 'processing',
+    description: 'Hospital treatment for emergency surgery',
+    documents: ['receipt_1.pdf', 'medical_report.pdf'],
+    createdAt: '2024-01-15',
+    updatedAt: new Date().toISOString()
+  };
+  
+  return mockClaim;
 };

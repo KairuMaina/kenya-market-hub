@@ -26,7 +26,9 @@ import {
   Briefcase, 
   Shield,
   UtensilsCrossed,
-  Calendar
+  Calendar,
+  MessageCircle,
+  Users
 } from 'lucide-react';
 
 const AppSidebar = () => {
@@ -46,7 +48,8 @@ const AppSidebar = () => {
     { icon: ShoppingBag, label: 'Shop', path: '/shop' },
     { icon: Search, label: 'Search', path: '/search' },
     { icon: UtensilsCrossed, label: 'Food Delivery', path: '/food' },
-    { icon: Calendar, label: 'Events', path: '/events' }
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: MessageCircle, label: 'Chat & Forums', path: '/chat-forums' }
   ];
 
   const servicesItems = [
@@ -61,7 +64,8 @@ const AppSidebar = () => {
   const userItems = [
     { icon: ShoppingCart, label: 'Cart', path: '/cart', hasQuantityBadge: true },
     { icon: Heart, label: 'Wishlist', path: '/wishlist' },
-    { icon: User, label: 'Profile', path: '/profile' }
+    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Users, label: 'Service Hub', path: '/service-hub' }
   ];
 
   return (
