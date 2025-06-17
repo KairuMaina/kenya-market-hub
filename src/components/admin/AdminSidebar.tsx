@@ -1,171 +1,134 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Users, 
-  ShoppingCart, 
-  Building, 
-  Car, 
-  Briefcase,
+import {
+  LayoutDashboard,
+  Users,
+  ShoppingBag,
+  ClipboardList,
+  Store,
+  Car,
+  Wrench,
+  Building,
+  Route,
+  Stethoscope,
   BarChart3,
   Settings,
-  FileText,
-  DollarSign,
-  Store,
   UserCheck,
-  Eye,
+  Building2,
   Bell,
-  Truck,
-  MessageSquare,
+  Briefcase,
+  Shield,
+  UtensilsCrossed,
   Calendar,
-  HeartPulse,
-  Shield
+  FileText
 } from 'lucide-react';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const menuSections = [
-    {
-      title: 'Overview',
-      items: [
-        { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
-        { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
-        { title: 'Reports', url: '/admin/reports', icon: FileText },
-      ]
-    },
-    {
-      title: 'User Management',
-      items: [
-        { title: 'Users', url: '/admin/users', icon: Users },
-        { title: 'Vendors', url: '/admin/vendors', icon: Store },
-        { title: 'Drivers', url: '/admin/drivers', icon: Truck },
-      ]
-    },
-    {
-      title: 'E-commerce',
-      items: [
-        { title: 'Products', url: '/admin/products', icon: Package },
-        { title: 'Orders', url: '/admin/orders', icon: ShoppingCart },
-      ]
-    },
-    {
-      title: 'Real Estate',
-      items: [
-        { title: 'Properties', url: '/admin/properties', icon: Building },
-        { title: 'Agents', url: '/admin/agents', icon: UserCheck },
-        { title: 'Inquiries', url: '/admin/property-inquiries', icon: MessageSquare },
-        { title: 'Viewings', url: '/admin/property-viewings', icon: Eye },
-      ]
-    },
-    {
-      title: 'Transportation',
-      items: [
-        { title: 'Rides', url: '/admin/rides', icon: Car },
-        { title: 'Pricing', url: '/admin/ride-pricing', icon: DollarSign },
-      ]
-    },
-    {
-      title: 'Services',
-      items: [
-        { title: 'Service Providers', url: '/admin/service-providers', icon: Briefcase },
-        { title: 'Service Bookings', url: '/admin/service-bookings', icon: Calendar },
-      ]
-    },
-    {
-      title: 'Medical',
-      items: [
-        { title: 'Medical Mgmt', url: '/admin/medical', icon: HeartPulse },
-      ]
-    },
-    {
-      title: 'Insurance',
-      items: [
-        { title: 'Insurance Hub', url: '/admin/insurance', icon: Shield },
-      ]
-    },
-    {
-      title: 'Jobs',
-      items: [
-        { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
-      ]
-    },
-    {
-      title: 'System',
-      items: [
-        { title: 'Notifications', url: '/admin/notifications', icon: Bell },
-        { title: 'Settings', url: '/admin/settings', icon: Settings },
-      ]
-    }
-  ];
-
-  const handleNavigation = (url: string) => {
-    navigate(url);
+  const isActive = (path: string) => {
+    return location.pathname === `/admin${path}`;
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(`/admin${path}`);
+  };
+
+  const mainItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Users, label: 'Users', path: '/users' },
+    { icon: ShoppingBag, label: 'Products', path: '/products' },
+    { icon: ClipboardList, label: 'Orders', path: '/orders' }
+  ];
+
+  const businessItems = [
+    { icon: Store, label: 'Vendors', path: '/vendors' },
+    { icon: Car, label: 'Drivers', path: '/drivers' },
+    { icon: Wrench, label: 'Service Providers', path: '/service-providers' },
+    { icon: Building2, label: 'Employers', path: '/employers' },
+    { icon: UserCheck, label: 'Agents', path: '/agents' }
+  ];
+
+  const servicesItems = [
+    { icon: Route, label: 'Rides', path: '/rides' },
+    { icon: Wrench, label: 'Service Bookings', path: '/service-bookings' },
+    { icon: Building, label: 'Properties', path: '/properties' },
+    { icon: Stethoscope, label: 'Medical', path: '/medical' },
+    { icon: Shield, label: 'Insurance', path: '/insurance' },
+    { icon: UtensilsCrossed, label: 'Food Delivery', path: '/food-delivery' },
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: Briefcase, label: 'Job Board', path: '/jobs' }
+  ];
+
+  const systemItems = [
+    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+    { icon: FileText, label: 'Reports', path: '/reports' },
+    { icon: Bell, label: 'Notifications', path: '/notifications' },
+    { icon: Settings, label: 'Settings', path: '/settings' }
+  ];
+
+  const SidebarSection = ({ title, items }: { title: string; items: any[] }) => (
+    <SidebarGroup>
+      <SidebarGroupLabel className="text-orange-600 font-semibold">{title}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.path}>
+              <SidebarMenuButton
+                onClick={() => handleNavigation(item.path)}
+                isActive={isActive(item.path)}
+                className={`hover:bg-orange-50 hover:text-orange-700 ${
+                  isActive(item.path) ? 'bg-orange-100 text-orange-700 border-r-2 border-orange-500' : ''
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4">
+    <Sidebar variant="inset" className="border-r border-orange-200 bg-white">
+      <SidebarHeader className="border-b border-orange-200 p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">A</span>
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
+            <LayoutDashboard className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-xs text-gray-600">Management Dashboard</p>
+            <p className="text-sm text-gray-600">Soko Smart</p>
           </div>
         </div>
       </SidebarHeader>
-      
-      <SidebarContent className="px-2">
-        {menuSections.map((section, index) => (
-          <SidebarGroup key={index}>
-            <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              {section.title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {section.items.map((item) => {
-                  const isActive = location.pathname === item.url;
 
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        className="w-full relative"
-                        isActive={isActive}
-                        onClick={() => handleNavigation(item.url)}
-                      >
-                        <div className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
-                          <item.icon className="h-4 w-4" />
-                          <span className="font-medium">{item.title}</span>
-                        </div>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+      <SidebarContent className="py-4">
+        <SidebarSection title="Main" items={mainItems} />
+        <SidebarSection title="Business Partners" items={businessItems} />
+        <SidebarSection title="Services & Modules" items={servicesItems} />
+        <SidebarSection title="System" items={systemItems} />
       </SidebarContent>
-      
-      <SidebarFooter className="p-4 border-t">
+
+      <SidebarFooter className="border-t border-orange-200 p-4">
         <div className="text-xs text-gray-500 text-center">
-          © 2025 Soko Smart by Milleast.tech
+          © 2024 Soko Smart Admin
         </div>
       </SidebarFooter>
     </Sidebar>

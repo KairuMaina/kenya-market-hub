@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,6 +38,8 @@ import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
 import Insurance from './modules/insurance/pages/Insurance';
 import AdminInsurance from './modules/insurance/pages/AdminInsurance';
+import FoodDelivery from './pages/FoodDelivery';
+import Events from './pages/Events';
 
 function App() {
   const queryClient = new QueryClient();
@@ -77,6 +80,8 @@ function App() {
                   <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
                   <Route path="/medical" element={<MedicalPage />} />
                   <Route path="/insurance" element={<Insurance />} />
+                  <Route path="/food" element={<FoodDelivery />} />
+                  <Route path="/events" element={<Events />} />
                   <Route path="/jobs" element={<Jobs />} />
                   <Route path="/jobs/:id" element={<JobDetail />} />
                   <Route path="*" element={<NotFound />} />
