@@ -1,174 +1,131 @@
-import { useState } from 'react';
-import { InsurancePlan, InsurancePolicy, InsuranceClaim, InsuranceFilters } from '../types';
 
-// Mock data - replace with actual API calls
-const mockPlans: InsurancePlan[] = [
-  {
-    id: '1',
-    providerId: 'britam',
-    providerName: 'Britam',
-    category: 'Medical',
-    name: 'Comprehensive Health Cover',
-    description: 'Complete medical coverage for individuals and families',
-    coverageType: 'Comprehensive',
-    premium: 15000,
-    coverageAmount: 2000000,
-    features: [
-      'Inpatient & Outpatient Cover',
-      'Maternity Benefits',
-      'Dental & Optical',
-      '24/7 Emergency Services'
-    ],
-    terms: 'Annual renewable policy',
-    isActive: true
-  },
-  {
-    id: '2',
-    providerId: 'jubilee',
-    providerName: 'Jubilee',
-    category: 'Motor',
-    name: 'Motor Comprehensive',
-    description: 'Full protection for your vehicle',
-    coverageType: 'Comprehensive',
-    premium: 25000,
-    coverageAmount: 1500000,
-    features: [
-      'Accident Coverage',
-      'Theft Protection',
-      'Third Party Liability',
-      'Windscreen Cover'
-    ],
-    terms: 'Annual renewable policy',
-    isActive: true
-  }
-];
+import { useQuery } from '@tanstack/react-query';
+import { insuranceApi } from '../api/insuranceApi';
+import { InsuranceFilters } from '../types';
 
 export const useInsurance = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const getInsurancePlans = async (filters?: InsuranceFilters) => {
-    setLoading(true);
-    setError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Filter plans based on provided filters
-      let filteredPlans = [...mockPlans];
+      let plans = await insuranceApi.getInsurancePlans();
       
+      // Apply filters if provided
       if (filters) {
         if (filters.categories.length > 0) {
-          filteredPlans = filteredPlans.filter(plan => 
+          plans = plans.filter(plan => 
             filters.categories.includes(plan.category)
           );
         }
 
         if (filters.providers.length > 0) {
-          filteredPlans = filteredPlans.filter(plan => 
+          plans = plans.filter(plan => 
             filters.providers.includes(plan.providerName)
           );
         }
 
         if (filters.coverageTypes.length > 0) {
-          filteredPlans = filteredPlans.filter(plan => 
+          plans = plans.filter(plan => 
             filters.coverageTypes.includes(plan.coverageType)
           );
         }
 
-        filteredPlans = filteredPlans.filter(plan => 
+        plans = plans.filter(plan => 
           plan.premium >= filters.premiumRange.min &&
           plan.premium <= filters.premiumRange.max
         );
       }
 
-      return filteredPlans;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch insurance plans');
-      return [];
-    } finally {
-      setLoading(false);
+      return plans;
+    } catch (error) {
+      console.error('Error fetching insurance plans:', error);
+      throw error;
     }
   };
 
-  const getUserPolicies = async () => {
-    setLoading(true);
-    setError(null);
+  const getUserPolicies = async (userId: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return [] as InsurancePolicy[];
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user policies');
-      return [];
-    } finally {
-      setLoading(false);
+      return await insuranceApi.getUserPolicies(userId);
+    } catch (error) {
+      console.error('Error fetching user policies:', error);
+      throw error;
     }
   };
 
-  const getUserClaims = async () => {
-    setLoading(true);
-    setError(null);
+  const getUserClaims = async (userId: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return [] as InsuranceClaim[];
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user claims');
-      return [];
-    } finally {
-      setLoading(false);
+      return await insuranceApi.getUserClaims(userId);
+    } catch (error) {
+      console.error('Error fetching user claims:', error);
+      throw error;
     }
   };
 
-  const purchasePolicy = async (planId: string) => {
-    setLoading(true);
-    setError(null);
+  const purchasePolicy = async (planId: string, userId: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get plan details first
+      const plans = await insuranceApi.getInsurancePlans();
+      const plan = plans.find(p => p.id === planId);
+      
+      if (!plan) {
+        throw new Error('Plan not found');
+      }
+
+      // Generate policy number
+      const policyNumber = `POL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create policy
+      const policyData = {
+        userId,
+        providerId: plan.providerId,
+        providerName: plan.providerName,
+        category: plan.category,
+        policyNumber,
+        policyName: plan.name,
+        coverageType: plan.coverageType,
+        premium: plan.premium,
+        coverageAmount: plan.coverageAmount,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        status: 'Active' as const,
+        documents: [],
+        claims: []
+      };
+
+      await insuranceApi.createInsurancePolicy(policyData);
       return { success: true, message: 'Policy purchased successfully' };
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to purchase policy');
+    } catch (error) {
+      console.error('Error purchasing policy:', error);
       return { success: false, message: 'Failed to purchase policy' };
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fileClaim = async (policyId: string, claimData: Partial<InsuranceClaim>) => {
-    setLoading(true);
-    setError(null);
+  const fileClaim = async (policyId: string, claimData: { description: string; claimAmount: number }) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const claimNumber = `CLM-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const claim = {
+        policyId,
+        claimNumber,
+        description: claimData.description,
+        claimAmount: claimData.claimAmount,
+        status: 'Pending' as const,
+        documents: []
+      };
+
+      await insuranceApi.createInsuranceClaim(claim);
       return { success: true, message: 'Claim filed successfully' };
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to file claim');
+    } catch (error) {
+      console.error('Error filing claim:', error);
       return { success: false, message: 'Failed to file claim' };
-    } finally {
-      setLoading(false);
     }
   };
 
   const uploadDocument = async (policyId: string, file: File) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true, message: 'Document uploaded successfully' };
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload document');
-      return { success: false, message: 'Failed to upload document' };
-    } finally {
-      setLoading(false);
-    }
+    // This would typically involve file upload to Supabase storage
+    // For now, returning success
+    return { success: true, message: 'Document uploaded successfully' };
   };
 
   return {
-    loading,
-    error,
     getInsurancePlans,
     getUserPolicies,
     getUserClaims,
@@ -176,4 +133,34 @@ export const useInsurance = () => {
     fileClaim,
     uploadDocument
   };
+};
+
+// Query hooks for easier use in components
+export const useInsurancePlans = (filters?: InsuranceFilters) => {
+  const { getInsurancePlans } = useInsurance();
+  
+  return useQuery({
+    queryKey: ['insurance-plans', filters],
+    queryFn: () => getInsurancePlans(filters),
+  });
+};
+
+export const useUserPolicies = (userId: string) => {
+  const { getUserPolicies } = useInsurance();
+  
+  return useQuery({
+    queryKey: ['user-policies', userId],
+    queryFn: () => getUserPolicies(userId),
+    enabled: !!userId,
+  });
+};
+
+export const useUserClaims = (userId: string) => {
+  const { getUserClaims } = useInsurance();
+  
+  return useQuery({
+    queryKey: ['user-claims', userId],
+    queryFn: () => getUserClaims(userId),
+    enabled: !!userId,
+  });
 };

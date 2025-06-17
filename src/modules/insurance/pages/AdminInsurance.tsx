@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus, Search, Shield } from 'lucide-react';
-import { useInsurance } from '../hooks/useInsurance';
+import { useInsurancePlans } from '../hooks/useInsurance';
+import { useInsuranceOperations } from '../hooks/useInsuranceOperations';
 import { InsurancePlan } from '../types';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
@@ -18,8 +20,10 @@ const AdminInsurance: React.FC = () => {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<InsurancePlan | null>(null);
-  const { loading, error, getInsurancePlans } = useInsurance();
-  const [plans, setPlans] = useState<InsurancePlan[]>([]);
+
+  // Use real Supabase data
+  const { data: plans = [], isLoading: loading, error } = useInsurancePlans();
+  const { createPlan, updatePlan, deletePlan } = useInsuranceOperations();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -34,14 +38,12 @@ const AdminInsurance: React.FC = () => {
     isActive: true
   });
 
-  useEffect(() => {
-    fetchPlans();
-  }, [search]);
-
-  const fetchPlans = async () => {
-    const fetchedPlans = await getInsurancePlans();
-    setPlans(fetchedPlans);
-  };
+  // Filter plans based on search
+  const filteredPlans = plans.filter(plan => 
+    plan.name.toLowerCase().includes(search.toLowerCase()) ||
+    plan.providerName.toLowerCase().includes(search.toLowerCase()) ||
+    plan.category.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -52,9 +54,29 @@ const AdminInsurance: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement create/update plan functionality
+    
+    const planData = {
+      name: formData.name,
+      description: formData.description,
+      category: formData.category as 'Medical' | 'Motor' | 'Life/Accident' | 'Business/Property',
+      providerName: formData.providerName,
+      providerId: formData.providerName.toLowerCase().replace(/\s+/g, '-'),
+      coverageType: formData.coverageType,
+      premium: Number(formData.premium),
+      coverageAmount: Number(formData.coverageAmount),
+      features: formData.features.split('\n').filter(f => f.trim()),
+      terms: formData.terms,
+      isActive: formData.isActive
+    };
+
+    if (editingPlan) {
+      await updatePlan.mutateAsync({ id: editingPlan.id, updates: planData });
+    } else {
+      await createPlan.mutateAsync(planData);
+    }
+    
     setShowForm(false);
-    await fetchPlans();
+    setEditingPlan(null);
   };
 
   const handleAddPlan = () => {
@@ -92,8 +114,7 @@ const AdminInsurance: React.FC = () => {
   };
 
   const handleDeletePlan = async (id: string) => {
-    // TODO: Implement delete plan functionality
-    await fetchPlans();
+    await deletePlan.mutateAsync(id);
   };
 
   return (
@@ -104,7 +125,7 @@ const AdminInsurance: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold mb-2">Insurance Hub Management</h1>
             <p className="text-gray-600">
-              {loading ? 'Loading...' : `${plans.length} Total Plans`}
+              {loading ? 'Loading...' : `${filteredPlans.length} Total Plans`}
             </p>
           </div>
           <Button onClick={handleAddPlan}>
@@ -192,7 +213,7 @@ const AdminInsurance: React.FC = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ) : plans.length === 0 ? (
+                  ) : filteredPlans.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">
                         <div className="text-center">
@@ -206,7 +227,7 @@ const AdminInsurance: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    plans.map((plan) => (
+                    filteredPlans.map((plan) => (
                       <TableRow key={plan.id}>
                         <TableCell>
                           <div>
