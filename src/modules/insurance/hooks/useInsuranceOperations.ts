@@ -1,7 +1,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
-import { createInsurancePolicy, createInsuranceClaim, updateInsurancePlan, deleteInsurancePlan, updateClaimStatus } from '../api/insuranceApi';
+import { createInsurancePolicy, createInsuranceClaim, updateInsurancePlan, deleteInsurancePlan, updateClaimStatus, createInsurancePlan } from '../api/insuranceApi';
 import { InsurancePolicy, InsuranceClaim, InsurancePlan } from '../types';
 
 export const useCreatePolicy = () => {
@@ -42,6 +42,28 @@ export const useCreateClaim = () => {
       toast({
         title: 'Error',
         description: 'Failed to submit insurance claim',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useCreatePlan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (planData: Omit<InsurancePlan, 'id'>) => createInsurancePlan(planData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insurance-plans'] });
+      toast({
+        title: 'Success',
+        description: 'Insurance plan created successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create insurance plan',
         variant: 'destructive',
       });
     },
@@ -118,7 +140,7 @@ export const useUpdateClaimStatus = () => {
 
 // Combined hook that returns all insurance operations
 export const useInsuranceOperations = () => {
-  const createPlan = useUpdatePlan(); // Note: using updatePlan for creating as there's no createPlan in API
+  const createPlan = useCreatePlan();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
   const createPolicy = useCreatePolicy();

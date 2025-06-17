@@ -11,10 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus, Search, Shield } from 'lucide-react';
 import { useInsurancePlans } from '../hooks/useInsurance';
-import { useUpdatePlan, useDeletePlan } from '../hooks/useInsuranceOperations';
+import { useCreatePlan, useUpdatePlan, useDeletePlan } from '../hooks/useInsuranceOperations';
 import { InsurancePlan } from '../types';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { toast } from '@/hooks/use-toast';
 
 const AdminInsurance: React.FC = () => {
   const [search, setSearch] = useState('');
@@ -23,6 +24,7 @@ const AdminInsurance: React.FC = () => {
 
   // Use real Supabase data
   const { data: plans = [], isLoading: loading, error } = useInsurancePlans();
+  const createPlan = useCreatePlan();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
 
@@ -73,13 +75,7 @@ const AdminInsurance: React.FC = () => {
     if (editingPlan) {
       await updatePlan.mutateAsync({ id: editingPlan.id, updates: planData });
     } else {
-      // For now, we'll use updatePlan for creating as well since there's no createPlan in the API
-      // This should be updated when the API includes a createPlan function
-      console.log('Creating new plan:', planData);
-      toast({
-        title: 'Info',
-        description: 'Plan creation will be implemented when the API is ready',
-      });
+      await createPlan.mutateAsync(planData);
     }
     
     setShowForm(false);
