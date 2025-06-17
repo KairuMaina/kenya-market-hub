@@ -99,6 +99,12 @@ const AdminSidebar = () => {
       ]
     },
     {
+      title: 'Jobs',
+      items: [
+        { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
+      ]
+    },
+    {
       title: 'System',
       items: [
         { title: 'Notifications', url: '/admin/notifications', icon: Bell },
