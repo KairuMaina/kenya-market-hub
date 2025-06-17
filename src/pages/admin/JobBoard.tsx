@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getJobs, deleteJob } from '@/integrations/supabase/jobBoardApi';
+import MainLayout from '@/components/MainLayout';
 
 interface Job {
   id: number;
@@ -118,133 +119,135 @@ const JobBoard: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Admin Job Board Management</h1>
-      <div className="mb-4 flex justify-between items-center">
-        <Input
-          placeholder="Search jobs..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-        <Button onClick={handleAddJob}>
-          Add Job
-        </Button>
-      </div>
+    <MainLayout>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Admin Job Board Management</h1>
+        <div className="mb-4 flex justify-between items-center">
+          <Input
+            placeholder="Search jobs..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="max-w-sm"
+          />
+          <Button onClick={handleAddJob}>
+            Add Job
+          </Button>
+        </div>
 
-      {showForm && (
-        <form onSubmit={handleFormSubmit} className="mb-6 p-4 border rounded-md bg-white shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-medium">Title</label>
-              <Input
-                name="title"
-                value={formData.title}
-                onChange={handleFormChange}
-                required
-              />
+        {showForm && (
+          <form onSubmit={handleFormSubmit} className="mb-6 p-4 border rounded-md bg-white shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 font-medium">Title</label>
+                <Input
+                  name="title"
+                  value={formData.title}
+                  onChange={handleFormChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Location</label>
+                <Input
+                  name="location"
+                  value={formData.location}
+                  onChange={handleFormChange}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Category</label>
+                <Input
+                  name="category"
+                  value={formData.category}
+                  onChange={handleFormChange}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Salary</label>
+                <Input
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleFormChange}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1 font-medium">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  rows={4}
+                  className="w-full border rounded-md p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full border rounded-md p-2"
+                >
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block mb-1 font-medium">Location</label>
-              <Input
-                name="location"
-                value={formData.location}
-                onChange={handleFormChange}
-              />
+            <div className="mt-4 flex space-x-2">
+              <Button type="submit" variant="primary">
+                {editingJob ? 'Update Job' : 'Create Job'}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => { setShowForm(false); resetForm(); }}>
+                Cancel
+              </Button>
             </div>
-            <div>
-              <label className="block mb-1 font-medium">Category</label>
-              <Input
-                name="category"
-                value={formData.category}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div>
-              <label className="block mb-1 font-medium">Salary</label>
-              <Input
-                name="salary"
-                value={formData.salary}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block mb-1 font-medium">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleFormChange}
-                rows={4}
-                className="w-full border rounded-md p-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block mb-1 font-medium">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleFormChange}
-                className="w-full border rounded-md p-2"
-              >
-                <option value="open">Open</option>
-                <option value="closed">Closed</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <Button type="submit" variant="primary">
-              {editingJob ? 'Update Job' : 'Create Job'}
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => { setShowForm(false); resetForm(); }}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
+          </form>
+        )}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Salary</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center">Loading...</TableCell>
+              <TableHead>Title</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Salary</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ) : filteredJobs.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center">No jobs found.</TableCell>
-            </TableRow>
-          ) : (
-            filteredJobs.map(job => (
-              <TableRow key={job.id}>
-                <TableCell>{job.title}</TableCell>
-                <TableCell>{job.location}</TableCell>
-                <TableCell>{job.category}</TableCell>
-                <TableCell>{job.salary}</TableCell>
-                <TableCell>{job.status}</TableCell>
-                <TableCell>
-                  <Button size="sm" variant="outline" className="mr-2" onClick={() => handleEditJob(job)}>
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDeleteJob(job.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">Loading...</TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            ) : filteredJobs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">No jobs found.</TableCell>
+              </TableRow>
+            ) : (
+              filteredJobs.map(job => (
+                <TableRow key={job.id}>
+                  <TableCell>{job.title}</TableCell>
+                  <TableCell>{job.location}</TableCell>
+                  <TableCell>{job.category}</TableCell>
+                  <TableCell>{job.salary}</TableCell>
+                  <TableCell>{job.status}</TableCell>
+                  <TableCell>
+                    <Button size="sm" variant="outline" className="mr-2" onClick={() => handleEditJob(job)}>
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteJob(job.id)}>
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </MainLayout>
   );
 };
 

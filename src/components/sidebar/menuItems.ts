@@ -15,7 +15,14 @@ import {
   FileText,
   Bell,
   Cog,
-  HeartPulse
+  HeartPulse,
+  ClipboardList,
+  MessageSquare,
+  CalendarClock,
+  Truck,
+  ShieldCheck,
+  LifeBuoy,
+  DollarSign
 } from 'lucide-react';
 
 export const menuItems = [
@@ -29,7 +36,6 @@ export const menuItems = [
       { title: 'Services', url: '/services', icon: Briefcase },
       { title: 'Medical', url: '/medical', icon: HeartPulse },
       { title: 'Service Hub', url: '/service-provider-hub', icon: Cog },
-      { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
     ]
   },
   {
@@ -50,12 +56,24 @@ export const menuItems = [
     title: 'Admin',
     items: [
       { title: 'Dashboard', url: '/admin', icon: BarChart3 },
-      { title: 'Users', url: '/admin/users', icon: Users },
-      { title: 'Products', url: '/admin/products', icon: Package },
       { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
       { title: 'Reports', url: '/admin/reports', icon: FileText },
-      { title: 'Settings', url: '/admin/settings', icon: Settings },
+      { title: 'Users', url: '/admin/users', icon: Users },
+      { title: 'Vendors', url: '/admin/vendors', icon: Store },
+      { title: 'Drivers', url: '/admin/drivers', icon: Car },
+      { title: 'Products', url: '/admin/products', icon: Package },
+      { title: 'Orders', url: '/admin/orders', icon: ClipboardList },
+      { title: 'Properties', url: '/admin/properties', icon: Building },
+      { title: 'Agents', url: '/admin/agents', icon: Users },
+      { title: 'Inquiries', url: '/admin/property-inquiries', icon: MessageSquare },
+      { title: 'Viewings', url: '/admin/property-viewings', icon: CalendarClock },
+      { title: 'Rides', url: '/admin/rides', icon: Truck },
+      { title: 'Pricing', url: '/admin/ride-pricing', icon: DollarSign },
+      { title: 'Service Providers', url: '/admin/service-providers', icon: ShieldCheck },
+      { title: 'Service Bookings', url: '/admin/service-bookings', icon: CalendarClock },
+      { title: 'Medical Mgmt', url: '/admin/medical', icon: LifeBuoy },
       { title: 'Notifications', url: '/admin/notifications', icon: Bell },
+      { title: 'Settings', url: '/admin/settings', icon: Settings },
       { title: 'Job Board', url: '/admin/job-board', icon: Briefcase },
     ]
   }
