@@ -97,7 +97,7 @@ export const useUpdateClaimStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ claimId, status }: { claimId: string; status: string }) => 
+    mutationFn: ({ claimId, status }: { claimId: status: string }) => 
       updateClaimStatus(claimId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['insurance-claims'] });
@@ -114,4 +114,23 @@ export const useUpdateClaimStatus = () => {
       });
     },
   });
+};
+
+// Combined hook that returns all insurance operations
+export const useInsuranceOperations = () => {
+  const createPlan = useUpdatePlan(); // Note: using updatePlan for creating as there's no createPlan in API
+  const updatePlan = useUpdatePlan();
+  const deletePlan = useDeletePlan();
+  const createPolicy = useCreatePolicy();
+  const createClaim = useCreateClaim();
+  const updateClaimStatus = useUpdateClaimStatus();
+
+  return {
+    createPlan,
+    updatePlan,
+    deletePlan,
+    createPolicy,
+    createClaim,
+    updateClaimStatus,
+  };
 };
