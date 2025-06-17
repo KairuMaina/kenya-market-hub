@@ -31,7 +31,8 @@ import {
   Truck,
   MessageSquare,
   Calendar,
-  HeartPulse
+  HeartPulse,
+  Shield
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -89,6 +90,12 @@ const AdminSidebar = () => {
       title: 'Medical',
       items: [
         { title: 'Medical Mgmt', url: '/admin/medical', icon: HeartPulse },
+      ]
+    },
+    {
+      title: 'Insurance',
+      items: [
+        { title: 'Insurance Hub', url: '/admin/insurance', icon: Shield },
       ]
     },
     {

@@ -1,43 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, Shield, FileText, TrendingUp, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Search, Shield } from 'lucide-react';
+import { useInsurance } from '../hooks/useInsurance';
+import { InsurancePlan } from '../types';
 import MainLayout from '@/components/MainLayout';
 
 const AdminInsurance: React.FC = () => {
   const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<InsurancePlan | null>(null);
+  const { loading, error, getInsurancePlans } = useInsurance();
+  const [plans, setPlans] = useState<InsurancePlan[]>([]);
 
-  // Mock data for demonstration
-  const mockPolicies = [
-    {
-      id: '1',
-      policyNumber: 'POL-001',
-      userName: 'John Doe',
-      provider: 'Britam',
-      category: 'Medical',
-      premium: 25000,
-      status: 'Active',
-      startDate: '2024-01-01',
-      endDate: '2024-12-31'
-    },
-    {
-      id: '2',
-      policyNumber: 'POL-002',
-      userName: 'Jane Smith',
-      provider: 'Jubilee',
-      category: 'Motor',
-      premium: 15000,
-      status: 'Active',
-      startDate: '2024-02-01',
-      endDate: '2025-01-31'
-    }
-  ];
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    category: '',
+    providerName: '',
+    coverageType: '',
+    premium: 0,
+    coverageAmount: 0,
+    features: '',
+    terms: '',
+    isActive: true
+  });
 
-  const mockClaims = [
+  useEffect(() => {
+    fetchPlans();
+  }, [search]);
+
+  const fetchPlans = async () => {
     {
       id: '1',
       claimNumber: 'CLM-001',
