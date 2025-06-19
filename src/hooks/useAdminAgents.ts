@@ -1,21 +1,21 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 export interface AdminAgent {
   id: string;
   user_id: string;
-  agency_name: string | null;
-  license_number: string | null;
+  agency_name: string;
+  license_number: string;
   phone: string;
   email: string;
-  rating: number | null;
-  total_sales: number | null;
-  is_verified: boolean;
-  is_active: boolean;
+  address: string;
+  specialization: string;
+  experience_years: number;
+  rating: number;
+  status: string;
   created_at: string;
-  full_name?: string;
+  updated_at: string;
 }
 
 export const useAdminAgents = () => {
@@ -28,35 +28,25 @@ export const useAdminAgents = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return (data || []) as AdminAgent[];
+      return data as AdminAgent[];
     }
   });
 };
 
-export const useUpdateAgent = () => {
+export const useUpdateAgentStatus = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-
+  
   return useMutation({
-    mutationFn: async (agentData: Partial<AdminAgent> & { id: string }) => {
-      const { id, full_name, ...updateData } = agentData;
+    mutationFn: async ({ agentId, status }: { agentId: string; status: string }) => {
       const { error } = await supabase
         .from('real_estate_agents')
-        .update(updateData)
-        .eq('id', id);
-
+        .update({ status })
+        .eq('id', agentId);
+      
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
-      toast({ title: 'Agent updated successfully!' });
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error updating agent',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
   });
 };

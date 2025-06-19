@@ -9,6 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          order_id: string | null
+          recipient_id: string
+          recipient_type: string
+          status: string | null
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          recipient_id: string
+          recipient_type: string
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          recipient_id?: string
+          recipient_type?: string
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string | null
+          discount_amount: number
+          discount_type: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          minimum_order_amount: number | null
+          updated_at: string | null
+          usage_limit: number | null
+          used_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          discount_amount: number
+          discount_type: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_order_amount?: number | null
+          updated_at?: string | null
+          usage_limit?: number | null
+          used_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          discount_amount?: number
+          discount_type?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_order_amount?: number | null
+          updated_at?: string | null
+          usage_limit?: number | null
+          used_count?: number | null
+        }
+        Relationships: []
+      }
       driver_locations: {
         Row: {
           driver_id: string | null
@@ -44,48 +140,101 @@ export type Database = {
           },
         ]
       }
+      driver_saved_routes: {
+        Row: {
+          created_at: string | null
+          driver_id: string | null
+          from_address: string
+          id: string
+          name: string
+          to_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id?: string | null
+          from_address: string
+          id?: string
+          name: string
+          to_address: string
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string | null
+          from_address?: string
+          id?: string
+          name?: string
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_saved_routes_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
+          address: string | null
           availability_status: string | null
           created_at: string | null
+          email: string | null
+          full_name: string | null
           id: string
           license_number: string | null
           license_plate: string | null
+          phone: string | null
           rating: number | null
           status: string | null
+          total_rides: number | null
           updated_at: string | null
           user_id: string | null
           vehicle_make: string | null
           vehicle_model: string | null
           vehicle_type: string | null
+          vehicle_year: number | null
         }
         Insert: {
+          address?: string | null
           availability_status?: string | null
           created_at?: string | null
+          email?: string | null
+          full_name?: string | null
           id?: string
           license_number?: string | null
           license_plate?: string | null
+          phone?: string | null
           rating?: number | null
           status?: string | null
+          total_rides?: number | null
           updated_at?: string | null
           user_id?: string | null
           vehicle_make?: string | null
           vehicle_model?: string | null
           vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Update: {
+          address?: string | null
           availability_status?: string | null
           created_at?: string | null
+          email?: string | null
+          full_name?: string | null
           id?: string
           license_number?: string | null
           license_plate?: string | null
+          phone?: string | null
           rating?: number | null
           status?: string | null
+          total_rides?: number | null
           updated_at?: string | null
           user_id?: string | null
           vehicle_make?: string | null
           vehicle_model?: string | null
           vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Relationships: []
       }
@@ -182,6 +331,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          is_active: boolean | null
           license_number: string | null
           phone: string | null
           provider_type: string
@@ -197,6 +347,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          is_active?: boolean | null
           license_number?: string | null
           phone?: string | null
           provider_type: string
@@ -212,6 +363,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          is_active?: boolean | null
           license_number?: string | null
           phone?: string | null
           provider_type?: string
@@ -502,6 +654,80 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string | null
+          agent_id: string | null
+          amenities: Json | null
+          area: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          listing_type: string
+          location: string | null
+          owner_id: string | null
+          price: number
+          property_type: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          address?: string | null
+          agent_id?: string | null
+          amenities?: Json | null
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          listing_type: string
+          location?: string | null
+          owner_id?: string | null
+          price: number
+          property_type?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          address?: string | null
+          agent_id?: string | null
+          amenities?: Json | null
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          listing_type?: string
+          location?: string | null
+          owner_id?: string | null
+          price?: number
+          property_type?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "real_estate_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_inquiries: {
         Row: {
           created_at: string | null
@@ -539,7 +765,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_property_inquiries_property"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_viewings: {
         Row: {
@@ -568,6 +802,54 @@ export type Database = {
           notes?: string | null
           property_id?: string | null
           scheduled_date?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      real_estate_agents: {
+        Row: {
+          address: string | null
+          agency_name: string
+          created_at: string | null
+          email: string | null
+          experience_years: number | null
+          id: string
+          license_number: string | null
+          phone: string | null
+          rating: number | null
+          specialization: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          agency_name: string
+          created_at?: string | null
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          rating?: number | null
+          specialization?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          agency_name?: string
+          created_at?: string | null
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          rating?: number | null
+          specialization?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -673,6 +955,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_bookings: {
+        Row: {
+          booking_date: string
+          created_at: string | null
+          customer_id: string | null
+          description: string | null
+          id: string
+          location: string | null
+          price: number | null
+          provider_id: string | null
+          service_type: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          price?: number | null
+          provider_id?: string | null
+          service_type: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          price?: number | null
+          provider_id?: string | null
+          service_type?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -795,7 +1119,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_property_views: {
+        Args: { property_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

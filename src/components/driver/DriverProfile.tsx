@@ -1,159 +1,289 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Car, Phone, Mail, MapPin, Calendar, Star } from 'lucide-react';
+import { Car, Star, User, Phone, Mail, MapPin, Calendar, Award } from 'lucide-react';
 import { useMyDriverProfile, useUpdateDriverProfile } from '@/hooks/useDriver';
-import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const DriverProfile = () => {
-  const { user } = useAuth();
   const { data: profile, isLoading } = useMyDriverProfile();
   const updateProfile = useUpdateDriverProfile();
-  
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
-    phone: '',
     email: '',
+    phone: '',
     address: '',
+    license_number: '',
     vehicle_make: '',
     vehicle_model: '',
-    license_plate: '',
     vehicle_year: '',
+    license_plate: '',
   });
 
-  const resetForm = () => {
+  React.useEffect(() => {
     if (profile) {
       setFormData({
         full_name: profile.full_name || '',
-        phone: profile.phone || '',
         email: profile.email || '',
+        phone: profile.phone || '',
         address: profile.address || '',
+        license_number: profile.license_number || '',
         vehicle_make: profile.vehicle_make || '',
         vehicle_model: profile.vehicle_model || '',
-        license_plate: profile.license_plate || '',
         vehicle_year: profile.vehicle_year?.toString() || '',
+        license_plate: profile.license_plate || '',
       });
     }
-  }
-
-  useEffect(() => {
-    resetForm();
   }, [profile]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({...prev, [id]: value}));
-  }
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile.mutate(formData);
-  }
+    try {
+      await updateProfile.mutateAsync({
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        license_number: formData.license_number,
+        vehicle_make: formData.vehicle_make,
+        vehicle_model: formData.vehicle_model,
+        vehicle_year: formData.vehicle_year ? parseInt(formData.vehicle_year) : undefined,
+        license_plate: formData.license_plate,
+      });
+      setIsEditing(false);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
-    return <div>Loading profile...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600">Loading Profile...</p>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <div>Driver profile not found. Please complete your registration.</div>;
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">Profile not found. Please contact support.</p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Driver Profile</h1>
-        <p className="text-gray-600">Manage your profile and vehicle information</p>
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <User className="h-8 w-8" />
+          Driver Profile
+        </h1>
+        <p className="text-blue-100 mt-2">Manage your driver information and vehicle details</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Overview */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="text-center">
+            <Avatar className="h-32 w-32 mx-auto mb-4">
+              <AvatarImage src="" />
+              <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
+                {profile.full_name?.charAt(0) || 'D'}
+              </AvatarFallback>
+            </Avatar>
+            <CardTitle className="text-xl">{profile.full_name || 'Driver'}</CardTitle>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span className="text-lg font-semibold">{(profile.rating || 0).toFixed(1)}</span>
+            </div>
+            <Badge variant="outline" className="mt-2">
+              {profile.availability_status || 'Offline'}
+            </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label htmlFor="full_name" className="block text-sm font-medium mb-2">Full Name</label>
-              <Input id="full_name" value={formData.full_name} onChange={handleInputChange} />
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar className="h-4 w-4" />
+              <span>Total Rides: {profile.total_rides || 0}</span>
             </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2">Phone Number</label>
-              <Input id="phone" value={formData.phone} onChange={handleInputChange} />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
-              <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
-            </div>
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium mb-2">Address</label>
-              <Input id="address" value={formData.address || ''} onChange={handleInputChange} />
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Award className="h-4 w-4" />
+              <span>License: {profile.license_number || 'Not provided'}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Information</CardTitle>
+        {/* Profile Details */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Profile Information</CardTitle>
+            <Button
+              variant={isEditing ? "outline" : "default"}
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? 'Cancel' : 'Edit Profile'}
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label htmlFor="vehicle_make" className="block text-sm font-medium mb-2">Vehicle Make</label>
-              <Input id="vehicle_make" value={formData.vehicle_make} onChange={handleInputChange} />
-            </div>
-            <div>
-              <label htmlFor="vehicle_model" className="block text-sm font-medium mb-2">Vehicle Model</label>
-              <Input id="vehicle_model" value={formData.vehicle_model} onChange={handleInputChange} />
-            </div>
-            <div>
-              <label htmlFor="license_plate" className="block text-sm font-medium mb-2">License Plate</label>
-              <Input id="license_plate" value={formData.license_plate} onChange={handleInputChange} />
-            </div>
-            <div>
-              <label htmlFor="vehicle_year" className="block text-sm font-medium mb-2">Vehicle Year</label>
-              <Input id="vehicle_year" type="number" value={formData.vehicle_year} onChange={handleInputChange} />
-            </div>
+          <CardContent>
+            {isEditing ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="license_number">License Number</Label>
+                    <Input
+                      id="license_number"
+                      value={formData.license_number}
+                      onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="vehicle_make">Vehicle Make</Label>
+                    <Input
+                      id="vehicle_make"
+                      value={formData.vehicle_make}
+                      onChange={(e) => setFormData({ ...formData, vehicle_make: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle_model">Vehicle Model</Label>
+                    <Input
+                      id="vehicle_model"
+                      value={formData.vehicle_model}
+                      onChange={(e) => setFormData({ ...formData, vehicle_model: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle_year">Vehicle Year</Label>
+                    <Input
+                      id="vehicle_year"
+                      type="number"
+                      value={formData.vehicle_year}
+                      onChange={(e) => setFormData({ ...formData, vehicle_year: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="license_plate">License Plate</Label>
+                  <Input
+                    id="license_plate"
+                    value={formData.license_plate}
+                    onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
+                  />
+                </div>
+                <Button type="submit" disabled={updateProfile.isPending}>
+                  {updateProfile.isPending ? 'Updating...' : 'Save Changes'}
+                </Button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Name:</span>
+                    <span>{profile.full_name || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Email:</span>
+                    <span>{profile.email || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Phone:</span>
+                    <span>{profile.phone || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">License:</span>
+                    <span>{profile.license_number || 'Not provided'}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">Address:</span>
+                  <span>{profile.address || 'Not provided'}</span>
+                </div>
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <Car className="h-5 w-5" />
+                    Vehicle Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <span className="text-sm font-medium">Make:</span>
+                      <p>{profile.vehicle_make || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Model:</span>
+                      <p>{profile.vehicle_model || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Year:</span>
+                      <p>{profile.vehicle_year || 'Not provided'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-sm font-medium">License Plate:</span>
+                    <p>{profile.license_plate || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Driver Statistics</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <Calendar className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-              <h3 className="font-semibold">Member Since</h3>
-              <p className="text-sm text-gray-600">{new Date(user!.created_at).toLocaleDateString()}</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <Car className="h-6 w-6 text-green-600 mx-auto mb-2" />
-              <h3 className="font-semibold">Total Rides</h3>
-              <p className="text-sm text-gray-600">{profile.total_rides}</p>
-            </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <Star className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
-              <h3 className="font-semibold">Rating</h3>
-              <p className="text-sm text-gray-600">{(profile.rating || 0).toFixed(1)} / 5.0</p>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <Badge className="bg-green-100 text-green-800 capitalize">{profile.status}</Badge>
-              <h3 className="font-semibold mt-2">Status</h3>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-4">
-        <Button type="submit" disabled={updateProfile.isPending}>
-          {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
-        </Button>
-        <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
-      </div>
-    </form>
+    </div>
   );
 };
 

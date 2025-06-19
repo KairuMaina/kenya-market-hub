@@ -3,170 +3,255 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose
-} from "@/components/ui/dialog";
-import { 
-  MapPin, 
-  Navigation, 
-  Clock, 
-  Route,
-  Plus,
-  Bookmark,
-  Trash2,
-  TrendingUp
-} from 'lucide-react';
-import {
-  usePopularRoutes, 
-  useDriverSavedRoutes, 
-  useAddDriverSavedRoute,
-  useDeleteDriverSavedRoute
-} from '@/hooks/useDriver';
-import { timeAgo } from '@/utils/time';
+import { Navigation, MapPin, Plus, Trash2, Route } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface SavedRoute {
+  id: string;
+  name: string;
+  from_address: string;
+  to_address: string;
+  created_at: string;
+}
 
 const DriverRoutes = () => {
-  const { data: popularRoutes, isLoading: popularLoading } = usePopularRoutes();
-  const { data: savedRoutes, isLoading: savedLoading } = useDriverSavedRoutes();
-  const addRoute = useAddDriverSavedRoute();
-  const deleteRoute = useDeleteDriverSavedRoute();
+  const [isAddingRoute, setIsAddingRoute] = useState(false);
+  const [routeName, setRouteName] = useState('');
+  const [fromAddress, setFromAddress] = useState('');
+  const [toAddress, setToAddress] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [newRoute, setNewRoute] = useState({ name: '', from: '', to: '' });
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  // Fetch saved routes
+  const { data: routes = [], isLoading } = useQuery({
+    queryKey: ['driver-routes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('driver_saved_routes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as SavedRoute[];
+    }
+  });
+
+  // Add new route mutation
+  const addRouteMutation = useMutation({
+    mutationFn: async (newRoute: { name: string; from_address: string; to_address: string }) => {
+      // Get current driver info
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: driver } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!driver) throw new Error('Driver profile not found');
+
+      const { error } = await supabase
+        .from('driver_saved_routes')
+        .insert([{ 
+          ...newRoute,
+          driver_id: driver.id 
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-routes'] });
+      setIsAddingRoute(false);
+      setRouteName('');
+      setFromAddress('');
+      setToAddress('');
+      toast({
+        title: "Route saved",
+        description: "Your route has been saved successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to save route. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete route mutation
+  const deleteRouteMutation = useMutation({
+    mutationFn: async (routeId: string) => {
+      const { error } = await supabase
+        .from('driver_saved_routes')
+        .delete()
+        .eq('id', routeId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-routes'] });
+      toast({
+        title: "Route deleted",
+        description: "The route has been deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete route. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddRoute = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newRoute.name && newRoute.from && newRoute.to) {
-      addRoute.mutate(
-        { name: newRoute.name, from_address: newRoute.from, to_address: newRoute.to }, 
-        {
-          onSuccess: () => {
-            setNewRoute({ name: '', from: '', to: '' });
-            setIsAddDialogOpen(false);
-          }
-        }
-      );
+    if (!routeName.trim() || !fromAddress.trim() || !toAddress.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    addRouteMutation.mutate({
+      name: routeName.trim(),
+      from_address: fromAddress.trim(),
+      to_address: toAddress.trim(),
+    });
   };
 
-  const isLoading = popularLoading || savedLoading;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600">Loading Routes...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Route Planning</h1>
-        <p className="text-gray-600">Optimize your routes and discover profitable areas</p>
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Route className="h-8 w-8" />
+          Saved Routes
+        </h1>
+        <p className="text-green-100 mt-2">Manage your frequently used routes</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Popular Routes</CardTitle>
-          <p className="text-sm text-gray-600">High-demand routes with good earning potential</p>
-        </CardHeader>
-        <CardContent>
-          {popularLoading ? (
-            <p>Loading popular routes...</p>
-          ) : (
-            <div className="space-y-4">
-              {popularRoutes && popularRoutes.length > 0 ? popularRoutes.map((route: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-full">
-                      <Route className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{route.from_address} → {route.to_address}</h4>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <span>~{route.avg_duration_minutes} min</span>
-                        <span>{route.ride_count} rides</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">KSH {route.avg_fare.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">avg. fare</p>
-                    </div>
-                  </div>
-                </div>
-              )) : <p className="text-gray-500">No popular route data available yet.</p>}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Your Saved Routes</h2>
+        <Button onClick={() => setIsAddingRoute(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Add Route
+        </Button>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Saved Routes</CardTitle>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Route
+      {isAddingRoute && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Route</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddRoute} className="space-y-4">
+              <div>
+                <Label htmlFor="route-name">Route Name</Label>
+                <Input
+                  id="route-name"
+                  value={routeName}
+                  onChange={(e) => setRouteName(e.target.value)}
+                  placeholder="e.g., Home to Airport"
+                />
+              </div>
+              <div>
+                <Label htmlFor="from-address">From Address</Label>
+                <Input
+                  id="from-address"
+                  value={fromAddress}
+                  onChange={(e) => setFromAddress(e.target.value)}
+                  placeholder="Enter starting address"
+                />
+              </div>
+              <div>
+                <Label htmlFor="to-address">To Address</Label>
+                <Input
+                  id="to-address"
+                  value={toAddress}
+                  onChange={(e) => setToAddress(e.target.value)}
+                  placeholder="Enter destination address"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={addRouteMutation.isPending}>
+                  {addRouteMutation.isPending ? 'Saving...' : 'Save Route'}
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add a New Saved Route</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddRoute} className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-1">Route Name</label>
-                    <Input id="name" placeholder="e.g., Home to Airport" value={newRoute.name} onChange={e => setNewRoute({...newRoute, name: e.target.value})} />
-                  </div>
-                  <div>
-                    <label htmlFor="from" className="block text-sm font-medium mb-1">From</label>
-                    <Input id="from" placeholder="Enter pickup location" value={newRoute.from} onChange={e => setNewRoute({...newRoute, from: e.target.value})} />
-                  </div>
-                  <div>
-                    <label htmlFor="to" className="block text-sm font-medium mb-1">To</label>
-                    <Input id="to" placeholder="Enter destination" value={newRoute.to} onChange={e => setNewRoute({...newRoute, to: e.target.value})} />
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="button" variant="ghost">Cancel</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={addRoute.isPending}>
-                      {addRoute.isPending ? "Saving..." : "Save Route"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {savedLoading ? (
-            <p>Loading saved routes...</p>
-          ) : (
-            <div className="space-y-3">
-              {savedRoutes && savedRoutes.length > 0 ? savedRoutes.map((route: any) => (
-                <div key={route.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Bookmark className="h-4 w-4 text-yellow-500 fill-current" />
-                    <div>
-                      <h4 className="font-medium">{route.name}</h4>
-                      <p className="text-sm text-gray-600">{route.from_address} → {route.to_address}</p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="destructive" onClick={() => deleteRoute.mutate(route.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsAddingRoute(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {routes.length > 0 ? routes.map((route) => (
+          <Card key={route.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{route.name}</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteRouteMutation.mutate(route.id)}
+                  disabled={deleteRouteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-green-600 mt-1" />
+                <div>
+                  <p className="text-sm font-medium">From:</p>
+                  <p className="text-sm text-gray-600">{route.from_address}</p>
                 </div>
-              )) : <p className="text-gray-500">You haven't saved any routes yet.</p>}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+              <div className="flex items-start gap-2">
+                <Navigation className="h-4 w-4 text-red-600 mt-1" />
+                <div>
+                  <p className="text-sm font-medium">To:</p>
+                  <p className="text-sm text-gray-600">{route.to_address}</p>
+                </div>
+              </div>
+              <div className="pt-2">
+                <Badge variant="outline" className="text-xs">
+                  Added {new Date(route.created_at).toLocaleDateString()}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )) : (
+          <div className="col-span-full text-center py-8">
+            <Route className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No saved routes yet.</p>
+            <p className="text-sm text-gray-400">Add your frequently used routes for quick access.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
