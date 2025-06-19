@@ -30,7 +30,7 @@ export const useAdminAgents = () => {
         .from('real_estate_agents')
         .select(`
           *,
-          profiles:user_id (full_name)
+          profiles!real_estate_agents_user_id_fkey (full_name)
         `)
         .order('created_at', { ascending: false });
       

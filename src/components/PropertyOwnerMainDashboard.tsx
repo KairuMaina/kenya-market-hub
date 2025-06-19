@@ -181,7 +181,7 @@ const PropertyOwnerMainDashboard = () => {
                 <div key={inquiry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-sm">{inquiry.properties?.title}</h4>
-                    <p className="text-sm text-gray-600">from {inquiry.inquirer_name}</p>
+                    <p className="text-sm text-gray-600">from {inquiry.inquirer_name || inquiry.full_name}</p>
                     <p className="text-xs text-gray-500">{new Date(inquiry.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center space-x-2">

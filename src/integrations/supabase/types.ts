@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       commissions: {
         Row: {
           commission_amount: number
@@ -734,6 +761,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          inquirer_name: string | null
           message: string | null
           phone: string | null
           property_id: string | null
@@ -746,6 +774,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          inquirer_name?: string | null
           message?: string | null
           phone?: string | null
           property_id?: string | null
@@ -758,6 +787,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          inquirer_name?: string | null
           message?: string | null
           phone?: string | null
           property_id?: string | null
@@ -998,6 +1028,54 @@ export type Database = {
         }
         Relationships: []
       }
+      service_provider_profiles: {
+        Row: {
+          address: string | null
+          business_name: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          rating: number | null
+          service_type: string
+          updated_at: string | null
+          user_id: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          service_type: string
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          service_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1038,6 +1116,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       vendor_applications: {
         Row: {
@@ -1125,7 +1224,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "customer"
+        | "vendor"
+        | "driver"
+        | "property_owner"
+        | "rider"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1240,6 +1345,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "admin",
+        "customer",
+        "vendor",
+        "driver",
+        "property_owner",
+        "rider",
+      ],
+    },
   },
 } as const
