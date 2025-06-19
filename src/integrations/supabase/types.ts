@@ -119,6 +119,139 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_provider_applications: {
+        Row: {
+          address: string | null
+          email: string | null
+          full_name: string
+          id: string
+          license_number: string | null
+          phone: string | null
+          provider_type: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          specialization_id: string | null
+          status: string | null
+          submitted_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          provider_type: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          specialization_id?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          provider_type?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          specialization_id?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_provider_applications_specialization_id_fkey"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "medical_specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_providers: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          license_number: string | null
+          phone: string | null
+          provider_type: string
+          rating: number | null
+          specialization_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          provider_type: string
+          rating?: number | null
+          specialization_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          provider_type?: string
+          rating?: number | null
+          specialization_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_medical_providers_specialization"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "medical_specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_specializations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -342,42 +475,191 @@ export type Database = {
           },
         ]
       }
-      rides: {
+      profiles: {
         Row: {
           created_at: string | null
-          destination_address: string
-          destination_location: string | null
-          driver_id: string | null
-          fare: number | null
+          email: string | null
+          full_name: string | null
           id: string
-          pickup_address: string
-          pickup_location: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      property_inquiries: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          phone: string | null
+          property_id: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
-          destination_address: string
-          destination_location?: string | null
-          driver_id?: string | null
-          fare?: number | null
+          email: string
+          full_name: string
           id?: string
-          pickup_address: string
-          pickup_location?: string | null
+          message?: string | null
+          phone?: string | null
+          property_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      property_viewings: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          property_id: string | null
+          scheduled_date: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          scheduled_date: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          scheduled_date?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          product_id: string | null
+          rating: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          actual_fare: number | null
+          completed_at: string | null
+          created_at: string | null
+          destination_address: string
+          destination_location: string | null
+          driver_id: string | null
+          estimated_fare: number | null
+          fare: number | null
+          id: string
+          pickup_address: string
+          pickup_location: string | null
+          rating: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actual_fare?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          destination_address: string
+          destination_location?: string | null
+          driver_id?: string | null
+          estimated_fare?: number | null
+          fare?: number | null
+          id?: string
+          pickup_address: string
+          pickup_location?: string | null
+          rating?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actual_fare?: number | null
+          completed_at?: string | null
+          created_at?: string | null
           destination_address?: string
           destination_location?: string | null
           driver_id?: string | null
+          estimated_fare?: number | null
           fare?: number | null
           id?: string
           pickup_address?: string
           pickup_location?: string | null
+          rating?: number | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null

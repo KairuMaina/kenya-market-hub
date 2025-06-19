@@ -88,7 +88,7 @@ const DriverMainDashboard = () => {
                         <div>
                           <h4 className="font-medium">{(ride.profiles as any)?.full_name || 'Passenger'}</h4>
                           <p className="text-sm text-gray-600">{ride.pickup_address} → {ride.destination_address}</p>
-                          <p className="text-sm font-medium text-green-600">~KSH {ride.estimated_fare}</p>
+                          <p className="text-sm font-medium text-green-600">~KSH {ride.fare || ride.estimated_fare || 0}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -118,12 +118,12 @@ const DriverMainDashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium text-sm">{(ride.profiles as any)?.full_name || 'Passenger'}</h4>
-                        <span className="text-sm font-medium text-green-600">KSH {ride.actual_fare}</span>
+                        <span className="text-sm font-medium text-green-600">KSH {ride.fare || ride.actual_fare || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">{ride.pickup_address} → {ride.destination_address}</p>
-                      <p className="text-xs text-gray-500">{ride.completed_at ? timeAgo(ride.completed_at) : ''}</p>
+                      <p className="text-xs text-gray-500">{ride.completed_at ? timeAgo(ride.completed_at) : timeAgo(ride.updated_at)}</p>
                     </div>
-                    {ride.rating && (
+                    {ride.rating && ride.rating > 0 && (
                       <div className="flex items-center ml-3">
                         {[...Array(ride.rating)].map((_, i) => (
                           <Star key={i} className="h-3 w-3 text-yellow-400 fill-current" />
