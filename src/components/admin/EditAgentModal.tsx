@@ -26,7 +26,7 @@ const EditAgentModal = ({ agent, isOpen, onClose, onSuccess }: EditAgentModalPro
 
   if (!agent) return null;
 
-  const handleInputChange = (field: keyof Omit<AdminAgent, 'id' | 'user_id' | 'created_at' | 'full_name'>, value: any) => {
+  const handleInputChange = (field: keyof AdminAgent, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -85,13 +85,13 @@ const EditAgentModal = ({ agent, isOpen, onClose, onSuccess }: EditAgentModalPro
               onChange={(e) => handleInputChange('email', e.target.value)}
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_verified"
-              checked={formData.is_verified || false}
-              onCheckedChange={(checked) => handleInputChange('is_verified', checked)}
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              value={formData.address || ''}
+              onChange={(e) => handleInputChange('address', e.target.value)}
             />
-            <Label htmlFor="is_verified">Verified</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Switch
