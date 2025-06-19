@@ -9,6 +9,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     name: 'Comprehensive Health Insurance',
     description: 'Complete medical coverage including in-patient, out-patient, and emergency services.',
     category: 'Medical',
+    providerId: 'kmi-001',
     providerName: 'Kenya Medical Insurance',
     premium: 15000,
     coverageAmount: 500000,
@@ -22,6 +23,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     name: 'Third Party Motor Insurance',
     description: 'Basic motor vehicle insurance covering third party damages and injuries.',
     category: 'Motor',
+    providerId: 'ask-001',
     providerName: 'Auto Shield Kenya',
     premium: 8000,
     coverageAmount: 1000000,
@@ -35,6 +37,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     name: 'Life Assurance Plan',
     description: 'Life insurance with savings component and death benefit coverage.',
     category: 'Life/Accident',
+    providerId: 'lpi-001',
     providerName: 'Life Plus Insurance',
     premium: 25000,
     coverageAmount: 2000000,
@@ -48,6 +51,7 @@ const mockInsurancePlans: InsurancePlan[] = [
     name: 'Business Property Insurance',
     description: 'Comprehensive coverage for business premises, equipment, and stock.',
     category: 'Business/Property',
+    providerId: 'cg-001',
     providerName: 'Commercial Guard',
     premium: 45000,
     coverageAmount: 5000000,
@@ -118,14 +122,21 @@ export const getUserPolicies = async (userId: string): Promise<InsurancePolicy[]
     {
       id: 'policy_1',
       userId,
-      planId: '1',
+      providerId: 'kmi-001',
+      providerName: 'Kenya Medical Insurance',
+      category: 'Medical',
       policyNumber: 'POL-2024-001',
+      policyName: 'Comprehensive Health Insurance',
+      coverageType: 'Individual',
       status: 'Active',
       startDate: '2024-01-01',
       endDate: '2024-12-31',
-      premiumAmount: 15000,
+      premium: 15000,
       coverageAmount: 500000,
-      beneficiaries: ['John Doe Spouse', 'Jane Doe Child']
+      documents: [],
+      claims: [],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
     }
   ];
   
@@ -152,13 +163,13 @@ export const getInsuranceClaims = async (userId?: string): Promise<InsuranceClai
       id: 'claim_1',
       policyId: 'policy_1',
       claimNumber: 'CLM-2024-001',
-      claimType: 'Medical',
+      description: 'Hospital treatment for emergency surgery',
       claimAmount: 50000,
       status: 'Pending',
-      description: 'Hospital treatment for emergency surgery',
+      submittedAt: '2024-01-15T00:00:00Z',
       documents: [
-        { id: '1', name: 'receipt_1.pdf', url: '/documents/receipt_1.pdf', uploadedAt: '2024-01-15' },
-        { id: '2', name: 'medical_report.pdf', url: '/documents/medical_report.pdf', uploadedAt: '2024-01-15' }
+        { id: '1', claimId: 'claim_1', fileName: 'receipt_1.pdf', fileUrl: '/documents/receipt_1.pdf', fileType: 'pdf', uploadedAt: '2024-01-15' },
+        { id: '2', claimId: 'claim_1', fileName: 'medical_report.pdf', fileUrl: '/documents/medical_report.pdf', fileType: 'pdf', uploadedAt: '2024-01-15' }
       ]
     }
   ];
@@ -169,6 +180,20 @@ export const getInsuranceClaims = async (userId?: string): Promise<InsuranceClai
 // Admin functions
 export const getAllInsurancePlans = async (): Promise<InsurancePlan[]> => {
   return getInsurancePlans();
+};
+
+export const createInsurancePlan = async (planData: Omit<InsurancePlan, 'id'>): Promise<InsurancePlan> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const newPlan: InsurancePlan = {
+    ...planData,
+    id: `plan_${Date.now()}`
+  };
+  
+  // Add to mock data
+  mockInsurancePlans.push(newPlan);
+  
+  return newPlan;
 };
 
 export const updateInsurancePlan = async (id: string, updates: Partial<InsurancePlan>): Promise<InsurancePlan> => {
@@ -202,13 +227,13 @@ export const updateClaimStatus = async (claimId: string, status: string): Promis
     id: claimId,
     policyId: 'policy_1',
     claimNumber: 'CLM-2024-001',
-    claimType: 'Medical',
+    description: 'Hospital treatment for emergency surgery',
     claimAmount: 50000,
     status: status as 'Pending' | 'Under Review' | 'Approved' | 'Rejected' | 'Paid',
-    description: 'Hospital treatment for emergency surgery',
+    submittedAt: '2024-01-15T00:00:00Z',
     documents: [
-      { id: '1', name: 'receipt_1.pdf', url: '/documents/receipt_1.pdf', uploadedAt: '2024-01-15' },
-      { id: '2', name: 'medical_report.pdf', url: '/documents/medical_report.pdf', uploadedAt: '2024-01-15' }
+      { id: '1', claimId: claimId, fileName: 'receipt_1.pdf', fileUrl: '/documents/receipt_1.pdf', fileType: 'pdf', uploadedAt: '2024-01-15' },
+      { id: '2', claimId: claimId, fileName: 'medical_report.pdf', fileUrl: '/documents/medical_report.pdf', fileType: 'pdf', uploadedAt: '2024-01-15' }
     ]
   };
   

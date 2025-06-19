@@ -433,6 +433,45 @@ export type Database = {
           },
         ]
       }
+      vendor_applications: {
+        Row: {
+          business_description: string | null
+          business_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          id: string
+          logo_url: string | null
+          status: string | null
+          submitted_at: string | null
+          user_id: string | null
+          website_url: string | null
+        }
+        Insert: {
+          business_description?: string | null
+          business_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          id?: string
+          logo_url?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          business_description?: string | null
+          business_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          id?: string
+          logo_url?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       vendors: {
         Row: {
           business_address: string | null
