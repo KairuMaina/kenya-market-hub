@@ -3,169 +3,42 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface RideRequest {
-  id: string;
-  user_id: string;
-  pickup_location: any;
-  pickup_address: string;
-  destination_location: any;
-  destination_address: string;
-  vehicle_type: string;
-  estimated_fare?: number;
-  status: string;
-  created_at: string;
-}
-
-export interface DriverRideRequest {
-  id: string;
-  ride_id: string;
-  driver_id: string;
-  status: string;
-  distance_km?: number;
-  estimated_pickup_minutes?: number;
-  expires_at: string;
-  created_at: string;
-}
-
-export const useAvailableRides = () => {
+export const useDriverRequests = () => {
   return useQuery({
-    queryKey: ['available-rides'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rides')
-        .select('*')
-        .eq('status', 'requested')
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      
-      // Transform data to match RideRequest interface
-      return data?.map(ride => ({
-        ...ride,
-        vehicle_type: ride.vehicle_type || 'taxi'
-      })) as RideRequest[] || [];
-    },
-    refetchInterval: 5000 // Refresh every 5 seconds
-  });
-};
-
-export const useFindNearbyDrivers = () => {
-  const { toast } = useToast();
-  
-  return useMutation({
-    mutationFn: async ({ 
-      pickupLat, 
-      pickupLng, 
-      vehicleType,
-      radiusKm = 10 
-    }: {
-      pickupLat: number;
-      pickupLng: number;
-      vehicleType?: string;
-      radiusKm?: number;
-    }) => {
-      const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        pickup_lat: pickupLat,
-        pickup_lng: pickupLng,
-        vehicle_type_param: vehicleType || 'taxi',
-        radius_km: radiusKm
-      });
-      
-      if (error) throw error;
-      return data;
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error finding nearby drivers',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
-};
-
-export const useSendRideRequests = () => {
-  const { toast } = useToast();
-  
-  return useMutation({
-    mutationFn: async ({ 
-      rideId, 
-      driverRequests 
-    }: {
-      rideId: string;
-      driverRequests: Array<{
-        driver_id: string;
-        distance_km?: number;
-        estimated_pickup_minutes?: number;
-      }>;
-    }) => {
-      // Note: This table might not exist yet, so we'll handle the error gracefully
-      const requestsToInsert = driverRequests.map(request => ({
-        ride_id: rideId,
-        driver_id: request.driver_id,
-        distance_km: request.distance_km,
-        estimated_pickup_minutes: request.estimated_pickup_minutes,
-        status: 'pending',
-        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes from now
-      }));
-
-      const { data, error } = await supabase
-        .from('driver_ride_requests')
-        .insert(requestsToInsert)
-        .select();
-      
-      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
-        throw error;
-      }
-      
-      return data || [];
-    },
-    onError: (error: any) => {
-      if (!error.message.includes('relation') && !error.message.includes('does not exist')) {
-        toast({
-          title: 'Error sending ride requests',
-          description: error.message,
-          variant: 'destructive'
-        });
-      }
-    }
-  });
-};
-
-export const useDriverRideRequests = () => {
-  return useQuery({
-    queryKey: ['driver-ride-requests'],
+    queryKey: ['driver-requests'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
-      // Get driver info first
-      const { data: driver, error: driverError } = await supabase
+      // Get driver record
+      const { data: driver } = await supabase
         .from('drivers')
         .select('id')
         .eq('user_id', user.id)
         .single();
       
-      if (driverError) throw driverError;
+      if (!driver) throw new Error('Driver not found');
       
-      // Note: This table might not exist yet, so we'll handle the error gracefully
       const { data, error } = await supabase
         .from('driver_ride_requests')
         .select(`
           *,
-          rides (*)
+          rides (
+            id,
+            pickup_address,
+            destination_address,
+            estimated_fare,
+            vehicle_type
+          )
         `)
         .eq('driver_id', driver.id)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .gt('expires_at', new Date().toISOString());
       
-      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
-        throw error;
-      }
-      
-      return data || [];
+      if (error) throw error;
+      return data;
     },
-    refetchInterval: 3000 // Check for new requests every 3 seconds
+    refetchInterval: 5000, // Poll every 5 seconds for new requests
   });
 };
 
@@ -174,28 +47,19 @@ export const useRespondToRideRequest = () => {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async ({ 
-      requestId, 
-      response 
-    }: {
-      requestId: string;
-      response: 'accepted' | 'declined';
-    }) => {
-      // Note: This table might not exist yet
+    mutationFn: async ({ requestId, response }: { requestId: string; response: 'accepted' | 'declined' }) => {
       const { error } = await supabase
         .from('driver_ride_requests')
-        .update({ 
+        .update({
           status: response,
           responded_at: new Date().toISOString()
         })
         .eq('id', requestId);
       
-      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
-        throw error;
-      }
+      if (error) throw error;
       
       if (response === 'accepted') {
-        // Update the ride status to accepted
+        // Update the ride status
         const { data: request } = await supabase
           .from('driver_ride_requests')
           .select('ride_id, driver_id')
@@ -207,56 +71,22 @@ export const useRespondToRideRequest = () => {
             .from('rides')
             .update({ 
               status: 'accepted',
-              driver_id: request.driver_id,
-              accepted_at: new Date().toISOString()
+              driver_id: request.driver_id 
             })
             .eq('id', request.ride_id);
         }
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['driver-ride-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['available-rides'] });
-      toast({ title: 'Response sent successfully' });
-    },
-    onError: (error: any) => {
-      if (!error.message.includes('relation') && !error.message.includes('does not exist')) {
-        toast({
-          title: 'Error responding to ride request',
-          description: error.message,
-          variant: 'destructive'
-        });
-      }
-    }
-  });
-};
-
-export const useDriverStatus = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  return useMutation({
-    mutationFn: async (status: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      
-      const { error } = await supabase
-        .from('drivers')
-        .update({ 
-          availability_status: status,
-          status: status === 'available' ? 'available' : 'offline'
-        })
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
-      toast({ title: 'Status updated successfully' });
+      queryClient.invalidateQueries({ queryKey: ['driver-requests'] });
+      toast({
+        title: 'Response recorded',
+        description: 'Your response has been recorded successfully.'
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error updating status',
+        title: 'Error',
         description: error.message,
         variant: 'destructive'
       });
@@ -264,80 +94,59 @@ export const useDriverStatus = () => {
   });
 };
 
-export const useDriverEarnings = () => {
-  return useQuery({
-    queryKey: ['driver-earnings'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+export const useMatchDriversToRide = () => {
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      rideId, 
+      pickupLat, 
+      pickupLng, 
+      vehicleType 
+    }: { 
+      rideId: string; 
+      pickupLat: number; 
+      pickupLng: number; 
+      vehicleType: string; 
+    }) => {
+      // Find nearby drivers
+      const { data: nearbyDrivers, error: driversError } = await supabase
+        .rpc('find_nearby_drivers', { 
+          p_pickup_lat: pickupLat, 
+          p_pickup_lng: pickupLng,
+          p_radius_km: 10
+        });
       
-      // Get driver info first
-      const { data: driver, error: driverError } = await supabase
-        .from('drivers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      if (driversError) throw driversError;
       
-      if (driverError) throw driverError;
+      if (!nearbyDrivers || nearbyDrivers.length === 0) {
+        throw new Error('No drivers available in your area');
+      }
       
-      const { data, error } = await supabase
-        .from('rides')
-        .select('actual_fare, duration_minutes, completed_at')
-        .eq('driver_id', driver.id)
-        .eq('status', 'completed');
+      // Create ride requests for nearby drivers
+      const requests = nearbyDrivers.map((driver: any) => ({
+        ride_id: rideId,
+        driver_id: driver.driver_id,
+        distance_km: driver.distance_km,
+        estimated_pickup_minutes: Math.round(driver.distance_km * 2.5), // Estimate based on distance
+        expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(), // 2 minutes from now
+        status: 'pending'
+      }));
       
-      if (error) throw error;
+      const { error: requestsError } = await supabase
+        .from('driver_ride_requests')
+        .insert(requests);
       
-      const totalEarnings = data?.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
-      const totalRides = data?.length || 0;
-      const commission = totalEarnings * 0.05; // 5% commission
-      const netEarnings = totalEarnings - commission;
+      if (requestsError) throw requestsError;
       
-      return {
-        // Total earnings data
-        total_gross_earnings: totalEarnings,
-        total_net_earnings: netEarnings,
-        total_commission: commission,
-        total_trips: totalRides,
-        
-        // Today's data (mock for now)
-        today_gross_earnings: totalEarnings * 0.1,
-        today_net_earnings: netEarnings * 0.1,
-        today_commission: commission * 0.1,
-        today_trips: Math.floor(totalRides * 0.1),
-        
-        // Week's data (mock for now)
-        week_gross_earnings: totalEarnings * 0.3,
-        week_net_earnings: netEarnings * 0.3,
-        week_commission: commission * 0.3,
-        week_trips: Math.floor(totalRides * 0.3),
-        
-        // Legacy properties for backward compatibility
-        totalEarnings: totalEarnings,
-        totalRides: totalRides,
-        weeklyEarnings: netEarnings * 0.3,
-        monthlyEarnings: netEarnings
-      };
-    }
-  });
-};
-
-export const useRideStatusUpdates = (rideId?: string) => {
-  return useQuery({
-    queryKey: ['ride-status', rideId],
-    queryFn: async () => {
-      if (!rideId) return null;
-      
-      const { data, error } = await supabase
-        .from('rides')
-        .select('*')
-        .eq('id', rideId)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      return { message: `Sent ride requests to ${nearbyDrivers.length} drivers` };
     },
-    enabled: !!rideId,
-    refetchInterval: 5000
+    onError: (error: any) => {
+      toast({
+        title: 'Error matching drivers',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   });
 };

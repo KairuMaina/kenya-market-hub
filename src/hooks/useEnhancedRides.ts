@@ -1,9 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useFindNearbyDrivers, useSendRideRequests } from './useDriverMatching';
 
 export interface EnhancedRide {
   id: string;
@@ -13,213 +11,170 @@ export interface EnhancedRide {
   destination_address: string;
   pickup_location: { lat: number; lng: number };
   destination_location: { lat: number; lng: number };
-  vehicle_type: 'taxi' | 'motorbike';
   estimated_fare: number;
   actual_fare?: number;
-  distance_km?: number;
-  duration_minutes?: number;
-  status: 'requested' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
-  requested_at?: string;
-  accepted_at?: string;
-  started_at?: string;
+  status: string;
+  vehicle_type: string;
+  created_at: string;
   completed_at?: string;
-  cancelled_at?: string;
   rating?: number;
   review?: string;
-  cancellation_reason?: string;
-  created_at: string;
-  updated_at: string;
+  duration_minutes?: number;
 }
 
-export interface RideMatchingRequest {
-  id: string;
-  ride_id: string;
-  driver_id: string;
-  distance_km?: number;
-  estimated_time_minutes?: number;
-  status: 'pending' | 'accepted' | 'declined' | 'expired';
-  expires_at: string;
-  created_at: string;
-  responded_at?: string;
-}
-
-export const useEnhancedRides = () => {
-  const { user } = useAuth();
-
+export const useEnhancedRides = (filters?: {
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  vehicleType?: string;
+}) => {
   return useQuery({
-    queryKey: ['enhanced-rides', user?.id],
+    queryKey: ['enhanced-rides', filters],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('rides')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+      if (filters?.dateFrom) {
+        query = query.gte('created_at', filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        query = query.lte('created_at', filters.dateTo);
+      }
+      if (filters?.vehicleType) {
+        query = query.eq('vehicle_type', filters.vehicleType);
+      }
+
+      const { data, error } = await query;
+      
       if (error) throw error;
       
-      return data.map(ride => ({
+      return data?.map(ride => ({
         ...ride,
-        estimated_fare: ride.estimated_fare || 0,
         pickup_location: ride.pickup_location ? 
-          { lat: (ride.pickup_location as any).y, lng: (ride.pickup_location as any).x } : 
+          JSON.parse(ride.pickup_location) : 
           { lat: 0, lng: 0 },
         destination_location: ride.destination_location ? 
-          { lat: (ride.destination_location as any).y, lng: (ride.destination_location as any).x } : 
+          JSON.parse(ride.destination_location) : 
           { lat: 0, lng: 0 },
+        vehicle_type: ride.vehicle_type || 'taxi'
       })) as EnhancedRide[];
-    },
-    enabled: !!user,
-    refetchInterval: 5000,
+    }
   });
 };
 
-export const useBookEnhancedRide = () => {
-  const { toast } = useToast();
+export const useCreateEnhancedRide = () => {
   const queryClient = useQueryClient();
-  const findDrivers = useFindNearbyDrivers();
-  const sendRequests = useSendRideRequests();
-
+  const { toast } = useToast();
+  
   return useMutation({
     mutationFn: async (rideData: {
-      pickupAddress: string;
-      destinationAddress: string;
-      pickupLocation: { lat: number; lng: number };
-      destinationLocation: { lat: number; lng: number };
-      vehicleType: 'taxi' | 'motorbike';
+      pickup_address: string;
+      destination_address: string;
+      pickup_location: { lat: number; lng: number };
+      destination_location: { lat: number; lng: number };
+      estimated_fare: number;
+      vehicle_type: 'taxi' | 'motorbike';
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data: fareData, error: fareError } = await supabase
-        .from('fare_calculations')
-        .select('*')
-        .eq('vehicle_type', rideData.vehicleType)
-        .eq('is_active', true)
-        .single();
-
-      if (fareError) throw fareError;
-
-      const estimatedDistance = 5;
-      const estimatedFare = fareData.base_fare + (estimatedDistance * fareData.per_km_rate);
-
-      const { data: ride, error } = await supabase
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data, error } = await supabase
         .from('rides')
         .insert({
           user_id: user.id,
-          pickup_address: rideData.pickupAddress,
-          destination_address: rideData.destinationAddress,
-          pickup_location: `POINT(${rideData.pickupLocation.lng} ${rideData.pickupLocation.lat})`,
-          destination_location: `POINT(${rideData.destinationLocation.lng} ${rideData.destinationLocation.lat})`,
-          vehicle_type: rideData.vehicleType,
-          estimated_fare: estimatedFare,
-          status: 'requested',
+          pickup_address: rideData.pickup_address,
+          destination_address: rideData.destination_address,
+          pickup_location: JSON.stringify(rideData.pickup_location),
+          destination_location: JSON.stringify(rideData.destination_location),
+          estimated_fare: rideData.estimated_fare,
+          vehicle_type: rideData.vehicle_type,
+          status: 'pending'
         })
         .select()
         .single();
-
+      
       if (error) throw error;
-
-      const nearbyDrivers = await findDrivers.mutateAsync({
-        pickupLat: rideData.pickupLocation.lat,
-        pickupLng: rideData.pickupLocation.lng,
-        vehicleType: rideData.vehicleType,
-      });
-
-      if (nearbyDrivers.length > 0) {
-        await sendRequests.mutateAsync({
-          rideId: ride.id,
-          driverRequests: nearbyDrivers.map(driver => ({
-            driver_id: driver.driver_id,
-            distance_km: driver.distance_km,
-            estimated_pickup_minutes: driver.estimated_pickup_minutes
-          }))
-        });
-      }
-
-      return ride;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-rides'] });
       toast({
-        title: 'Ride Booked!',
-        description: 'Your ride request has been submitted. Finding nearby drivers...',
+        title: 'Ride requested',
+        description: 'Your ride request has been created successfully.'
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Booking Failed',
+        title: 'Error creating ride',
         description: error.message,
-        variant: 'destructive',
+        variant: 'destructive'
       });
-    },
+    }
   });
 };
 
-export const useRideMatchingRequests = (rideId?: string) => {
+export const useRideMatching = () => {
   return useQuery({
-    queryKey: ['ride-matching-requests', rideId],
+    queryKey: ['ride-matching'],
     queryFn: async () => {
-      if (!rideId) return [];
-
-      const { data, error } = await supabase
-        .from('ride_matching_requests')
-        .select(`
-          *,
-          drivers (
-            id,
-            phone_number,
-            vehicle_type,
-            vehicle_make,
-            vehicle_model,
-            license_plate,
-            rating
-          )
-        `)
-        .eq('ride_id', rideId)
-        .order('created_at', { ascending: false });
-
+      // Get available drivers
+      const { data: availableDrivers, error } = await supabase
+        .rpc('find_nearby_drivers', { 
+          p_pickup_lat: -1.2921, // Default to Nairobi coordinates
+          p_pickup_lng: 36.8219,
+          p_radius_km: 50
+        });
+      
       if (error) throw error;
-      return data as RideMatchingRequest[];
-    },
-    enabled: !!rideId,
-    refetchInterval: 3000,
+      return availableDrivers || [];
+    }
   });
 };
 
-// Commission calculation hook
-export const useCalculateCommission = () => {
+export const useUpdateRideStatus = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
   return useMutation({
-    mutationFn: async ({ 
-      rideId, 
-      actualFare 
-    }: { 
+    mutationFn: async ({ rideId, status, actualFare }: { 
       rideId: string; 
-      actualFare: number;
+      status: string; 
+      actualFare?: number; 
     }) => {
-      const commissionRate = 0.05; // 5%
-      const commission = actualFare * commissionRate;
-      const driverEarnings = actualFare - commission;
-
-      // Update the ride with actual fare and commission details
+      const updateData: any = { status };
+      
+      if (status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+        if (actualFare) {
+          updateData.actual_fare = actualFare;
+        }
+      }
+      
       const { error } = await supabase
         .from('rides')
-        .update({ 
-          actual_fare: actualFare,
-          completed_at: new Date().toISOString(),
-          status: 'completed'
-        })
+        .update(updateData)
         .eq('id', rideId);
-
+      
       if (error) throw error;
-
-      return {
-        actualFare,
-        commission,
-        driverEarnings,
-        commissionRate
-      };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['enhanced-rides'] });
+      toast({
+        title: 'Ride updated',
+        description: 'Ride status updated successfully.'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating ride',
+        description: error.message,
+        variant: 'destructive'
+      });
     }
   });
 };

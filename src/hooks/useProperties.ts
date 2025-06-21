@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -9,7 +8,7 @@ export interface Property {
   description?: string;
   price: number;
   listing_type: string;
-  property_type?: string;
+  property_type: string; // Make this required
   bedrooms?: number;
   bathrooms?: number;
   area?: number;
@@ -24,7 +23,7 @@ export interface Property {
   created_at?: string;
   updated_at?: string;
   // Additional properties that components expect
-  location_address: string; // Make this required
+  location_address: string;
   is_featured?: boolean;
   area_sqm?: number;
   views_count?: number;
@@ -81,6 +80,7 @@ export const useProperties = (filters?: PropertyFilters) => {
       // Transform data to match expected interface
       return data?.map(property => ({
         ...property,
+        property_type: property.property_type || 'apartment', // Provide default value
         location_address: property.address || property.location || 'No address provided',
         is_featured: false, // Mock featured property
         area_sqm: property.area || 0,
@@ -106,6 +106,7 @@ export const useFeaturedProperties = () => {
       // Transform data to match expected interface
       return data?.map(property => ({
         ...property,
+        property_type: property.property_type || 'apartment', // Provide default value
         location_address: property.address || property.location || 'No address provided',
         is_featured: true,
         area_sqm: property.area || 0,
@@ -130,6 +131,7 @@ export const useProperty = (id: string) => {
       // Transform data to match expected interface
       return {
         ...data,
+        property_type: data.property_type || 'apartment', // Provide default value
         location_address: data.address || data.location || 'No address provided',
         is_featured: false,
         area_sqm: data.area || 0,

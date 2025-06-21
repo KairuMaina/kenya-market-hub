@@ -212,6 +212,57 @@ export type Database = {
           },
         ]
       }
+      driver_ride_requests: {
+        Row: {
+          created_at: string | null
+          distance_km: number | null
+          driver_id: string | null
+          estimated_pickup_minutes: number | null
+          expires_at: string
+          id: string
+          responded_at: string | null
+          ride_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id?: string | null
+          estimated_pickup_minutes?: number | null
+          expires_at: string
+          id?: string
+          responded_at?: string | null
+          ride_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          distance_km?: number | null
+          driver_id?: string | null
+          estimated_pickup_minutes?: number | null
+          expires_at?: string
+          id?: string
+          responded_at?: string | null
+          ride_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_ride_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_ride_requests_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_saved_routes: {
         Row: {
           created_at: string | null
@@ -313,6 +364,45 @@ export type Database = {
           vehicle_model?: string | null
           vehicle_type?: string | null
           vehicle_year?: number | null
+        }
+        Relationships: []
+      }
+      employers: {
+        Row: {
+          approved: boolean | null
+          company_name: string
+          contact_name: string
+          created_at: string | null
+          description: string | null
+          email: string
+          id: string
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          company_name: string
+          contact_name: string
+          created_at?: string | null
+          description?: string | null
+          email: string
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          company_name?: string
+          contact_name?: string
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -435,6 +525,7 @@ export type Database = {
       medical_provider_applications: {
         Row: {
           address: string | null
+          documents: Json | null
           email: string | null
           full_name: string
           id: string
@@ -450,6 +541,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          documents?: Json | null
           email?: string | null
           full_name: string
           id?: string
@@ -465,6 +557,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          documents?: Json | null
           email?: string | null
           full_name?: string
           id?: string
@@ -496,6 +589,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean | null
+          is_verified: boolean | null
           license_number: string | null
           phone: string | null
           provider_type: string
@@ -512,6 +606,7 @@ export type Database = {
           full_name: string
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           license_number?: string | null
           phone?: string | null
           provider_type: string
@@ -528,6 +623,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           license_number?: string | null
           phone?: string | null
           provider_type?: string
@@ -1080,6 +1176,7 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+          vehicle_type: string | null
         }
         Insert: {
           actual_fare?: number | null
@@ -1099,6 +1196,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vehicle_type?: string | null
         }
         Update: {
           actual_fare?: number | null
@@ -1118,6 +1216,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vehicle_type?: string | null
         }
         Relationships: [
           {
@@ -1289,6 +1388,7 @@ export type Database = {
           contact_phone: string | null
           id: string
           logo_url: string | null
+          service_type: string | null
           status: string | null
           submitted_at: string | null
           user_id: string | null
@@ -1301,6 +1401,7 @@ export type Database = {
           contact_phone?: string | null
           id?: string
           logo_url?: string | null
+          service_type?: string | null
           status?: string | null
           submitted_at?: string | null
           user_id?: string | null
@@ -1313,6 +1414,7 @@ export type Database = {
           contact_phone?: string | null
           id?: string
           logo_url?: string | null
+          service_type?: string | null
           status?: string | null
           submitted_at?: string | null
           user_id?: string | null
@@ -1324,9 +1426,9 @@ export type Database = {
         Row: {
           business_address: string | null
           business_description: string | null
+          business_email: string | null
           business_name: string
-          contact_email: string | null
-          contact_phone: string | null
+          business_phone: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
@@ -1338,9 +1440,9 @@ export type Database = {
         Insert: {
           business_address?: string | null
           business_description?: string | null
+          business_email?: string | null
           business_name: string
-          contact_email?: string | null
-          contact_phone?: string | null
+          business_phone?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -1352,9 +1454,9 @@ export type Database = {
         Update: {
           business_address?: string | null
           business_description?: string | null
+          business_email?: string | null
           business_name?: string
-          contact_email?: string | null
-          contact_phone?: string | null
+          business_phone?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
