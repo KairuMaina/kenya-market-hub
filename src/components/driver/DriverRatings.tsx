@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Users, MessageSquare } from 'lucide-react';
 import { useDriverRatings } from '@/hooks/useDriver';
 import { timeAgo } from '@/utils/time';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const DriverRatings = () => {
   const { data: ratingsData, isLoading, error } = useDriverRatings();
@@ -87,21 +87,30 @@ const DriverRatings = () => {
           <div className="space-y-4">
             {recentReviews.length > 0 ? recentReviews.map((review) => (
               <div key={review.id} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">{review.passenger}</h4>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex">
-                      {[...Array(review.rating || 0)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                      ))}
-                      {[...Array(5 - (review.rating || 0))].map((_, i) => (
-                        <Star key={i + (review.rating || 0)} className="h-4 w-4 text-gray-300" />
-                      ))}
+                <div className="flex items-start space-x-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{review.user_name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm">{review.user_name}</h4>
+                      <div className="flex items-center space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 ${
+                              i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">{timeAgo(review.date)}</span>
+                    {review.comment && (
+                      <p className="text-sm text-gray-600 mt-1">{review.comment}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">{timeAgo(review.date)}</p>
                   </div>
                 </div>
-                {review.comment && <p className="text-gray-700">{review.comment}</p>}
               </div>
             )) : (
               <p className="text-center text-gray-500 py-4">No reviews yet.</p>

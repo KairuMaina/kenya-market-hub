@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,16 +32,14 @@ const DriverRequestCard: React.FC<DriverRequestCardProps> = ({ request }) => {
   const handleAccept = () => {
     respondToRequest.mutate({
       requestId: request.id,
-      response: 'accepted',
-      rideId: request.ride_id
+      response: 'accepted'
     });
   };
 
   const handleDecline = () => {
     respondToRequest.mutate({
       requestId: request.id,
-      response: 'declined',
-      rideId: request.ride_id
+      response: 'declined'
     });
   };
 

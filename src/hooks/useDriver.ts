@@ -64,6 +64,9 @@ export const useDriverProfile = () => {
   });
 };
 
+// Add alias for useMyDriverProfile
+export const useMyDriverProfile = useDriverProfile;
+
 export const useCreateDriverProfile = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -358,13 +361,55 @@ export const useDriverDashboardData = () => {
       
       if (error) throw error;
       
+      // Get active rides
+      const { data: activeRides } = await supabase
+        .from('rides')
+        .select(`
+          *,
+          profiles!inner(full_name)
+        `)
+        .eq('driver_id', driver.id)
+        .in('status', ['accepted', 'started', 'arrived'])
+        .order('created_at', { ascending: false });
+      
+      // Get recent completed rides
+      const { data: recentRides } = await supabase
+        .from('rides')
+        .select(`
+          *,
+          profiles!inner(full_name)
+        `)
+        .eq('driver_id', driver.id)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false })
+        .limit(5);
+      
+      // Calculate today's stats
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayRides } = await supabase
+        .from('rides')
+        .select('actual_fare, fare')
+        .eq('driver_id', driver.id)
+        .eq('status', 'completed')
+        .gte('completed_at', today);
+      
+      const todaysEarnings = todayRides?.reduce((sum, ride) => sum + (ride.actual_fare || ride.fare || 0), 0) || 0;
+      const ridesCompletedToday = todayRides?.length || 0;
+      
       return {
         driver,
-        todayEarnings: 1250,
-        todayRides: 8,
-        rating: 4.8,
-        activeTime: '6h 45m'
+        stats: {
+          todaysEarnings,
+          ridesCompletedToday,
+          averageRating: driver.rating || 0,
+          onlineTime: '6h 45m' // Mock data
+        },
+        activeRides: activeRides || [],
+        recentRides: recentRides || []
       };
     }
   });
 };
+
+// Add alias for missing exports
+export const useDriverRideHistory = useDriverRides;

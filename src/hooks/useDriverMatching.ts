@@ -290,12 +290,33 @@ export const useDriverEarnings = () => {
       
       const totalEarnings = data?.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
       const totalRides = data?.length || 0;
+      const commission = totalEarnings * 0.05; // 5% commission
+      const netEarnings = totalEarnings - commission;
       
       return {
-        totalEarnings,
-        totalRides,
-        weeklyEarnings: totalEarnings * 0.7, // Mock weekly calculation
-        monthlyEarnings: totalEarnings
+        // Total earnings data
+        total_gross_earnings: totalEarnings,
+        total_net_earnings: netEarnings,
+        total_commission: commission,
+        total_trips: totalRides,
+        
+        // Today's data (mock for now)
+        today_gross_earnings: totalEarnings * 0.1,
+        today_net_earnings: netEarnings * 0.1,
+        today_commission: commission * 0.1,
+        today_trips: Math.floor(totalRides * 0.1),
+        
+        // Week's data (mock for now)
+        week_gross_earnings: totalEarnings * 0.3,
+        week_net_earnings: netEarnings * 0.3,
+        week_commission: commission * 0.3,
+        week_trips: Math.floor(totalRides * 0.3),
+        
+        // Legacy properties for backward compatibility
+        totalEarnings: totalEarnings,
+        totalRides: totalRides,
+        weeklyEarnings: netEarnings * 0.3,
+        monthlyEarnings: netEarnings
       };
     }
   });

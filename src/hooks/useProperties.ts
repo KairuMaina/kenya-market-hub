@@ -24,7 +24,7 @@ export interface Property {
   created_at?: string;
   updated_at?: string;
   // Additional properties that components expect
-  location_address?: string;
+  location_address: string; // Make this required
   is_featured?: boolean;
   area_sqm?: number;
   views_count?: number;

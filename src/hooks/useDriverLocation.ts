@@ -1,37 +1,27 @@
-
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface DriverLocation {
-  id: string;
-  driver_id: string;
-  location: any;
-  heading?: number;
-  speed?: number;
-  timestamp: string;
-  is_active: boolean;
-}
-
-export const useDriverLocation = (driverId?: string) => {
+export const useDriverLocation = () => {
   return useQuery({
-    queryKey: ['driver-location', driverId],
+    queryKey: ['driver-location'],
     queryFn: async () => {
-      if (!driverId) return null;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('driver_locations')
         .select('*')
-        .eq('driver_id', driverId)
-        .eq('is_active', true)
+        .eq('driver_id', user.id)
         .order('timestamp', { ascending: false })
         .limit(1)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as DriverLocation;
+      if (error) throw error;
+      return data;
     },
-    enabled: !!driverId
+    refetchInterval: 10000 // Refetch every 10 seconds
   });
 };
 
@@ -40,49 +30,34 @@ export const useUpdateDriverLocation = () => {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async ({ 
-      driverId, 
-      latitude, 
-      longitude, 
-      heading, 
-      speed 
-    }: {
-      driverId: string;
-      latitude: number;
-      longitude: number;
-      heading?: number;
-      speed?: number;
-    }) => {
-      // First, deactivate old locations
-      await supabase
-        .from('driver_locations')
-        .update({ is_active: false })
-        .eq('driver_id', driverId);
+    mutationFn: async ({ lat, lng }: { lat: number; lng: number }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
-      // Insert new location
-      const { error } = await supabase
+      // Update driver location in driver_locations table
+      const { error: locationError } = await supabase
         .from('driver_locations')
-        .insert({
-          driver_id: driverId,
-          location: `POINT(${longitude} ${latitude})`,
-          heading,
-          speed,
+        .upsert({
+          driver_id: user.id,
+          location: `(${lat},${lng})`,
+          timestamp: new Date().toISOString(),
           is_active: true
         });
       
-      if (error) throw error;
+      if (locationError) throw locationError;
       
-      // Also update the driver's current location
-      await supabase
+      // Update driver profile without current_location field
+      const { error: driverError } = await supabase
         .from('drivers')
-        .update({
-          current_location: `POINT(${longitude} ${latitude})`,
-          last_location_update: new Date().toISOString()
+        .update({ 
+          updated_at: new Date().toISOString()
         })
-        .eq('id', driverId);
+        .eq('user_id', user.id);
+      
+      if (driverError) throw driverError;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['driver-location', variables.driverId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-location'] });
     },
     onError: (error: any) => {
       toast({
@@ -94,21 +69,31 @@ export const useUpdateDriverLocation = () => {
   });
 };
 
-export const useNearbyDrivers = (latitude?: number, longitude?: number, radiusKm: number = 10) => {
-  return useQuery({
-    queryKey: ['nearby-drivers', latitude, longitude, radiusKm],
-    queryFn: async () => {
-      if (!latitude || !longitude) return [];
-      
-      const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        p_pickup_lat: latitude,
-        p_pickup_lng: longitude,
-        p_radius_km: radiusKm
-      });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!latitude && !!longitude
-  });
+export const useRealtimeDriverLocation = (driverId: string) => {
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (!driverId) return;
+
+    const channel = supabase.channel(`driver_location:${driverId}`);
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'driver_locations', filter: `driver_id=eq.${driverId}` },
+      (payload) => {
+        // Extract location data from the payload
+        const newLocation = payload.new as { location: string };
+        if (newLocation && newLocation.location) {
+          const [lat, lng] = newLocation.location.slice(1, -1).split(',').map(Number);
+          setLocation({ lat, lng });
+        }
+      }
+    ).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [driverId]);
+
+  return location;
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,10 @@ const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
 
     createInquiry.mutate({
       property_id: property.id,
-      ...formData,
+      full_name: formData.inquirer_name,
+      email: formData.inquirer_email,
+      phone: formData.inquirer_phone,
+      message: formData.message
     }, {
       onSuccess: () => {
         onClose();

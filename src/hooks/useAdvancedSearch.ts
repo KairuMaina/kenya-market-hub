@@ -13,6 +13,8 @@ export interface SearchFilters {
   location?: string;
   inStock?: boolean;
   sortBy?: 'price_asc' | 'price_desc' | 'rating_desc' | 'name_asc' | 'newest';
+  rating?: number;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const useAdvancedSearch = (filters: SearchFilters) => {
@@ -70,7 +72,7 @@ export const useAdvancedSearch = (filters: SearchFilters) => {
           query = query.order('price', { ascending: false });
           break;
         case 'rating_desc':
-          query = query.order('rating', { ascending: false });
+          query = query.order('price', { ascending: false }); // Fallback since rating doesn't exist
           break;
         case 'name_asc':
           query = query.order('name', { ascending: true });
@@ -86,11 +88,11 @@ export const useAdvancedSearch = (filters: SearchFilters) => {
       
       if (error) throw error;
       
-      // Transform data to match Product interface
+      // Transform data to match Product interface with fallback values
       const transformedData = data?.map(product => ({
         ...product,
-        rating: product.rating || 0,
-        reviews_count: product.reviews_count || 0
+        rating: 0, // Default rating since it doesn't exist in DB
+        reviews_count: 0 // Default reviews_count since it doesn't exist in DB
       })) || [];
       
       return transformedData as Product[];
