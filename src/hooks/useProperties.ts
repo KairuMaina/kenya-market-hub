@@ -30,15 +30,51 @@ export interface Property {
   views_count?: number;
 }
 
-export const useProperties = () => {
+export interface PropertyFilters {
+  location?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  propertyType?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+}
+
+export const useProperties = (filters?: PropertyFilters) => {
   return useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties', filters],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
         .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .eq('status', 'active');
+
+      // Apply filters
+      if (filters?.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+      if (filters?.city) {
+        query = query.ilike('address', `%${filters.city}%`);
+      }
+      if (filters?.minPrice) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters?.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
+      }
+      if (filters?.propertyType) {
+        query = query.eq('property_type', filters.propertyType);
+      }
+      if (filters?.bedrooms) {
+        query = query.eq('bedrooms', filters.bedrooms);
+      }
+      if (filters?.bathrooms) {
+        query = query.eq('bathrooms', filters.bathrooms);
+      }
+
+      query = query.order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -47,6 +83,31 @@ export const useProperties = () => {
         ...property,
         location_address: property.address || property.location || 'No address provided',
         is_featured: false, // Mock featured property
+        area_sqm: property.area || 0,
+        views_count: property.views || 0
+      })) as Property[];
+    }
+  });
+};
+
+export const useFeaturedProperties = () => {
+  return useQuery({
+    queryKey: ['featured-properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'active')
+        .order('views', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      
+      // Transform data to match expected interface
+      return data?.map(property => ({
+        ...property,
+        location_address: property.address || property.location || 'No address provided',
+        is_featured: true,
         area_sqm: property.area || 0,
         views_count: property.views || 0
       })) as Property[];
@@ -114,12 +175,3 @@ export const useCreatePropertyInquiry = () => {
     }
   });
 };
-
-export interface PropertyFilters {
-  location?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  propertyType?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-}
