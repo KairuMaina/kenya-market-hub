@@ -8,20 +8,21 @@ export const useDriverApproval = () => {
   const { toast } = useToast();
 
   const approveDriver = useMutation({
-    mutationFn: async ({ driverId }: { driverId: string }) => {
+    mutationFn: async (driverId: string) => {
       const { error } = await supabase
         .from('drivers')
         .update({ 
           is_verified: true,
-          is_active: true 
+          is_active: true,
+          status: 'available'
         })
         .eq('id', driverId);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-drivers'] });
-      toast({ title: 'Driver approved successfully!' });
+      toast({ title: 'Driver approved successfully' });
     },
     onError: (error: any) => {
       toast({
@@ -33,20 +34,21 @@ export const useDriverApproval = () => {
   });
 
   const rejectDriver = useMutation({
-    mutationFn: async ({ driverId }: { driverId: string }) => {
+    mutationFn: async (driverId: string) => {
       const { error } = await supabase
         .from('drivers')
         .update({ 
           is_verified: false,
-          is_active: false 
+          is_active: false,
+          status: 'offline'
         })
         .eq('id', driverId);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-drivers'] });
-      toast({ title: 'Driver rejected' });
+      toast({ title: 'Driver rejected successfully' });
     },
     onError: (error: any) => {
       toast({
@@ -57,8 +59,5 @@ export const useDriverApproval = () => {
     }
   });
 
-  return {
-    approveDriver,
-    rejectDriver
-  };
+  return { approveDriver, rejectDriver };
 };

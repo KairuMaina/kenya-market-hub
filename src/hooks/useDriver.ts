@@ -1,363 +1,319 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export const useMyDriverProfile = () => {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ['my-driver-profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
+export interface Driver {
+  id: string;
+  user_id?: string;
+  vehicle_type?: string;
+  vehicle_make?: string;
+  vehicle_model?: string;
+  vehicle_year?: number;
+  license_plate?: string;
+  license_number?: string;
+  phone?: string;
+  rating?: number;
+  total_rides?: number;
+  status?: string;
+  availability_status?: string;
+  is_verified?: boolean;
+  is_active?: boolean;
+  current_location?: any;
+  address?: string;
+  full_name?: string;
+  email?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
-      const driverPromise = supabase
+export const useDriver = (userId?: string) => {
+  return useQuery({
+    queryKey: ['driver', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as Driver;
+    },
+    enabled: !!userId
+  });
+};
+
+export const useDriverProfile = () => {
+  return useQuery({
+    queryKey: ['driver-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data, error } = await supabase
         .from('drivers')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      const profilePromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      const [{ data: driverData, error: driverError }, { data: profileData, error: profileError }] = await Promise.all([driverPromise, profilePromise]);
-        
-      if (driverError && driverError.code !== 'PGRST116') {
-        console.error('Error fetching driver data:', driverError);
-        throw driverError;
-      }
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching profile data:', profileError);
-        throw profileError;
-      }
-      
-      if (!driverData || !profileData) return null;
-
-      return {
-        ...profileData,
-        ...driverData,
-        driver_id: driverData.id,
-        phone: driverData.phone_number,
-      };
-    },
-    enabled: !!user,
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as Driver;
+    }
   });
 };
 
-export const useUpdateDriverProfile = () => {
+export const useCreateDriverProfile = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   const { toast } = useToast();
-
+  
   return useMutation({
-    mutationFn: async (profileData: any) => {
-      if (!user) throw new Error("User not authenticated");
+    mutationFn: async (driverData: Partial<Driver>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
-      const { 
-        full_name, email, address, phone,
-        vehicle_make, vehicle_model, license_plate, vehicle_year 
-      } = profileData;
-
-      const profileUpdates = { full_name, email, address, phone };
-      Object.keys(profileUpdates).forEach(key => profileUpdates[key as keyof typeof profileUpdates] === undefined && delete profileUpdates[key as keyof typeof profileUpdates]);
-      if (Object.keys(profileUpdates).length > 0) {
-        const { error: profileUpdateError } = await supabase
-          .from('profiles')
-          .update(profileUpdates)
-          .eq('id', user.id);
-        if (profileUpdateError) throw profileUpdateError;
-      }
+      const { error } = await supabase
+        .from('drivers')
+        .insert({
+          user_id: user.id,
+          vehicle_type: driverData.vehicle_type,
+          vehicle_make: driverData.vehicle_make,
+          vehicle_model: driverData.vehicle_model,
+          vehicle_year: driverData.vehicle_year,
+          license_plate: driverData.license_plate,
+          license_number: driverData.license_number,
+          phone: driverData.phone,
+          address: driverData.address,
+          full_name: driverData.full_name,
+          email: driverData.email,
+          status: 'offline',
+          availability_status: 'offline',
+          is_verified: false,
+          is_active: false,
+          rating: 0,
+          total_rides: 0
+        });
       
-      const driverUpdates = {
-        vehicle_make,
-        vehicle_model,
-        license_plate,
-        vehicle_year: vehicle_year ? parseInt(vehicle_year, 10) : null,
-        phone_number: phone
-      };
-      Object.keys(driverUpdates).forEach(key => driverUpdates[key as keyof typeof driverUpdates] === undefined && delete driverUpdates[key as keyof typeof driverUpdates]);
-
-      if (Object.keys(driverUpdates).length > 0) {
-        const { error: driverUpdateError } = await supabase
-          .from('drivers')
-          .update(driverUpdates)
-          .eq('user_id', user.id);
-        if (driverUpdateError) throw driverUpdateError;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-driver-profile'] });
-      toast({ title: "Profile updated successfully!" });
+      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+      toast({ title: 'Driver profile created successfully' });
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating profile",
+        title: 'Error creating driver profile',
         description: error.message,
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   });
 };
 
-export const useDriverDashboardData = () => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['driver-dashboard-data', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-
-      const { data: driver, error: driverError } = await supabase
-        .from('drivers')
-        .select('id, rating, status')
-        .eq('user_id', user.id)
-        .single();
-
-      if (driverError) throw driverError;
-      if (!driver) return null;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const { data: ridesToday, error: ridesError } = await supabase
-        .from('rides')
-        .select('actual_fare')
-        .eq('driver_id', driver.id)
-        .eq('status', 'completed')
-        .gte('completed_at', today.toISOString())
-        .lt('completed_at', tomorrow.toISOString());
-
-      if (ridesError) throw ridesError;
-
-      const todaysEarnings = ridesToday?.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
-      const ridesCompletedToday = ridesToday?.length || 0;
-
-      const { data: activeRides, error: activeRidesError } = await supabase
-        .from('rides')
-        .select('*, profiles:user_id(full_name)')
-        .eq('driver_id', driver.id)
-        .in('status', ['accepted', 'in_progress']);
-
-      if (activeRidesError) throw activeRidesError;
-
-      const { data: recentRides, error: recentRidesError } = await supabase
-        .from('rides')
-        .select('*, profiles:user_id(full_name)')
-        .eq('driver_id', driver.id)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false })
-        .limit(3);
-
-      if (recentRidesError) throw recentRidesError;
+export const useUpdateDriverProfile = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (driverData: Partial<Driver>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
-      return {
-        stats: {
-          todaysEarnings: todaysEarnings,
-          ridesCompletedToday,
-          averageRating: driver.rating,
-        },
-        activeRides: activeRides || [],
-        recentRides: recentRides || [],
-        status: driver.status,
-      };
+      const { error } = await supabase
+        .from('drivers')
+        .update(driverData)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
     },
-    enabled: !!user,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+      toast({ title: 'Profile updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating profile',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   });
 };
 
-export const useDriverEarnings = (timeframe: 'week' | 'month' | 'year') => {
-  const { user } = useAuth();
-
+export const useDriverRides = () => {
   return useQuery({
-    queryKey: ['driver-earnings', user?.id, timeframe],
+    queryKey: ['driver-rides'],
     queryFn: async () => {
-      if (!user) return null;
-
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get driver info first
       const { data: driver, error: driverError } = await supabase
         .from('drivers')
         .select('id')
         .eq('user_id', user.id)
         .single();
-
+      
       if (driverError) throw driverError;
-      if (!driver) return null;
+      
+      const { data, error } = await supabase
+        .from('rides')
+        .select('*')
+        .eq('driver_id', driver.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+};
 
-      const now = new Date();
-      let startDate: Date;
-
-      switch (timeframe) {
-        case 'week':
-          const firstDayOfWeek = now.getDate() - now.getDay();
-          startDate = new Date(now.setDate(firstDayOfWeek));
-          break;
-        case 'month':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case 'year':
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-      }
-      startDate.setHours(0, 0, 0, 0);
-
-      const { data: rides, error: ridesError } = await supabase
+export const useDriverEarnings = () => {
+  return useQuery({
+    queryKey: ['driver-earnings'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get driver info first
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (driverError) throw driverError;
+      
+      const { data, error } = await supabase
         .from('rides')
         .select('actual_fare, duration_minutes, completed_at')
         .eq('driver_id', driver.id)
-        .eq('status', 'completed')
-        .gte('completed_at', startDate.toISOString());
-
-      if (ridesError) throw ridesError;
-
-      if (!rides) return {
-        total: 0,
-        rides: 0,
-        hours: 0,
-        average: 0,
-        dailyEarnings: []
-      };
+        .eq('status', 'completed');
       
-      const total = rides.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0);
-      const rideCount = rides.length;
-      const hours = rides.reduce((sum, ride) => sum + (ride.duration_minutes || 0), 0) / 60;
-      const average = rideCount > 0 ? total / rideCount : 0;
-
-      const dailyEarningsMap = new Map<string, { amount: number; rides: number }>();
-      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-      for (const ride of rides) {
-          if (ride.completed_at) {
-              const date = new Date(ride.completed_at);
-              const day = daysOfWeek[date.getDay()];
-              const entry = dailyEarningsMap.get(day) || { amount: 0, rides: 0 };
-              entry.amount += ride.actual_fare || 0;
-              entry.rides += 1;
-              dailyEarningsMap.set(day, entry);
-          }
-      }
-
-      const dailyEarnings = daysOfWeek.map(day => ({
-        day,
-        amount: dailyEarningsMap.get(day)?.amount || 0,
-        rides: dailyEarningsMap.get(day)?.rides || 0,
-      }));
-
+      if (error) throw error;
+      
+      const totalEarnings = data?.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
+      const totalRides = data?.length || 0;
+      const avgEarnings = totalRides > 0 ? totalEarnings / totalRides : 0;
+      
+      // Calculate weekly earnings (last 7 days)
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const weeklyEarnings = data?.filter(ride => 
+        ride.completed_at && new Date(ride.completed_at) >= weekAgo
+      ).reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
+      
       return {
-        total,
-        rides: rideCount,
-        hours: parseFloat(hours.toFixed(1)),
-        average: parseFloat(average.toFixed(2)),
-        dailyEarnings
+        totalEarnings,
+        weeklyEarnings,
+        totalRides,
+        avgEarnings
       };
-    },
-    enabled: !!user,
+    }
   });
 };
 
 export const useDriverRatings = () => {
-    const { user } = useAuth();
-    return useQuery({
-        queryKey: ['driver-ratings', user?.id],
-        queryFn: async () => {
-            if (!user) return null;
-
-            const { data: driver, error: driverError } = await supabase
-                .from('drivers')
-                .select('id, rating')
-                .eq('user_id', user.id)
-                .single();
-
-            if (driverError) throw driverError;
-            if (!driver) return null;
-
-            const { data: reviewedRides, error: ridesError } = await supabase
-                .from('rides')
-                .select('id, rating, review, completed_at, profiles:user_id(full_name)')
-                .eq('driver_id', driver.id)
-                .eq('status', 'completed')
-                .not('rating', 'is', null)
-                .order('completed_at', { ascending: false });
-
-            if (ridesError) throw ridesError;
-
-            const totalReviews = reviewedRides?.length || 0;
-            const fiveStarRides = reviewedRides?.filter(r => r.rating === 5).length || 0;
-            const fiveStarPercentage = totalReviews > 0 ? (fiveStarRides / totalReviews) * 100 : 0;
-
-            const recentReviews = (reviewedRides || []).slice(0, 3).map(ride => ({
-                id: ride.id,
-                passenger: (ride.profiles as any)?.full_name || 'A Passenger',
-                rating: ride.rating,
-                comment: ride.review,
-                date: ride.completed_at!,
-            }));
-
-            return {
-                overallRating: driver.rating || 0,
-                totalReviews,
-                fiveStarPercentage: Math.round(fiveStarPercentage),
-                recentReviews
-            };
-        },
-        enabled: !!user,
-    });
-};
-
-export const useDriverRideHistory = () => {
-    const { user } = useAuth();
-    return useQuery({
-        queryKey: ['driver-ride-history', user?.id],
-        queryFn: async () => {
-            if (!user) return null;
-
-            const { data: driver, error: driverError } = await supabase
-                .from('drivers')
-                .select('id')
-                .eq('user_id', user.id)
-                .single();
-            
-            if (driverError) throw driverError;
-            if (!driver) return null;
-
-            const { data: rides, error: ridesError } = await supabase
-                .from('rides')
-                .select('*, profiles:user_id(full_name)')
-                .eq('driver_id', driver.id)
-                .in('status', ['completed', 'cancelled'])
-                .order('created_at', { ascending: false });
-
-            if (ridesError) throw ridesError;
-
-            return rides || [];
-        },
-        enabled: !!user,
-    });
-};
-
-export const useDriverAnalytics = () => {
-  const { user } = useAuth();
   return useQuery({
-    queryKey: ['driver-analytics', user?.id],
+    queryKey: ['driver-ratings'],
     queryFn: async () => {
-      if (!user) return null;
-
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get driver info first
       const { data: driver, error: driverError } = await supabase
         .from('drivers')
         .select('id')
         .eq('user_id', user.id)
         .single();
-
+      
       if (driverError) throw driverError;
-      if (!driver) return null;
+      
+      const { data, error } = await supabase
+        .from('rides')
+        .select(`
+          rating,
+          review,
+          completed_at
+        `)
+        .eq('driver_id', driver.id)
+        .not('rating', 'is', null)
+        .order('completed_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const ratings = data?.map(ride => ({
+        id: ride.id || '',
+        user_name: ride.profiles?.full_name || 'Anonymous',
+        rating: ride.rating || 0,
+        comment: ride.review || '',
+        date: ride.completed_at || ''
+      })) || [];
+      
+      return ratings;
+    }
+  });
+};
 
-      const { data, error } = await supabase.rpc('get_driver_analytics', { p_driver_id: driver.id });
+export const useUpdateDriverStatus = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (status: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          availability_status: status,
+          status: status === 'available' ? 'available' : 'offline'
+        })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+      toast({ title: 'Status updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating status',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useDriverAnalytics = () => {
+  return useQuery({
+    queryKey: ['driver-analytics'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get driver info first
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (driverError) throw driverError;
+      
+      const { data, error } = await supabase.rpc('get_driver_analytics', {
+        p_driver_id: driver.id
+      });
+      
       if (error) throw error;
       return data;
-    },
-    enabled: !!user,
+    }
   });
 };
 
@@ -365,106 +321,10 @@ export const usePopularRoutes = () => {
   return useQuery({
     queryKey: ['popular-routes'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_popular_routes', { limit_count: 3 });
-      if (error) {
-        console.error("Error fetching popular routes:", error);
-        throw error;
-      }
-      return data;
-    },
-  });
-};
-
-export const useDriverSavedRoutes = () => {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ['driver-saved-routes', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-
-      const { data: driver, error: driverError } = await supabase
-        .from('drivers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (driverError) throw driverError;
-      if (!driver) return null;
-
-      const { data, error } = await supabase
-        .from('driver_saved_routes')
-        .select('*')
-        .eq('driver_id', driver.id)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_popular_routes');
       
       if (error) throw error;
       return data;
-    },
-    enabled: !!user,
-  });
-};
-
-export const useAddDriverSavedRoute = () => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (routeData: { name: string, from_address: string, to_address: string }) => {
-      if (!user) throw new Error("User not authenticated");
-
-      const { data: driver, error: driverError } = await supabase
-        .from('drivers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (driverError) throw driverError;
-      if (!driver) throw new Error("Driver profile not found");
-
-      const { error } = await supabase
-        .from('driver_saved_routes')
-        .insert([{ ...routeData, driver_id: driver.id }]);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['driver-saved-routes'] });
-      toast({ title: "Route saved successfully!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error saving route",
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-};
-
-export const useDeleteDriverSavedRoute = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (routeId: string) => {
-      const { error } = await supabase
-        .from('driver_saved_routes')
-        .delete()
-        .eq('id', routeId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['driver-saved-routes'] });
-      toast({ title: "Route deleted successfully!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error deleting route",
-        description: error.message,
-        variant: 'destructive',
-      });
     }
   });
 };

@@ -7,54 +7,44 @@ export const useVendorApproval = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const approveVendorApplication = useMutation({
-    mutationFn: async ({ applicationId }: { applicationId: string }) => {
-      // First check if user already has a vendor record
-      const { data: application } = await supabase
+  const approveApplication = useMutation({
+    mutationFn: async (applicationId: string) => {
+      // First get the application data
+      const { data: application, error: fetchError } = await supabase
         .from('vendor_applications')
-        .select('user_id')
+        .select('*')
         .eq('id', applicationId)
         .single();
-
-      if (!application) {
-        throw new Error('Application not found');
-      }
-
-      // Check if vendor already exists for this user
-      const { data: existingVendor } = await supabase
+      
+      if (fetchError) throw fetchError;
+      
+      // Create vendor record manually since we need to handle the new schema
+      const { error: insertError } = await supabase
         .from('vendors')
-        .select('id')
-        .eq('user_id', application.user_id)
-        .single();
-
-      if (existingVendor) {
-        // If vendor exists, just update the application status
-        const { error } = await supabase
-          .from('vendor_applications')
-          .update({ 
-            status: 'approved',
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: (await supabase.auth.getUser()).data.user?.id
-          })
-          .eq('id', applicationId);
-
-        if (error) throw error;
-        return { success: true, message: 'Application approved (vendor already exists)' };
-      }
-
-      // If no existing vendor, use the RPC function
-      const { data, error } = await supabase.rpc('approve_vendor_application', {
-        application_id: applicationId
-      });
-
-      if (error) throw error;
-      return data;
+        .insert({
+          user_id: application.user_id,
+          business_name: application.business_name,
+          business_description: application.business_description,
+          contact_email: application.contact_email,
+          contact_phone: application.contact_phone,
+          verification_status: 'approved',
+          is_active: true
+        });
+      
+      if (insertError) throw insertError;
+      
+      // Update application status
+      const { error: updateError } = await supabase
+        .from('vendor_applications')
+        .update({ status: 'approved' })
+        .eq('id', applicationId);
+      
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
       queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      toast({ title: 'Vendor application approved successfully!' });
+      toast({ title: 'Vendor application approved successfully' });
     },
     onError: (error: any) => {
       toast({
@@ -65,19 +55,17 @@ export const useVendorApproval = () => {
     }
   });
 
-  const rejectVendorApplication = useMutation({
-    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
-      const { data, error } = await supabase.rpc('reject_vendor_application', {
-        application_id: applicationId,
-        rejection_notes: notes
-      });
-
+  const rejectApplication = useMutation({
+    mutationFn: async (applicationId: string) => {
+      const { error } = await supabase
+        .from('vendor_applications')
+        .update({ status: 'rejected' })
+        .eq('id', applicationId);
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       toast({ title: 'Vendor application rejected' });
     },
     onError: (error: any) => {
@@ -89,60 +77,60 @@ export const useVendorApproval = () => {
     }
   });
 
-  const approveVendor = useMutation({
-    mutationFn: async ({ vendorId }: { vendorId: string }) => {
+  const updateVendorStatus = useMutation({
+    mutationFn: async ({ vendorId, status }: { vendorId: string; status: string }) => {
       const { error } = await supabase
         .from('vendors')
         .update({ 
-          verification_status: 'approved',
-          is_active: true 
+          verification_status: status,
+          is_active: status === 'approved'
         })
         .eq('id', vendorId);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
-      toast({ title: 'Vendor approved successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      toast({ title: 'Vendor status updated successfully' });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error approving vendor',
+        title: 'Error updating vendor status',
         description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  const rejectVendor = useMutation({
-    mutationFn: async ({ vendorId }: { vendorId: string }) => {
+  const updateVendor = useMutation({
+    mutationFn: async (vendor: any) => {
       const { error } = await supabase
         .from('vendors')
-        .update({ 
-          verification_status: 'rejected',
-          is_active: false 
+        .update({
+          business_name: vendor.business_name,
+          business_description: vendor.business_description,
+          contact_email: vendor.contact_email,
+          contact_phone: vendor.contact_phone,
+          business_address: vendor.business_address,
+          verification_status: vendor.is_active ? 'approved' : 'pending',
+          is_active: vendor.is_active
         })
-        .eq('id', vendorId);
-
+        .eq('id', vendor.id);
+      
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
-      toast({ title: 'Vendor rejected' });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      toast({ title: 'Vendor updated successfully' });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error rejecting vendor',
+        title: 'Error updating vendor',
         description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  return {
-    approveVendorApplication,
-    rejectVendorApplication,
-    approveVendor,
-    rejectVendor
-  };
+  return { approveApplication, rejectApplication, updateVendorStatus, updateVendor };
 };

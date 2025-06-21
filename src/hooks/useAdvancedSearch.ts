@@ -1,130 +1,174 @@
 
-import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from './useProducts';
+import type { Product } from '@/types/product';
 
-interface SearchFilters {
-  query: string;
-  category: string;
-  minPrice: number;
-  maxPrice: number;
-  brand: string;
-  location: string;
-  condition: string;
-  rating: number;
-  inStock: boolean;
-  sortBy: 'price' | 'rating' | 'created_at' | 'name';
-  sortOrder: 'asc' | 'desc';
+export interface SearchFilters {
+  query?: string;
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  condition?: string;
+  location?: string;
+  inStock?: boolean;
+  sortBy?: 'price_asc' | 'price_desc' | 'rating_desc' | 'name_asc' | 'newest';
 }
 
-export const useAdvancedSearch = () => {
-  const [filters, setFilters] = useState<SearchFilters>({
-    query: '',
-    category: '',
-    minPrice: 0,
-    maxPrice: 1000000,
-    brand: '',
-    location: '',
-    condition: '',
-    rating: 0,
-    inStock: true,
-    sortBy: 'created_at',
-    sortOrder: 'desc'
-  });
-
-  const searchQuery = useQuery({
+export const useAdvancedSearch = (filters: SearchFilters) => {
+  return useQuery({
     queryKey: ['advanced-search', filters],
     queryFn: async () => {
       let query = supabase
         .from('products')
-        .select('*')
-        .eq('in_stock', filters.inStock);
+        .select('*');
 
-      // Text search across multiple fields
+      // Apply search query
       if (filters.query) {
-        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,brand.ilike.%${filters.query}%,tags.cs.{${filters.query}}`);
+        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
       }
 
-      // Category filter
+      // Apply category filter
       if (filters.category) {
         query = query.eq('category', filters.category);
       }
 
-      // Price range
-      if (filters.minPrice > 0) {
-        query = query.gte('price', filters.minPrice);
-      }
-      if (filters.maxPrice < 1000000) {
-        query = query.lte('price', filters.maxPrice);
-      }
-
-      // Brand filter
+      // Apply brand filter
       if (filters.brand) {
         query = query.eq('brand', filters.brand);
       }
 
-      // Location filter
-      if (filters.location) {
-        query = query.ilike('location', `%${filters.location}%`);
+      // Apply price range
+      if (filters.minPrice !== undefined) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters.maxPrice !== undefined) {
+        query = query.lte('price', filters.maxPrice);
       }
 
-      // Condition filter
+      // Apply condition filter
       if (filters.condition) {
         query = query.eq('condition', filters.condition);
       }
 
-      // Rating filter
-      if (filters.rating > 0) {
-        query = query.gte('rating', filters.rating);
+      // Apply location filter
+      if (filters.location) {
+        query = query.eq('location', filters.location);
       }
 
-      // Sorting
-      query = query.order(filters.sortBy, { ascending: filters.sortOrder === 'asc' });
+      // Apply stock filter
+      if (filters.inStock !== undefined) {
+        query = query.eq('in_stock', filters.inStock);
+      }
+
+      // Apply sorting
+      switch (filters.sortBy) {
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'rating_desc':
+          query = query.order('rating', { ascending: false });
+          break;
+        case 'name_asc':
+          query = query.order('name', { ascending: true });
+          break;
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
 
       const { data, error } = await query;
+      
       if (error) throw error;
-      return data as Product[];
+      
+      // Transform data to match Product interface
+      const transformedData = data?.map(product => ({
+        ...product,
+        rating: product.rating || 0,
+        reviews_count: product.reviews_count || 0
+      })) || [];
+      
+      return transformedData as Product[];
     },
     enabled: true
   });
+};
 
-  const updateFilter = (key: keyof SearchFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
+export const useSearchSuggestions = (query: string) => {
+  return useQuery({
+    queryKey: ['search-suggestions', query],
+    queryFn: async () => {
+      if (!query || query.length < 2) return [];
 
-  const resetFilters = () => {
-    setFilters({
-      query: '',
-      category: '',
-      minPrice: 0,
-      maxPrice: 1000000,
-      brand: '',
-      location: '',
-      condition: '',
-      rating: 0,
-      inStock: true,
-      sortBy: 'created_at',
-      sortOrder: 'desc'
-    });
-  };
+      const { data, error } = await supabase
+        .from('products')
+        .select('name, category, brand')
+        .or(`name.ilike.%${query}%,category.ilike.%${query}%,brand.ilike.%${query}%`)
+        .limit(10);
 
-  const categories = useMemo(() => {
-    return Array.from(new Set(searchQuery.data?.map(p => p.category) || []));
-  }, [searchQuery.data]);
+      if (error) throw error;
 
-  const brands = useMemo(() => {
-    return Array.from(new Set(searchQuery.data?.map(p => p.brand).filter(Boolean) || []));
-  }, [searchQuery.data]);
+      // Extract unique suggestions
+      const suggestions = new Set<string>();
+      data?.forEach(product => {
+        if (product.name?.toLowerCase().includes(query.toLowerCase())) {
+          suggestions.add(product.name);
+        }
+        if (product.category?.toLowerCase().includes(query.toLowerCase())) {
+          suggestions.add(product.category);
+        }
+        if (product.brand?.toLowerCase().includes(query.toLowerCase())) {
+          suggestions.add(product.brand);
+        }
+      });
 
-  return {
-    filters,
-    updateFilter,
-    resetFilters,
-    results: searchQuery.data || [],
-    isLoading: searchQuery.isLoading,
-    categories,
-    brands,
-    totalResults: searchQuery.data?.length || 0
-  };
+      return Array.from(suggestions).slice(0, 5);
+    },
+    enabled: query.length >= 2
+  });
+};
+
+export const usePopularSearches = () => {
+  return useQuery({
+    queryKey: ['popular-searches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('category, brand')
+        .not('category', 'is', null)
+        .not('brand', 'is', null);
+
+      if (error) throw error;
+
+      // Count occurrences and return most popular
+      const categoryCount: Record<string, number> = {};
+      const brandCount: Record<string, number> = {};
+
+      data?.forEach(product => {
+        if (product.category) {
+          categoryCount[product.category] = (categoryCount[product.category] || 0) + 1;
+        }
+        if (product.brand) {
+          brandCount[product.brand] = (brandCount[product.brand] || 0) + 1;
+        }
+      });
+
+      const popularCategories = Object.entries(categoryCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([category]) => category);
+
+      const popularBrands = Object.entries(brandCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([brand]) => brand);
+
+      return { popularCategories, popularBrands };
+    }
+  });
 };

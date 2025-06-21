@@ -60,7 +60,7 @@ const PropertyOwnerMainDashboard = () => {
     },
   });
 
-  const totalViews = properties?.reduce((sum, property) => sum + property.views_count, 0) || 0;
+  const totalViews = properties?.reduce((sum, property) => sum + (property.views || 0), 0) || 0;
 
   const quickStats = [
     { 
@@ -90,12 +90,12 @@ const PropertyOwnerMainDashboard = () => {
   ];
 
   const topPerformingProperties = properties
-    ?.sort((a, b) => b.views_count - a.views_count)
+    ?.sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 3)
     .map(property => ({
       id: property.id,
       title: property.title,
-      views: property.views_count,
+      views: property.views || 0,
       inquiries: 0, // This would need to be calculated from inquiries table
       type: property.listing_type
     })) || [];

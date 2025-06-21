@@ -90,6 +90,48 @@ export type Database = {
           },
         ]
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string | null
+          discount_applied: number
+          id: string
+          order_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coupon_id?: string | null
+          discount_applied: number
+          id?: string
+          order_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coupon_id?: string | null
+          discount_applied?: number
+          id?: string
+          order_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           code: string
@@ -137,6 +179,7 @@ export type Database = {
           driver_id: string | null
           heading: number | null
           id: string
+          is_active: boolean | null
           location: unknown | null
           speed: number | null
           timestamp: string | null
@@ -145,6 +188,7 @@ export type Database = {
           driver_id?: string | null
           heading?: number | null
           id?: string
+          is_active?: boolean | null
           location?: unknown | null
           speed?: number | null
           timestamp?: string | null
@@ -153,6 +197,7 @@ export type Database = {
           driver_id?: string | null
           heading?: number | null
           id?: string
+          is_active?: boolean | null
           location?: unknown | null
           speed?: number | null
           timestamp?: string | null
@@ -210,6 +255,8 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean | null
+          is_verified: boolean | null
           license_number: string | null
           license_plate: string | null
           phone: string | null
@@ -230,6 +277,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
           license_number?: string | null
           license_plate?: string | null
           phone?: string | null
@@ -250,6 +299,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
           license_number?: string | null
           license_plate?: string | null
           phone?: string | null
@@ -292,6 +343,92 @@ export type Database = {
           per_km_rate?: number
           updated_at?: string | null
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      insurance_policies: {
+        Row: {
+          coverage_amount: number
+          created_at: string | null
+          end_date: string
+          id: string
+          policy_type: string
+          premium_amount: number
+          provider_id: string | null
+          start_date: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coverage_amount: number
+          created_at?: string | null
+          end_date: string
+          id?: string
+          policy_type: string
+          premium_amount: number
+          provider_id?: string | null
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coverage_amount?: number
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          policy_type?: string
+          premium_amount?: number
+          provider_id?: string | null
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_policies_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_providers: {
+        Row: {
+          coverage_types: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          pricing: Json | null
+          rating: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          coverage_types?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          pricing?: Json | null
+          rating?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          coverage_types?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          pricing?: Json | null
+          rating?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -932,12 +1069,14 @@ export type Database = {
           destination_address: string
           destination_location: string | null
           driver_id: string | null
+          duration_minutes: number | null
           estimated_fare: number | null
           fare: number | null
           id: string
           pickup_address: string
           pickup_location: string | null
           rating: number | null
+          review: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
@@ -949,12 +1088,14 @@ export type Database = {
           destination_address: string
           destination_location?: string | null
           driver_id?: string | null
+          duration_minutes?: number | null
           estimated_fare?: number | null
           fare?: number | null
           id?: string
           pickup_address: string
           pickup_location?: string | null
           rating?: number | null
+          review?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -966,12 +1107,14 @@ export type Database = {
           destination_address?: string
           destination_location?: string | null
           driver_id?: string | null
+          duration_minutes?: number | null
           estimated_fare?: number | null
           fare?: number | null
           id?: string
           pickup_address?: string
           pickup_location?: string | null
           rating?: number | null
+          review?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1186,8 +1329,11 @@ export type Database = {
           contact_phone: string | null
           created_at: string | null
           id: string
+          is_active: boolean | null
           status: string | null
           updated_at: string | null
+          user_id: string | null
+          verification_status: string | null
         }
         Insert: {
           business_address?: string | null
@@ -1197,8 +1343,11 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
         }
         Update: {
           business_address?: string | null
@@ -1208,8 +1357,11 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }
@@ -1218,8 +1370,51 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_medical_provider_application: {
+        Args: { p_application_id: string }
+        Returns: undefined
+      }
+      approve_vendor_application: {
+        Args: { p_application_id: string }
+        Returns: undefined
+      }
+      calculate_coupon_discount: {
+        Args: { p_coupon_code: string; p_order_amount: number }
+        Returns: number
+      }
+      find_nearby_drivers: {
+        Args: {
+          p_pickup_lat: number
+          p_pickup_lng: number
+          p_radius_km?: number
+        }
+        Returns: {
+          driver_id: string
+          distance_km: number
+        }[]
+      }
+      get_driver_analytics: {
+        Args: { p_driver_id: string }
+        Returns: Json
+      }
+      get_popular_routes: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          pickup_address: string
+          destination_address: string
+          ride_count: number
+        }[]
+      }
       increment_property_views: {
         Args: { property_id: string }
+        Returns: undefined
+      }
+      reject_medical_provider_application: {
+        Args: { p_application_id: string; p_admin_notes?: string }
+        Returns: undefined
+      }
+      reject_vendor_application: {
+        Args: { p_application_id: string }
         Returns: undefined
       }
     }

@@ -7,38 +7,36 @@ export const useMedicalProviderApproval = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const approveMedicalProviderApplication = useMutation({
-    mutationFn: async ({ applicationId }: { applicationId: string }) => {
-      const { data, error } = await supabase.rpc('approve_medical_provider_application', {
+  const approveApplication = useMutation({
+    mutationFn: async (applicationId: string) => {
+      const { error } = await supabase.rpc('approve_medical_provider_application', {
         p_application_id: applicationId
       });
-
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medical-provider-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-medical-providers'] });
-      toast({ title: 'Medical provider application approved successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['medical-providers'] });
+      toast({ title: 'Medical provider application approved successfully' });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error approving application',
+        title: 'Error approving medical provider application',
         description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  const rejectMedicalProviderApplication = useMutation({
-    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes?: string }) => {
-      const { data, error } = await supabase.rpc('reject_medical_provider_application', {
+  const rejectApplication = useMutation({
+    mutationFn: async ({ applicationId, adminNotes }: { applicationId: string; adminNotes?: string }) => {
+      const { error } = await supabase.rpc('reject_medical_provider_application', {
         p_application_id: applicationId,
-        p_admin_notes: notes
+        p_admin_notes: adminNotes
       });
-
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medical-provider-applications'] });
@@ -46,15 +44,12 @@ export const useMedicalProviderApproval = () => {
     },
     onError: (error: any) => {
       toast({
-        title: 'Error rejecting application',
+        title: 'Error rejecting medical provider application',
         description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  return {
-    approveMedicalProviderApplication,
-    rejectMedicalProviderApplication
-  };
+  return { approveApplication, rejectApplication };
 };

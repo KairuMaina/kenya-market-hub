@@ -28,18 +28,15 @@ export const useAdminAgents = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('real_estate_agents')
-        .select(`
-          *,
-          profiles!real_estate_agents_user_id_fkey (full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Transform the data to include full_name at the top level
+      // Transform the data to include computed properties
       const agentsWithNames = data?.map(agent => ({
         ...agent,
-        full_name: agent.profiles?.full_name || agent.email,
+        full_name: agent.email || 'Unknown',
         is_verified: agent.status === 'approved',
         is_active: agent.status === 'approved'
       })) || [];

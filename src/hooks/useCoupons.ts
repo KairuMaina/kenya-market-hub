@@ -7,78 +7,58 @@ export interface Coupon {
   id: string;
   code: string;
   name: string;
-  description?: string;
   discount_type: 'percentage' | 'fixed';
   discount_value: number;
+  discount_amount: number;
   minimum_order_amount: number;
   maximum_discount_amount?: number;
   usage_limit?: number;
   usage_count: number;
-  user_usage_limit: number;
-  start_date: string;
-  end_date: string;
+  user_usage_limit?: number;
+  expires_at?: string;
   is_active: boolean;
-  applicable_categories?: string[];
-  applicable_products?: string[];
-  created_by?: string;
   created_at: string;
   updated_at: string;
 }
 
-interface CouponValidationResponse {
-  valid: boolean;
-  error?: string;
-  discount_amount?: number;
-  coupon_id?: string;
-  coupon_name?: string;
-  minimum_amount?: number;
-}
-
-export const useActiveCoupons = () => {
+export const useCoupons = () => {
   return useQuery({
-    queryKey: ['active-coupons'],
+    queryKey: ['coupons'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('coupons')
         .select('*')
-        .eq('is_active', true)
-        .lte('start_date', new Date().toISOString())
-        .gte('end_date', new Date().toISOString())
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Coupon[];
+      
+      // Transform data to match interface
+      const transformedData = data?.map(coupon => ({
+        ...coupon,
+        name: coupon.code, // Use code as name if name doesn't exist
+        discount_value: coupon.discount_amount,
+        usage_count: coupon.used_count || 0,
+        user_usage_limit: 1, // Default value
+        maximum_discount_amount: null
+      })) || [];
+      
+      return transformedData as Coupon[];
     }
   });
 };
 
 export const useValidateCoupon = () => {
   const { toast } = useToast();
-
+  
   return useMutation({
-    mutationFn: async ({ 
-      code, 
-      orderAmount, 
-      productCategories 
-    }: { 
-      code: string; 
-      orderAmount: number; 
-      productCategories?: string[] 
-    }): Promise<CouponValidationResponse> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
+    mutationFn: async ({ code, orderAmount }: { code: string; orderAmount: number }) => {
       const { data, error } = await supabase.rpc('calculate_coupon_discount', {
         p_coupon_code: code,
-        p_order_amount: orderAmount,
-        p_user_id: user.id,
-        p_product_categories: productCategories
+        p_order_amount: orderAmount
       });
       
       if (error) throw error;
-      
-      // Parse the response if it's a string, otherwise return as-is
-      return typeof data === 'string' ? JSON.parse(data) : data;
+      return data;
     },
     onError: (error: any) => {
       toast({
@@ -90,34 +70,63 @@ export const useValidateCoupon = () => {
   });
 };
 
-export const useApplyCoupon = () => {
+export const useCreateCoupon = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
+  
   return useMutation({
-    mutationFn: async ({ 
-      couponId, 
-      orderId 
-    }: { 
-      couponId: string; 
-      orderId: string; 
-    }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
+    mutationFn: async (coupon: Partial<Coupon>) => {
       const { error } = await supabase
-        .from('coupon_usage')
+        .from('coupons')
         .insert({
-          coupon_id: couponId,
-          user_id: user.id,
-          order_id: orderId
+          code: coupon.code,
+          discount_type: coupon.discount_type,
+          discount_amount: coupon.discount_value,
+          minimum_order_amount: coupon.minimum_order_amount,
+          usage_limit: coupon.usage_limit,
+          expires_at: coupon.expires_at,
+          is_active: coupon.is_active
         });
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coupon-usage'] });
-      toast({ title: 'Coupon applied successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      toast({ title: 'Coupon created successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error creating coupon',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useUseCoupon = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ couponId, userId, orderId, discountApplied }: {
+      couponId: string;
+      userId: string;
+      orderId: string;
+      discountApplied: number;
+    }) => {
+      const { error } = await supabase
+        .from('coupon_usage')
+        .insert({
+          coupon_id: couponId,
+          user_id: userId,
+          order_id: orderId,
+          discount_applied: discountApplied
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
     }
   });
 };

@@ -1,98 +1,51 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface AdminVendor {
   id: string;
-  user_id: string;
+  user_id?: string;
   business_name: string;
-  business_email: string | null;
-  business_phone: string | null;
-  verification_status: 'pending' | 'approved' | 'rejected';
+  business_description?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  business_address?: string;
+  verification_status: string;
   is_active: boolean;
+  status: string;
   created_at: string;
-  products_count: number;
-  total_revenue: number;
+  updated_at: string;
+  full_name?: string;
 }
 
-export const useAdminVendors = (page = 1, limit = 10, search = '') => {
+export const useAdminVendors = () => {
   return useQuery({
-    queryKey: ['admin-vendors', page, limit, search],
+    queryKey: ['admin-vendors'],
     queryFn: async () => {
-      console.log('🔍 Fetching admin vendors...', { page, limit, search });
-
-      let query = supabase
+      const { data, error } = await supabase
         .from('vendors')
-        .select(`
-          id,
-          user_id,
-          business_name,
-          business_email,
-          business_phone,
-          verification_status,
-          is_active,
-          created_at
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
-
-      if (search) {
-        query = query.ilike('business_name', `%${search}%`);
-      }
-
-      const { data: vendors, error, count } = await query
-        .range((page - 1) * limit, page * limit - 1);
-
-      if (error) {
-        console.error('❌ Error fetching vendors:', error);
-        throw error;
-      }
-
-      const vendorsWithStats = await Promise.all(
-        (vendors || []).map(async (vendor) => {
-          const [
-            { count: productsCount },
-            { data: orderItems }
-          ] = await Promise.all([
-            supabase
-              .from('products')
-              .select('*', { count: 'exact', head: true })
-              .eq('vendor_id', vendor.id),
-            supabase
-              .from('order_items')
-              .select('total_price, products!inner(vendor_id)')
-              .eq('products.vendor_id', vendor.id)
-          ]);
-
-          const totalRevenue = orderItems?.reduce((sum, item) => 
-            sum + Number(item.total_price || 0), 0) || 0;
-
-          return {
-            ...vendor,
-            products_count: productsCount || 0,
-            total_revenue: totalRevenue
-          };
-        })
-      );
-
-      console.log('✅ Vendors fetched successfully:', vendorsWithStats.length);
-
-      return {
-        vendors: vendorsWithStats,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
-      };
-    },
+      
+      if (error) throw error;
+      
+      const vendorsWithNames = data?.map(vendor => ({
+        ...vendor,
+        full_name: vendor.contact_email || vendor.business_name || 'Unknown'
+      })) || [];
+      
+      return vendorsWithNames as AdminVendor[];
+    }
   });
 };
 
 export const useUpdateVendorStatus = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
+  
   return useMutation({
-    mutationFn: async ({ vendorId, status }: { vendorId: string; status: 'approved' | 'rejected' | 'pending' }) => {
-      console.log('🔄 Updating vendor status:', { vendorId, status });
-
+    mutationFn: async ({ vendorId, status }: { vendorId: string; status: string }) => {
       const { error } = await supabase
         .from('vendors')
         .update({ 
@@ -100,16 +53,14 @@ export const useUpdateVendorStatus = () => {
           is_active: status === 'approved'
         })
         .eq('id', vendorId);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-vendors'], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
       toast({ title: 'Vendor status updated successfully' });
     },
     onError: (error: any) => {
-      console.error('❌ Error updating vendor status:', error);
       toast({
         title: 'Error updating vendor status',
         description: error.message,
