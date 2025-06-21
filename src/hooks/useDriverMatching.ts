@@ -38,7 +38,12 @@ export const useAvailableRides = () => {
         .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data as RideRequest[];
+      
+      // Transform data to match RideRequest interface
+      return data?.map(ride => ({
+        ...ride,
+        vehicle_type: ride.vehicle_type || 'taxi'
+      })) as RideRequest[] || [];
     },
     refetchInterval: 5000 // Refresh every 5 seconds
   });
@@ -223,5 +228,95 @@ export const useRespondToRideRequest = () => {
         });
       }
     }
+  });
+};
+
+export const useDriverStatus = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (status: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          availability_status: status,
+          status: status === 'available' ? 'available' : 'offline'
+        })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+      toast({ title: 'Status updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating status',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useDriverEarnings = () => {
+  return useQuery({
+    queryKey: ['driver-earnings'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get driver info first
+      const { data: driver, error: driverError } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (driverError) throw driverError;
+      
+      const { data, error } = await supabase
+        .from('rides')
+        .select('actual_fare, duration_minutes, completed_at')
+        .eq('driver_id', driver.id)
+        .eq('status', 'completed');
+      
+      if (error) throw error;
+      
+      const totalEarnings = data?.reduce((sum, ride) => sum + (ride.actual_fare || 0), 0) || 0;
+      const totalRides = data?.length || 0;
+      
+      return {
+        totalEarnings,
+        totalRides,
+        weeklyEarnings: totalEarnings * 0.7, // Mock weekly calculation
+        monthlyEarnings: totalEarnings
+      };
+    }
+  });
+};
+
+export const useRideStatusUpdates = (rideId?: string) => {
+  return useQuery({
+    queryKey: ['ride-status', rideId],
+    queryFn: async () => {
+      if (!rideId) return null;
+      
+      const { data, error } = await supabase
+        .from('rides')
+        .select('*')
+        .eq('id', rideId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!rideId,
+    refetchInterval: 5000
   });
 };

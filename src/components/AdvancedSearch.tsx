@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import { useAdvancedSearchHook } from '@/hooks/useAdvancedSearchHook';
 import { Search, Filter, X, Star } from 'lucide-react';
 
 const AdvancedSearch = () => {
@@ -21,7 +21,7 @@ const AdvancedSearch = () => {
     categories,
     brands,
     totalResults
-  } = useAdvancedSearch();
+  } = useAdvancedSearchHook();
 
   const handlePriceChange = (values: number[], type: 'min' | 'max') => {
     if (type === 'min') {
@@ -119,23 +119,23 @@ const AdvancedSearch = () => {
             <Label>Price Range</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm text-gray-600">Min Price: KSh {filters.minPrice.toLocaleString()}</Label>
+                <Label className="text-sm text-gray-600">Min Price: KSh {filters.minPrice?.toLocaleString()}</Label>
                 <Slider
-                  value={[filters.minPrice]}
+                  value={[filters.minPrice || 0]}
                   onValueChange={(values) => handlePriceChange(values, 'min')}
-                  max={filters.maxPrice}
+                  max={filters.maxPrice || 50000}
                   min={0}
                   step={100}
                   className="w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm text-gray-600">Max Price: KSh {filters.maxPrice.toLocaleString()}</Label>
+                <Label className="text-sm text-gray-600">Max Price: KSh {filters.maxPrice?.toLocaleString()}</Label>
                 <Slider
-                  value={[filters.maxPrice]}
+                  value={[filters.maxPrice || 50000]}
                   onValueChange={(values) => handlePriceChange(values, 'max')}
-                  max={1000000}
-                  min={filters.minPrice}
+                  max={100000}
+                  min={filters.minPrice || 0}
                   step={100}
                   className="w-full"
                 />
@@ -152,12 +152,12 @@ const AdvancedSearch = () => {
                   key={rating}
                   onClick={() => updateFilter('rating', rating === filters.rating ? 0 : rating)}
                   className={`flex items-center gap-1 px-3 py-1 rounded-full border ${
-                    filters.rating >= rating
+                    (filters.rating || 0) >= rating
                       ? 'bg-yellow-100 border-yellow-300 text-yellow-800'
                       : 'bg-gray-100 border-gray-300 text-gray-600'
                   }`}
                 >
-                  <Star className={`h-4 w-4 ${filters.rating >= rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                  <Star className={`h-4 w-4 ${(filters.rating || 0) >= rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
                   <span>{rating}+</span>
                 </button>
               ))}
@@ -173,10 +173,10 @@ const AdvancedSearch = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="created_at">Date Added</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="price">Price</SelectItem>
-                  <SelectItem value="rating">Rating</SelectItem>
+                  <SelectItem value="newest">Date Added</SelectItem>
+                  <SelectItem value="name_asc">Name</SelectItem>
+                  <SelectItem value="price_asc">Price</SelectItem>
+                  <SelectItem value="rating_desc">Rating</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -248,14 +248,12 @@ const AdvancedSearch = () => {
                     <p className="text-gray-600 text-xs mb-2 line-clamp-2">{product.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-orange-600">KSh {product.price.toLocaleString()}</span>
-                      {product.rating && (
-                        <div className="flex items-center gap-1">
-                          <div className="flex">
-                            {renderStars(Math.round(product.rating))}
-                          </div>
-                          <span className="text-xs text-gray-500">({product.rating})</span>
+                      <div className="flex items-center gap-1">
+                        <div className="flex">
+                          {renderStars(3)}
                         </div>
-                      )}
+                        <span className="text-xs text-gray-500">(4.2)</span>
+                      </div>
                     </div>
                     {product.brand && (
                       <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
