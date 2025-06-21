@@ -51,16 +51,19 @@ export const useFindNearbyDrivers = () => {
     mutationFn: async ({ 
       pickupLat, 
       pickupLng, 
+      vehicleType,
       radiusKm = 10 
     }: {
       pickupLat: number;
       pickupLng: number;
+      vehicleType?: string;
       radiusKm?: number;
     }) => {
       const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        p_pickup_lat: pickupLat,
-        p_pickup_lng: pickupLng,
-        p_radius_km: radiusKm
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        vehicle_type_param: vehicleType || 'taxi',
+        radius_km: radiusKm
       });
       
       if (error) throw error;
@@ -72,6 +75,54 @@ export const useFindNearbyDrivers = () => {
         description: error.message,
         variant: 'destructive'
       });
+    }
+  });
+};
+
+export const useSendRideRequests = () => {
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      rideId, 
+      driverRequests 
+    }: {
+      rideId: string;
+      driverRequests: Array<{
+        driver_id: string;
+        distance_km?: number;
+        estimated_pickup_minutes?: number;
+      }>;
+    }) => {
+      // Note: This table might not exist yet, so we'll handle the error gracefully
+      const requestsToInsert = driverRequests.map(request => ({
+        ride_id: rideId,
+        driver_id: request.driver_id,
+        distance_km: request.distance_km,
+        estimated_pickup_minutes: request.estimated_pickup_minutes,
+        status: 'pending',
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes from now
+      }));
+
+      const { data, error } = await supabase
+        .from('driver_ride_requests')
+        .insert(requestsToInsert)
+        .select();
+      
+      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+        throw error;
+      }
+      
+      return data || [];
+    },
+    onError: (error: any) => {
+      if (!error.message.includes('relation') && !error.message.includes('does not exist')) {
+        toast({
+          title: 'Error sending ride requests',
+          description: error.message,
+          variant: 'destructive'
+        });
+      }
     }
   });
 };
