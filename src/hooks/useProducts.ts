@@ -2,27 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url?: string;
-  category: string;
-  brand?: string;
-  condition?: string;
-  location?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  created_at: string;
-  vendor_id?: string;
-  in_stock: boolean;
-  stock_quantity?: number;
-  rating: number;
-  reviews_count: number;
-}
+import { Product } from '@/types/product';
 
 interface UseProductsParams {
   vendorId?: string;
