@@ -60,7 +60,7 @@ const PropertyOwnerMainDashboard = () => {
     },
   });
 
-  const totalViews = properties?.reduce((sum, property) => sum + (property.views || 0), 0) || 0;
+  const totalViews = properties?.reduce((sum, property) => sum + (property.views_count || 0), 0) || 0;
 
   const quickStats = [
     { 
@@ -90,12 +90,12 @@ const PropertyOwnerMainDashboard = () => {
   ];
 
   const topPerformingProperties = properties
-    ?.sort((a, b) => (b.views || 0) - (a.views || 0))
+    ?.sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
     .slice(0, 3)
     .map(property => ({
       id: property.id,
       title: property.title,
-      views: property.views || 0,
+      views: property.views_count || 0,
       inquiries: 0, // This would need to be calculated from inquiries table
       type: property.listing_type
     })) || [];
@@ -181,7 +181,7 @@ const PropertyOwnerMainDashboard = () => {
                 <div key={inquiry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-sm">{inquiry.properties?.title}</h4>
-                    <p className="text-sm text-gray-600">from {inquiry.inquirer_name || inquiry.full_name}</p>
+                    <p className="text-sm text-gray-600">from {inquiry.inquirer_name}</p>
                     <p className="text-xs text-gray-500">{new Date(inquiry.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center space-x-2">

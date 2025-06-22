@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -5,21 +6,20 @@ import { useToast } from '@/hooks/use-toast';
 export interface Driver {
   id: string;
   user_id?: string;
-  vehicle_type?: string;
+  vehicle_type?: 'taxi' | 'motorbike';
   vehicle_make?: string;
   vehicle_model?: string;
   vehicle_year?: number;
   license_plate?: string;
   license_number?: string;
-  phone?: string;
+  phone_number?: string;
   rating?: number;
   total_rides?: number;
-  status?: string;
+  status?: 'offline' | 'available' | 'busy';
   availability_status?: string;
   is_verified?: boolean;
   is_active?: boolean;
   current_location?: any;
-  address?: string;
   full_name?: string;
   email?: string;
   created_at?: string;
@@ -86,10 +86,7 @@ export const useCreateDriverProfile = () => {
           vehicle_year: driverData.vehicle_year,
           license_plate: driverData.license_plate,
           license_number: driverData.license_number,
-          phone: driverData.phone,
-          address: driverData.address,
-          full_name: driverData.full_name,
-          email: driverData.email,
+          phone_number: driverData.phone_number,
           status: 'offline',
           availability_status: 'offline',
           is_verified: false,
@@ -123,9 +120,12 @@ export const useUpdateDriverProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
+      // Remove fields that don't exist in the database table
+      const { full_name, email, ...validDriverData } = driverData;
+      
       const { error } = await supabase
         .from('drivers')
-        .update(driverData)
+        .update(validDriverData)
         .eq('user_id', user.id);
       
       if (error) throw error;
@@ -361,7 +361,7 @@ export const useDriverDashboardData = () => {
       
       if (error) throw error;
       
-      // Get active rides
+      // Get active rides - use valid status values
       const { data: activeRides } = await supabase
         .from('rides')
         .select(`
@@ -369,7 +369,7 @@ export const useDriverDashboardData = () => {
           profiles!inner(full_name)
         `)
         .eq('driver_id', driver.id)
-        .in('status', ['accepted', 'started', 'arrived'])
+        .in('status', ['accepted', 'in_progress'])
         .order('created_at', { ascending: false });
       
       // Get recent completed rides
@@ -388,12 +388,12 @@ export const useDriverDashboardData = () => {
       const today = new Date().toISOString().split('T')[0];
       const { data: todayRides } = await supabase
         .from('rides')
-        .select('actual_fare, fare')
+        .select('actual_fare, estimated_fare')
         .eq('driver_id', driver.id)
         .eq('status', 'completed')
         .gte('completed_at', today);
       
-      const todaysEarnings = todayRides?.reduce((sum, ride) => sum + (ride.actual_fare || ride.fare || 0), 0) || 0;
+      const todaysEarnings = todayRides?.reduce((sum, ride) => sum + (ride.actual_fare || ride.estimated_fare || 0), 0) || 0;
       const ridesCompletedToday = todayRides?.length || 0;
       
       return {

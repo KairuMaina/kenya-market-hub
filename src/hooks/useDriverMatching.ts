@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -106,14 +107,15 @@ export const useMatchDriversToRide = () => {
       rideId: string; 
       pickupLat: number; 
       pickupLng: number; 
-      vehicleType: string; 
+      vehicleType: 'taxi' | 'motorbike'; 
     }) => {
-      // Find nearby drivers
+      // Find nearby drivers - fix parameter names
       const { data: nearbyDrivers, error: driversError } = await supabase
         .rpc('find_nearby_drivers', { 
-          p_pickup_lat: pickupLat, 
-          p_pickup_lng: pickupLng,
-          p_radius_km: 10
+          pickup_lat: pickupLat, 
+          pickup_lng: pickupLng,
+          vehicle_type_param: vehicleType,
+          radius_km: 10
         });
       
       if (driversError) throw driversError;

@@ -27,7 +27,7 @@ export const useCreateRide = () => {
         pickup_location: `POINT(${data.pickupLocation.lng} ${data.pickupLocation.lat})`,
         destination_location: `POINT(${data.destinationLocation.lng} ${data.destinationLocation.lat})`,
         vehicle_type: data.vehicleType,
-        status: 'requested'
+        status: 'requested' as const
       };
       
       const { data: ride, error } = await supabase

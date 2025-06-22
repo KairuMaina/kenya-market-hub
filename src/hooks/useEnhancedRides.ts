@@ -36,7 +36,7 @@ export const useEnhancedRides = (filters?: {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (filters?.status) {
+      if (filters?.status && ['cancelled', 'requested', 'accepted', 'in_progress', 'completed'].includes(filters.status)) {
         query = query.eq('status', filters.status);
       }
       if (filters?.dateFrom) {
@@ -45,7 +45,7 @@ export const useEnhancedRides = (filters?: {
       if (filters?.dateTo) {
         query = query.lte('created_at', filters.dateTo);
       }
-      if (filters?.vehicleType) {
+      if (filters?.vehicleType && ['taxi', 'motorbike'].includes(filters.vehicleType)) {
         query = query.eq('vehicle_type', filters.vehicleType);
       }
 
@@ -55,10 +55,10 @@ export const useEnhancedRides = (filters?: {
       
       return data?.map(ride => ({
         ...ride,
-        pickup_location: ride.pickup_location ? 
+        pickup_location: typeof ride.pickup_location === 'string' ? 
           JSON.parse(ride.pickup_location) : 
           { lat: 0, lng: 0 },
-        destination_location: ride.destination_location ? 
+        destination_location: typeof ride.destination_location === 'string' ? 
           JSON.parse(ride.destination_location) : 
           { lat: 0, lng: 0 },
         vehicle_type: ride.vehicle_type || 'taxi'
@@ -89,11 +89,11 @@ export const useCreateEnhancedRide = () => {
           user_id: user.id,
           pickup_address: rideData.pickup_address,
           destination_address: rideData.destination_address,
-          pickup_location: JSON.stringify(rideData.pickup_location),
-          destination_location: JSON.stringify(rideData.destination_location),
+          pickup_location: `POINT(${rideData.pickup_location.lng} ${rideData.pickup_location.lat})`,
+          destination_location: `POINT(${rideData.destination_location.lng} ${rideData.destination_location.lat})`,
           estimated_fare: rideData.estimated_fare,
           vehicle_type: rideData.vehicle_type,
-          status: 'pending'
+          status: 'requested' as const
         })
         .select()
         .single();
@@ -122,12 +122,13 @@ export const useRideMatching = () => {
   return useQuery({
     queryKey: ['ride-matching'],
     queryFn: async () => {
-      // Get available drivers
+      // Get available drivers - fix parameter names
       const { data: availableDrivers, error } = await supabase
         .rpc('find_nearby_drivers', { 
-          p_pickup_lat: -1.2921, // Default to Nairobi coordinates
-          p_pickup_lng: 36.8219,
-          p_radius_km: 50
+          pickup_lat: -1.2921, // Default to Nairobi coordinates
+          pickup_lng: 36.8219,
+          vehicle_type_param: 'taxi' as const,
+          radius_km: 50
         });
       
       if (error) throw error;
@@ -143,7 +144,7 @@ export const useUpdateRideStatus = () => {
   return useMutation({
     mutationFn: async ({ rideId, status, actualFare }: { 
       rideId: string; 
-      status: string; 
+      status: 'cancelled' | 'requested' | 'accepted' | 'in_progress' | 'completed'; 
       actualFare?: number; 
     }) => {
       const updateData: any = { status };
