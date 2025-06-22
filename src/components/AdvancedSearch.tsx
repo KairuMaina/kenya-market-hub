@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,20 +8,50 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useAdvancedSearchHook } from '@/hooks/useAdvancedSearchHook';
+import { useAdvancedSearch, usePopularSearches, SearchFilters } from '@/hooks/useAdvancedSearch';
 import { Search, Filter, X, Star } from 'lucide-react';
 
 const AdvancedSearch = () => {
-  const {
-    filters,
-    updateFilter,
-    resetFilters,
-    results,
-    isLoading,
-    categories,
-    brands,
-    totalResults
-  } = useAdvancedSearchHook();
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: '',
+    category: '',
+    brand: '',
+    minPrice: 0,
+    maxPrice: 50000,
+    condition: '',
+    location: '',
+    inStock: false,
+    sortBy: 'newest',
+    rating: 0,
+    sortOrder: 'desc'
+  });
+
+  const { data: results = [], isLoading } = useAdvancedSearch(filters);
+  const { data: popularData } = usePopularSearches();
+
+  const categories = popularData?.popularCategories || [];
+  const brands = popularData?.popularBrands || [];
+  const totalResults = results.length;
+
+  const updateFilter = (key: keyof SearchFilters, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      query: '',
+      category: '',
+      brand: '',
+      minPrice: 0,
+      maxPrice: 50000,
+      condition: '',
+      location: '',
+      inStock: false,
+      sortBy: 'newest',
+      rating: 0,
+      sortOrder: 'desc'
+    });
+  };
 
   const handlePriceChange = (values: number[], type: 'min' | 'max') => {
     if (type === 'min') {
@@ -250,9 +280,9 @@ const AdvancedSearch = () => {
                       <span className="font-bold text-orange-600">KSh {product.price.toLocaleString()}</span>
                       <div className="flex items-center gap-1">
                         <div className="flex">
-                          {renderStars(3)}
+                          {renderStars(product.rating || 3)}
                         </div>
-                        <span className="text-xs text-gray-500">(4.2)</span>
+                        <span className="text-xs text-gray-500">({product.reviews_count || 0})</span>
                       </div>
                     </div>
                     {product.brand && (

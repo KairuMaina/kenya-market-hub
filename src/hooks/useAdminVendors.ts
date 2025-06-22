@@ -8,8 +8,8 @@ export interface AdminVendor {
   user_id?: string;
   business_name: string;
   business_description?: string;
-  contact_email?: string;
-  contact_phone?: string;
+  business_email?: string;
+  business_phone?: string;
   business_address?: string;
   verification_status: string;
   is_active: boolean;
@@ -32,7 +32,7 @@ export const useAdminVendors = () => {
       
       const vendorsWithNames = data?.map(vendor => ({
         ...vendor,
-        full_name: vendor.contact_email || vendor.business_name || 'Unknown'
+        full_name: vendor.business_email || vendor.business_name || 'Unknown'
       })) || [];
       
       return vendorsWithNames as AdminVendor[];

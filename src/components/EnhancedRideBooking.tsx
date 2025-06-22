@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin, Navigation, Car, Bike, Clock, DollarSign } from 'lucide-react';
 import MapBox from './MapBox';
-import { useEnhancedRides } from '@/hooks/useEnhancedRides';
+import { useCreateRide } from '@/hooks/useCreateRide';
 import { useFareCalculations } from '@/hooks/useRides';
 
 interface EnhancedRideBookingProps {
@@ -24,7 +24,7 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
   const [estimatedFare, setEstimatedFare] = useState<number>(0);
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
 
-  const { createRide } = useEnhancedRides();
+  const createRide = useCreateRide();
   const { data: fareCalculations } = useFareCalculations();
 
   // Get user's current location
@@ -240,10 +240,10 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
                 </Button>
                 <Button 
                   onClick={handleBookRide}
-                  disabled={bookRide.isPending}
+                  disabled={createRide.isPending}
                   className="flex-1"
                 >
-                  {bookRide.isPending ? 'Booking...' : `Book Ride - KSh ${vehicleType === 'taxi' ? estimatedFare.toFixed(0) : Math.round(estimatedFare * 0.6)}`}
+                  {createRide.isPending ? 'Booking...' : `Book Ride - KSh ${vehicleType === 'taxi' ? estimatedFare.toFixed(0) : Math.round(estimatedFare * 0.6)}`}
                 </Button>
               </div>
             </div>
