@@ -16,19 +16,19 @@ const PropertyMapView = ({
   zoom = 10,
   height = '400px'
 }: PropertyMapViewProps) => {
-  const handlePropertySelect = (property: Property) => {
-    console.log('Property selected:', property.name);
+  const handlePropertySelect = (property: any) => {
+    console.log('Property selected:', property.name || property.title);
   };
 
-  const handleViewDetails = (property: Property) => {
+  const handleViewDetails = (property: any) => {
     window.open(`/property/${property.id}`, '_blank');
   };
 
-  // Transform properties to match the expected Property type
+  // Transform properties to match the expected format
   const transformedProperties = properties.map(property => ({
     ...property,
     is_featured: property.is_featured || false,
-    title: property.name,
+    title: property.name || property.title,
   }));
 
   return (

@@ -13,6 +13,7 @@ export interface WishlistItem {
     name: string;
     price: number;
     image_url: string;
+    vendor?: string;
   };
 }
 
@@ -100,8 +101,10 @@ export const useIsInWishlist = (productId: string) => {
   const { data: wishlist, isLoading } = useWishlist();
   const isInWishlist = wishlist?.some(item => item.product_id === productId) || false;
   
-  return {
-    data: isInWishlist,
-    isLoading
-  };
+  return useQuery({
+    queryKey: ['is-in-wishlist', productId],
+    queryFn: () => isInWishlist,
+    initialData: false,
+    enabled: !!productId
+  });
 };

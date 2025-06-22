@@ -21,6 +21,8 @@ export interface Product {
   sales?: number;
   views?: number;
   revenue?: number;
+  original_price?: number;
+  discount_percentage?: number;
 }
 
 export interface Property {

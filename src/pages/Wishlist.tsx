@@ -23,17 +23,17 @@ const Wishlist = () => {
 
   const handleAddToCart = (item: any) => {
     addToCart({
-      id: item.products.id,
-      name: item.products.name,
-      price: Number(item.products.price),
-      image: item.products.image_url || '/placeholder.svg',
-      vendor: item.products.vendor || 'Unknown Vendor'
+      id: item.product?.id || item.product_id,
+      name: item.product?.name || 'Unknown Product',
+      price: Number(item.product?.price || 0),
+      image: item.product?.image_url || '/placeholder.svg',
+      vendor: item.product?.vendor || 'Unknown Vendor'
     });
-    toast({ title: "Added to cart", description: `${item.products.name} has been added to your cart.` });
+    toast({ title: "Added to cart", description: `${item.product?.name || 'Product'} has been added to your cart.` });
   };
 
   const handleRemove = (productId: string) => {
-    toggleWishlist.mutate(productId);
+    toggleWishlist.mutate({ productId, isInWishlist: true });
   };
 
   return (
@@ -71,20 +71,20 @@ const Wishlist = () => {
                 <CardContent className="p-4">
                   <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
                     <img 
-                      src={item.products?.image_url || '/placeholder.svg'} 
-                      alt={item.products?.name}
+                      src={item.product?.image_url || '/placeholder.svg'} 
+                      alt={item.product?.name || 'Product'}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   
                   <h4 className="font-semibold text-gray-900 mb-1 text-sm line-clamp-2">
-                    {item.products?.name}
+                    {item.product?.name || 'Unknown Product'}
                   </h4>
-                  <p className="text-xs text-gray-600 mb-2">{item.products?.vendor}</p>
+                  <p className="text-xs text-gray-600 mb-2">{item.product?.vendor || 'Unknown Vendor'}</p>
                   
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-base font-bold text-gray-900">
-                      KSH {Number(item.products?.price).toLocaleString()}
+                      KSH {Number(item.product?.price || 0).toLocaleString()}
                     </span>
                   </div>
                   
