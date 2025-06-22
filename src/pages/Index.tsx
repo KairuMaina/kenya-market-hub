@@ -22,9 +22,12 @@ import {
 } from 'lucide-react';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
 import { useNavigate } from 'react-router-dom';
+import { useHomeStats } from '@/hooks/useHomeStats';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { data: stats, isLoading: statsLoading } = useHomeStats();
 
   const miniApps = [
     {
@@ -35,7 +38,7 @@ const Index = () => {
       color: 'from-blue-500 to-blue-600',
       route: '/shop',
       image: 'photo-1649972904349-6e44c42644a7',
-      stats: '50k+ Products'
+      stats: `${stats?.products || 0}+ Products`
     },
     {
       id: 'real-estate',
@@ -45,7 +48,7 @@ const Index = () => {
       color: 'from-green-500 to-green-600',
       route: '/real-estate',
       image: 'photo-1483058712412-4245e9b90334',
-      stats: '15k+ Properties'
+      stats: `${stats?.properties || 0}+ Properties`
     },
     {
       id: 'transportation',
@@ -55,7 +58,7 @@ const Index = () => {
       color: 'from-yellow-500 to-yellow-600',
       route: '/rides',
       image: 'photo-1487887235947-a955ef187fcc',
-      stats: '5k+ Drivers'
+      stats: `${stats?.rides || 0}+ Rides`
     },
     {
       id: 'services',
@@ -65,7 +68,7 @@ const Index = () => {
       color: 'from-purple-500 to-purple-600',
       route: '/services',
       image: 'photo-1473091534298-04dcbce3278c',
-      stats: '2k+ Providers'
+      stats: `${stats?.vendors || 0}+ Providers`
     },
     {
       id: 'medical',
@@ -75,7 +78,7 @@ const Index = () => {
       color: 'from-red-500 to-red-600',
       route: '/medical',
       image: 'photo-1581090464777-f3220bbe1b8b',
-      stats: '800+ Doctors'
+      stats: '0+ Doctors'
     },
     {
       id: 'insurance',
@@ -85,7 +88,7 @@ const Index = () => {
       color: 'from-indigo-500 to-indigo-600',
       route: '/insurance',
       image: 'photo-1524230572899-a752b3835840',
-      stats: '50+ Plans'
+      stats: '0+ Plans'
     },
     {
       id: 'food',
@@ -95,7 +98,7 @@ const Index = () => {
       color: 'from-orange-500 to-orange-600',
       route: '/food',
       image: 'photo-1721322800607-8c38375eef04',
-      stats: '1k+ Restaurants'
+      stats: `${stats?.vendors || 0}+ Restaurants`
     },
     {
       id: 'events',
@@ -105,7 +108,7 @@ const Index = () => {
       color: 'from-pink-500 to-pink-600',
       route: '/events',
       image: 'photo-1605810230434-7631ac76ec81',
-      stats: '300+ Events'
+      stats: '0+ Events'
     },
     {
       id: 'jobs',
@@ -115,7 +118,7 @@ const Index = () => {
       color: 'from-teal-500 to-teal-600',
       route: '/jobs',
       image: 'photo-1486312338219-ce68d2c6f44d',
-      stats: '2k+ Jobs'
+      stats: '0+ Jobs'
     },
     {
       id: 'chat',
@@ -125,7 +128,7 @@ const Index = () => {
       color: 'from-cyan-500 to-cyan-600',
       route: '/chat-forums',
       image: 'photo-1460925895917-afdab827c52f',
-      stats: '10k+ Members'
+      stats: `${stats?.users || 0}+ Members`
     }
   ];
 
@@ -146,6 +149,16 @@ const Index = () => {
       description: 'Supporting local businesses and communities'
     }
   ];
+
+  if (statsLoading) {
+    return (
+      <FrontendLayout>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      </FrontendLayout>
+    );
+  }
 
   return (
     <FrontendLayout>

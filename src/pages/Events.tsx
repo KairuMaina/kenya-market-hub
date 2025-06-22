@@ -3,107 +3,27 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Search, MapPin, Clock, Star, Ticket, Users } from 'lucide-react';
+import { Calendar, Search, MapPin, Plus } from 'lucide-react';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
+import { useEvents, useEventCategories } from '@/hooks/useEvents';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const Events: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const categories = [
-    { id: 'all', name: 'All Events', count: 85 },
-    { id: 'concerts', name: 'Concerts', count: 25 },
-    { id: 'comedy', name: 'Comedy Shows', count: 15 },
-    { id: 'conferences', name: 'Conferences', count: 18 },
-    { id: 'workshops', name: 'Workshops', count: 12 },
-    { id: 'sports', name: 'Sports', count: 8 },
-    { id: 'festivals', name: 'Festivals', count: 7 }
-  ];
+  const { data: events, isLoading: eventsLoading } = useEvents();
+  const { data: categories, isLoading: categoriesLoading } = useEventCategories();
 
-  const events = [
-    {
-      id: 1,
-      title: 'Jazz Night at The Alchemist',
-      category: 'Concert',
-      date: '2024-06-20',
-      time: '19:00',
-      location: 'The Alchemist, Westlands',
-      price: 2500,
-      rating: 4.8,
-      attendees: 145,
-      image: '/placeholder.svg',
-      featured: true,
-      freeEvent: false,
-      description: 'An evening of smooth jazz with local and international artists'
-    },
-    {
-      id: 2,
-      title: 'Tech Startup Conference 2024',
-      category: 'Conference',
-      date: '2024-06-25',
-      time: '09:00',
-      location: 'KICC, Nairobi',
-      price: 0,
-      rating: 4.6,
-      attendees: 320,
-      image: '/placeholder.svg',
-      featured: false,
-      freeEvent: true,
-      description: 'Learn from successful entrepreneurs and network with industry leaders'
-    },
-    {
-      id: 3,
-      title: 'Churchill Comedy Night',
-      category: 'Comedy',
-      date: '2024-06-22',
-      time: '20:00',
-      location: 'Louis Leakey Auditorium',
-      price: 1500,
-      rating: 4.9,
-      attendees: 89,
-      image: '/placeholder.svg',
-      featured: true,
-      freeEvent: false,
-      description: 'Hilarious comedy show featuring top Kenyan comedians'
-    },
-    {
-      id: 4,
-      title: 'Photography Workshop',
-      category: 'Workshop',
-      date: '2024-06-28',
-      time: '10:00',
-      location: 'Creative Hub, Karen',
-      price: 3500,
-      rating: 4.7,
-      attendees: 25,
-      image: '/placeholder.svg',
-      featured: false,
-      freeEvent: false,
-      description: 'Master the art of portrait photography with professional guidance'
-    }
-  ];
-
-  const upcomingEvents = [
-    {
-      id: 5,
-      title: 'Nairobi Film Festival',
-      date: '2024-07-05',
-      category: 'Festival'
-    },
-    {
-      id: 6,
-      title: 'Digital Marketing Bootcamp',
-      date: '2024-07-10',
-      category: 'Workshop'
-    },
-    {
-      id: 7,
-      title: 'Sauti Sol Live Concert',
-      date: '2024-07-15',
-      category: 'Concert'
-    }
-  ];
+  if (eventsLoading || categoriesLoading) {
+    return (
+      <FrontendLayout>
+        <div className="min-h-screen bg-orange-50 flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      </FrontendLayout>
+    );
+  }
 
   return (
     <FrontendLayout>
@@ -149,7 +69,7 @@ const Events: React.FC = () => {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Event Categories</h2>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
+              {categories?.map((category) => (
                 <Button
                   key={category.id}
                   variant={selectedCategory === category.id ? 'default' : 'outline'}
@@ -169,66 +89,35 @@ const Events: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Events */}
             <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Featured Events</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {events.map((event) => (
-                  <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow border-orange-200">
-                    <div className="relative">
-                      <img 
-                        src={event.image} 
-                        alt={event.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      {event.featured && (
-                        <Badge className="absolute top-2 left-2 bg-purple-600 hover:bg-purple-700">
-                          Featured
-                        </Badge>
-                      )}
-                      {event.freeEvent && (
-                        <Badge className="absolute top-2 right-2 bg-orange-500 hover:bg-orange-600">
-                          FREE
-                        </Badge>
-                      )}
-                    </div>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{event.title}</CardTitle>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>{event.category}</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span>{event.rating}</span>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">Events</h2>
+              {events && events.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {events.map((event) => (
+                    <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow border-orange-200">
+                      <div className="relative">
+                        <div className="w-full h-48 bg-gradient-to-r from-purple-400 to-orange-400 flex items-center justify-center">
+                          <Calendar className="h-12 w-12 text-white" />
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-3">{event.description}</p>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          <span>{new Date(event.date).toLocaleDateString()} at {event.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span>{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-gray-400" />
-                          <span>{event.attendees} attending</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-semibold">
-                          {event.freeEvent ? 'FREE' : `KSh ${event.price.toLocaleString()}`}
-                        </span>
-                        <Button className="bg-purple-600 hover:bg-purple-700">
-                          <Ticket className="h-4 w-4 mr-1" />
-                          {event.freeEvent ? 'RSVP' : 'Buy Ticket'}
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{event.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600 mb-3">{event.description}</p>
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                          View Details
                         </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Events Yet</h3>
+                  <p className="text-gray-500">Events will appear here once they are created and published.</p>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -236,42 +125,39 @@ const Events: React.FC = () => {
               {/* Create Event */}
               <Card className="border-orange-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">Promote Your Event</CardTitle>
+                  <CardTitle className="text-lg">Create Your Event</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-600 mb-4">
                     Have an event to promote? Reach thousands of potential attendees!
                   </p>
                   <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                    <Plus className="h-4 w-4 mr-2" />
                     Create Event
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Upcoming Events */}
+              {/* Quick Stats */}
               <Card className="border-orange-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">Upcoming Events</CardTitle>
+                  <CardTitle className="text-lg">Platform Stats</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {upcomingEvents.map((event) => (
-                      <div key={event.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-sm">{event.title}</h4>
-                          <p className="text-xs text-gray-600">{event.category}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-600">
-                            {new Date(event.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total Events</span>
+                      <span className="font-medium">0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">This Month</span>
+                      <span className="font-medium">0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Categories</span>
+                      <span className="font-medium">{categories?.length || 0}</span>
+                    </div>
                   </div>
-                  <Button variant="outline" className="w-full mt-4 border-orange-200 hover:bg-orange-50">
-                    View All
-                  </Button>
                 </CardContent>
               </Card>
             </div>
