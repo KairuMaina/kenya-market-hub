@@ -1,573 +1,244 @@
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import MainLayout from '@/components/MainLayout';
-import AddProductModal from '@/components/AddProductModal';
-import { useVendorApplications } from '@/hooks/useVendors';
-import { useAdminVendors } from '@/hooks/useAdminVendors';
-import AdminStatsCards from '@/components/admin/AdminStatsCards';
-import AdminProductsTab from '@/components/admin/AdminProductsTab';
-import AdminUsersTab from '@/components/admin/AdminUsersTab';
-import AdminOrdersTab from '@/components/admin/AdminOrdersTab';
-import AdminTransactionsTab from '@/components/admin/AdminTransactionsTab';
-import AdminVendorsTab from '@/components/admin/AdminVendorsTab';
-import AdminCouponsTab from '@/components/admin/AdminCouponsTab';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name?: string;
-  created_at: string;
-  role?: string;
-}
-
-interface OrderData {
-  id: string;
-  total_amount: number;
-  status: string;
-  payment_status: string;
-  created_at: string;
-  user_id: string;
-  user_email?: string;
-  user_name?: string;
-}
-
-interface TransactionData {
-  id: string;
-  amount: number;
-  payment_method: string;
-  status: string;
-  created_at: string;
-  order_id: string;
-}
-
-interface VendorApplication {
-  id: string;
-  user_id: string;
-  business_name: string;
-  business_description: string;
-  business_phone: string;
-  business_email: string;
-  status: string;
-  submitted_at: string;
-}
-
-interface Coupon {
-  id: string;
-  code: string;
-  discount_value: number;
-  discount_type: string;
-  usage_count: number;
-  usage_limit?: number;
-  end_date: string;
-  created_at: string;
-  is_active: boolean;
-  minimum_order_amount: number;
-  updated_at: string;
-  name: string;
-  description?: string;
-  start_date: string;
-  maximum_discount_amount?: number;
-  user_usage_limit?: number;
-  applicable_products?: string[];
-  applicable_categories?: string[];
-  created_by?: string;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, Activity, Clock, TrendingUp, Users, Eye, Package, DollarSign, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { useCoupons } from '@/hooks/useCoupons';
+import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+import { Coupon } from '@/types/coupon';
 
 const NewAdminDashboard = () => {
-  const { user, isAdmin, loading } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [searchParams] = useSearchParams();
-  const [directQueryResult, setDirectQueryResult] = useState<any>(null);
-  const [detailedTestResult, setDetailedTestResult] = useState<any>(null);
-  
-  // Get the default tab from URL parameters
-  const defaultTab = searchParams.get('tab') || 'products';
+  const { data: stats, isLoading, error } = useAdminStats();
+  const { data: coupons = [] } = useCoupons();
 
-  // Enhanced direct database test function
-  const testDirectQuery = async () => {
-    console.log('🧪 Testing direct database query...');
-    try {
-      const { data, error, count } = await supabase
-        .from('vendor_applications')
-        .select('*', { count: 'exact' });
-      
-      console.log('🧪 Direct query result:', { data, error, count });
-      setDirectQueryResult({ data, error, count, timestamp: new Date().toISOString() });
-      
-      if (data && data.length > 0) {
-        toast({ 
-          title: `Found ${data.length} applications in direct query`,
-          description: "Check console for details"
-        });
-      } else {
-        toast({ 
-          title: "No applications found in direct query",
-          variant: "destructive"
-        });
-      }
-    } catch (err) {
-      console.error('🧪 Direct query failed:', err);
-      setDirectQueryResult({ error: err, timestamp: new Date().toISOString() });
-    }
-  };
-
-  // Comprehensive database test
-  const runDetailedTest = async () => {
-    console.log('🔬 Running detailed database test...');
-    const results: any = {};
-    
-    try {
-      // Test 1: Check if we can connect to Supabase at all
-      console.log('🔬 Test 1: Basic connection test...');
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      results.user = { user: user?.email, error: userError };
-      
-      // Test 2: Test table existence and permissions
-      console.log('🔬 Test 2: Table access test...');
-      const { data: schemaData, error: schemaError } = await supabase
-        .from('vendor_applications')
-        .select('count', { count: 'exact', head: true });
-      results.tableAccess = { data: schemaData, error: schemaError };
-      
-      // Test 3: Try different query approaches
-      console.log('🔬 Test 3: Different query approaches...');
-      
-      // Approach A: Simple select
-      const { data: dataA, error: errorA } = await supabase
-        .from('vendor_applications')
-        .select('*');
-      results.simpleSelect = { data: dataA, error: errorA, count: dataA?.length };
-      
-      // Approach B: Select with limit
-      const { data: dataB, error: errorB } = await supabase
-        .from('vendor_applications')
-        .select('*')
-        .limit(10);
-      results.limitedSelect = { data: dataB, error: errorB, count: dataB?.length };
-      
-      // Approach C: Select specific columns
-      const { data: dataC, error: errorC } = await supabase
-        .from('vendor_applications')
-        .select('id, business_name, status');
-      results.specificColumns = { data: dataC, error: errorC, count: dataC?.length };
-      
-      console.log('🔬 Detailed test results:', results);
-      setDetailedTestResult({ ...results, timestamp: new Date().toISOString() });
-      
-      // Show summary in toast
-      const totalFound = results.simpleSelect?.count || 0;
-      toast({
-        title: `Detailed test completed`,
-        description: `Found ${totalFound} records. Check console for full details.`
-      });
-      
-    } catch (err) {
-      console.error('🔬 Detailed test failed:', err);
-      setDetailedTestResult({ error: err, timestamp: new Date().toISOString() });
-      toast({
-        title: "Detailed test failed",
-        description: "Check console for error details",
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (loading) {
+  if (error) {
     return (
-      <MainLayout>
+      <ModernAdminLayout>
         <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">Loading...</div>
+          <div className="text-center">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+            <p className="text-red-600">Error loading dashboard data</p>
+          </div>
         </div>
-      </MainLayout>
+      </ModernAdminLayout>
     );
   }
 
-  if (!user || !isAdmin) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Fetch users with their roles - simplified query
-  const { data: users, isLoading: usersLoading } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: async (): Promise<UserProfile[]> => {
-      // Get profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, created_at')
-        .order('created_at', { ascending: false });
-      
-      if (profilesError) throw profilesError;
-
-      // Get user roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-      
-      if (rolesError) throw rolesError;
-
-      // Combine the data
-      const usersWithRoles = profiles.map(profile => {
-        const userRole = roles.find(role => role.user_id === profile.id);
-        return {
-          ...profile,
-          role: userRole?.role || 'customer'
-        };
-      });
-
-      return usersWithRoles;
-    }
-  });
-
-  // Fetch products
-  const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['admin-products'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  // Fetch orders - simplified query
-  const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['admin-orders'],
-    queryFn: async (): Promise<OrderData[]> => {
-      // Get orders
-      const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select('id, total_amount, status, payment_status, created_at, user_id')
-        .order('created_at', { ascending: false });
-      
-      if (ordersError) throw ordersError;
-
-      // Get user profiles for user info
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name');
-      
-      if (profilesError) throw profilesError;
-
-      // Combine the data
-      const ordersWithUsers = ordersData.map(order => {
-        const profile = profiles.find(p => p.id === order.user_id);
-        return {
-          ...order,
-          user_email: profile?.email,
-          user_name: profile?.full_name
-        };
-      });
-
-      return ordersWithUsers;
-    }
-  });
-
-  // Fetch transactions - simplified query
-  const { data: transactions, isLoading: transactionsLoading } = useQuery({
-    queryKey: ['admin-transactions'],
-    queryFn: async (): Promise<TransactionData[]> => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('id, amount, payment_method, status, created_at, order_id')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  // Use the vendor applications hook with enhanced logging
-  const { data: vendorApplications, isLoading: vendorApplicationsLoading, error: vendorApplicationsError } = useVendorApplications();
-
-  // Fetch vendor profiles for admin
-  const [vendorPage, setVendorPage] = useState(1);
-  const [vendorSearchTerm, setVendorSearchTerm] = useState('');
-  const { data: adminVendorsData, isLoading: adminVendorsLoading, error: adminVendorsError } = useAdminVendors();
-
-  // Add console logging to debug the vendor applications data
-  useEffect(() => {
-    console.log('🔄 Admin Dashboard - Vendor applications data changed:');
-    console.log('📊 Applications:', vendorApplications);
-    console.log('⏳ Loading:', vendorApplicationsLoading);
-    console.log('❌ Error:', vendorApplicationsError);
-    console.log('📏 Length:', vendorApplications?.length || 0);
-  }, [vendorApplications, vendorApplicationsLoading, vendorApplicationsError]);
-
-  // Fetch coupons
-  const { data: coupons, isLoading: couponsLoading } = useQuery({
-    queryKey: ['admin-coupons'],
-    queryFn: async (): Promise<Coupon[]> => {
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Transform the data to match the Coupon interface
-      return data.map(coupon => ({
-        id: coupon.id,
-        code: coupon.code,
-        name: coupon.name || '',
-        description: coupon.description || '',
-        discount_value: coupon.discount_value,
-        discount_type: coupon.discount_type,
-        minimum_order_amount: coupon.minimum_order_amount || 0,
-        maximum_discount_amount: coupon.maximum_discount_amount,
-        usage_limit: coupon.usage_limit,
-        user_usage_limit: coupon.user_usage_limit || 1,
-        usage_count: coupon.usage_count || 0,
-        start_date: coupon.start_date,
-        end_date: coupon.end_date,
-        is_active: coupon.is_active,
-        applicable_products: coupon.applicable_products || [],
-        applicable_categories: coupon.applicable_categories || [],
-        created_by: coupon.created_by,
-        created_at: coupon.created_at,
-        updated_at: coupon.updated_at,
-        // Map missing properties
-        discount_amount: coupon.discount_value, // Map to expected property
-        used_count: coupon.usage_count || 0, // Map to expected property
-        expires_at: coupon.end_date // Map to expected property
-      }));
-    }
-  });
-
-  // Delete user mutation
-  const deleteUser = useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: "User deleted successfully" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Error deleting user", 
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Delete product mutation
-  const deleteProduct = useMutation({
-    mutationFn: async (productId: string) => {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      toast({ title: "Product deleted successfully" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Error deleting product", 
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Approve/reject vendor application
-  const handleVendorApplication = useMutation({
-    mutationFn: async ({ applicationId, action }: { applicationId: string; action: 'approve' | 'reject' }) => {
-      const { data: application, error: fetchError } = await supabase
-        .from('vendor_applications')
-        .select('*')
-        .eq('id', applicationId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-
-      if (action === 'approve') {
-        // Create vendor profile
-        const { error: vendorError } = await supabase
-          .from('vendors')
-          .insert({
-            user_id: application.user_id,
-            business_name: application.business_name,
-            business_description: application.business_description,
-            business_phone: application.business_phone,
-            business_email: application.business_email,
-            verification_status: 'approved'
-          });
-        
-        if (vendorError) throw vendorError;
-      }
-
-      // Update application status
-      const { error: updateError } = await supabase
-        .from('vendor_applications')
-        .update({
-          status: action === 'approve' ? 'approved' : 'rejected',
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user?.id
-        })
-        .eq('id', applicationId);
-      
-      if (updateError) throw updateError;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['vendor-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['vendors'] });
-      toast({ 
-        title: `Vendor application ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully` 
-      });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: 'Error processing application', 
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
-
-  const handleDeleteUser = (userId: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      deleteUser.mutate(userId);
-    }
-  };
-
-  const handleDeleteProduct = (productId: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      deleteProduct.mutate(productId);
-    }
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'completed':
-      case 'delivered':
-      case 'approved':
-        return 'default' as const;
-      case 'pending':
-      case 'processing':
-        return 'secondary' as const;
-      case 'failed':
-      case 'cancelled':
-      case 'rejected':
-        return 'destructive' as const;
-      default:
-        return 'outline' as const;
-    }
-  };
-
-  // Calculate stats
-  const revenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-  const vendorApplicationsCount = vendorApplications?.length || 0;
-  const pendingApplicationsCount = vendorApplications?.filter(app => app.status === 'pending').length || 0;
+  const activeCoupons = coupons.filter((coupon: Coupon) => coupon.is_active);
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your marketplace</p>
+    <ModernAdminLayout>
+      <div className="space-y-6 lg:space-y-8 animate-fade-in">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white p-6 lg:p-8 rounded-2xl shadow-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-orange-100 opacity-90">
+                Manage your platform and monitor performance.
+              </p>
+            </div>
+            <div className="mt-4 lg:mt-0 flex flex-col sm:flex-row gap-3">
+              <Link to="/admin/analytics">
+                <Button 
+                  variant="secondary" 
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                >
+                  <Activity className="mr-2 h-4 w-4" />
+                  View Analytics
+                </Button>
+              </Link>
+              <Link to="/admin/reports">
+                <Button 
+                  variant="outline" 
+                  className="bg-transparent hover:bg-white/10 text-white border-white/30"
+                >
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Generate Report
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <AdminStatsCards 
-          usersCount={users?.length || 0}
-          productsCount={products?.length || 0}
-          ordersCount={orders?.length || 0}
-          revenue={revenue}
-          vendorApplicationsCount={vendorApplicationsCount}
-          pendingApplicationsCount={pendingApplicationsCount}
-        />
+        {/* Quick Stats */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-xs font-medium text-green-600">+12%</span>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Tabs defaultValue={defaultTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="vendors">Vendors</TabsTrigger>
-            <TabsTrigger value="coupons">Coupons</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="products" className="space-y-4">
-            <AdminProductsTab 
-              products={products}
-              isLoading={productsLoading}
-              onAddProduct={() => setShowAddProduct(true)}
-              onDeleteProduct={handleDeleteProduct}
-              isDeleting={deleteProduct.isPending}
-            />
-          </TabsContent>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                  <p className="text-2xl font-bold">{stats?.totalOrders || 0}</p>
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-xs font-medium text-green-600">+8%</span>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-lg">
+                  <ShoppingCart className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="users" className="space-y-4">
-            <AdminUsersTab 
-              users={users}
-              isLoading={usersLoading}
-              onDeleteUser={handleDeleteUser}
-              isDeleting={deleteUser.isPending}
-            />
-          </TabsContent>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold">KSh {(stats?.totalRevenue || 0).toLocaleString()}</p>
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-xs font-medium text-green-600">+15%</span>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="orders" className="space-y-4">
-            <AdminOrdersTab 
-              orders={orders}
-              isLoading={ordersLoading}
-              getStatusBadgeVariant={getStatusBadgeVariant}
-            />
-          </TabsContent>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">Active Coupons</p>
+                  <p className="text-2xl font-bold">{activeCoupons.length}</p>
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-xs font-medium text-green-600">+5%</span>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <TabsContent value="transactions" className="space-y-4">
-            <AdminTransactionsTab 
-              transactions={transactions}
-              isLoading={transactionsLoading}
-              getStatusBadgeVariant={getStatusBadgeVariant}
-            />
-          </TabsContent>
+        {/* Recent Activity and Quick Actions */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Recent Activity */}
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                    Recent Activity
+                  </CardTitle>
+                  <CardDescription>Latest platform activities</CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Eye className="h-4 w-4 mr-1" />
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {stats?.recentActivity?.slice(0, 5).map((activity, index) => (
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/60 transition-colors">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(activity.timestamp).toLocaleDateString()} at{' '}
+                        {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                )) || (
+                  <div className="text-center py-8">
+                    <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No recent activity</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="vendors" className="space-y-4">
-            <AdminVendorsTab 
-              adminVendorsData={adminVendorsData}
-              adminVendorsLoading={adminVendorsLoading}
-              adminVendorsError={adminVendorsError}
-              vendorSearchTerm={vendorSearchTerm}
-              setVendorSearchTerm={setVendorSearchTerm}
-              setVendorPage={setVendorPage}
-            />
-          </TabsContent>
-
-          <TabsContent value="coupons" className="space-y-4">
-            <AdminCouponsTab 
-              coupons={coupons}
-              isLoading={couponsLoading}
-            />
-          </TabsContent>
-        </Tabs>
+          {/* Quick Actions */}
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Users className="h-5 w-5 text-orange-600" />
+                Quick Actions
+              </CardTitle>
+              <CardDescription>Frequently used admin actions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Link to="/admin/users">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                  >
+                    <Users className="h-6 w-6 text-orange-600" />
+                    <span className="text-sm font-medium">Manage Users</span>
+                  </Button>
+                </Link>
+                
+                <Link to="/admin/products">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                  >
+                    <Package className="h-6 w-6 text-orange-600" />
+                    <span className="text-sm font-medium">Products</span>
+                  </Button>
+                </Link>
+                
+                <Link to="/admin/orders">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                  >
+                    <ShoppingCart className="h-6 w-6 text-orange-600" />
+                    <span className="text-sm font-medium">View Orders</span>
+                  </Button>
+                </Link>
+                
+                <Link to="/admin/analytics">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                  >
+                    <TrendingUp className="h-6 w-6 text-orange-600" />
+                    <span className="text-sm font-medium">Analytics</span>
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      <AddProductModal 
-        open={showAddProduct} 
-        onOpenChange={setShowAddProduct}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-          setShowAddProduct(false);
-        }}
-      />
-    </MainLayout>
+    </ModernAdminLayout>
   );
 };
 

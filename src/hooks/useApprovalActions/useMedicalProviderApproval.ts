@@ -16,13 +16,16 @@ export const useMedicalProviderApproval = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medical-provider-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-applications'] });
       queryClient.invalidateQueries({ queryKey: ['medical-providers'] });
-      toast({ title: 'Medical provider application approved successfully' });
+      toast({
+        title: 'Application Approved',
+        description: 'Medical provider application has been approved successfully.'
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error approving medical provider application',
+        title: 'Error',
         description: error.message,
         variant: 'destructive'
       });
@@ -33,23 +36,29 @@ export const useMedicalProviderApproval = () => {
     mutationFn: async ({ applicationId, adminNotes }: { applicationId: string; adminNotes?: string }) => {
       const { error } = await supabase.rpc('reject_medical_provider_application', {
         p_application_id: applicationId,
-        p_admin_notes: adminNotes
+        p_admin_notes: adminNotes || ''
       });
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medical-provider-applications'] });
-      toast({ title: 'Medical provider application rejected' });
+      queryClient.invalidateQueries({ queryKey: ['medical-applications'] });
+      toast({
+        title: 'Application Rejected',
+        description: 'Medical provider application has been rejected.'
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error rejecting medical provider application',
+        title: 'Error',
         description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  return { approveApplication, rejectApplication };
+  return {
+    approveApplication,
+    rejectApplication
+  };
 };
