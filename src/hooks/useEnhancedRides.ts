@@ -37,7 +37,7 @@ export const useEnhancedRides = (filters?: {
         .order('created_at', { ascending: false });
 
       if (filters?.status && ['cancelled', 'requested', 'accepted', 'in_progress', 'completed'].includes(filters.status)) {
-        query = query.eq('status', filters.status);
+        query = query.eq('status', filters.status as 'cancelled' | 'requested' | 'accepted' | 'in_progress' | 'completed');
       }
       if (filters?.dateFrom) {
         query = query.gte('created_at', filters.dateFrom);
@@ -46,7 +46,7 @@ export const useEnhancedRides = (filters?: {
         query = query.lte('created_at', filters.dateTo);
       }
       if (filters?.vehicleType && ['taxi', 'motorbike'].includes(filters.vehicleType)) {
-        query = query.eq('vehicle_type', filters.vehicleType);
+        query = query.eq('vehicle_type', filters.vehicleType as 'taxi' | 'motorbike');
       }
 
       const { data, error } = await query;

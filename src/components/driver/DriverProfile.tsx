@@ -18,8 +18,7 @@ const DriverProfile = () => {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    phone: '',
-    address: '',
+    phone_number: '',
     license_number: '',
     vehicle_make: '',
     vehicle_model: '',
@@ -32,8 +31,7 @@ const DriverProfile = () => {
       setFormData({
         full_name: profile.full_name || '',
         email: profile.email || '',
-        phone: profile.phone || '',
-        address: profile.address || '',
+        phone_number: profile.phone_number || '',
         license_number: profile.license_number || '',
         vehicle_make: profile.vehicle_make || '',
         vehicle_model: profile.vehicle_model || '',
@@ -47,15 +45,12 @@ const DriverProfile = () => {
     e.preventDefault();
     try {
       await updateProfile.mutateAsync({
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
         license_number: formData.license_number,
         vehicle_make: formData.vehicle_make,
         vehicle_model: formData.vehicle_model,
         vehicle_year: formData.vehicle_year ? parseInt(formData.vehicle_year) : undefined,
         license_plate: formData.license_plate,
+        phone_number: formData.phone_number,
       });
       setIsEditing(false);
       toast({
@@ -145,28 +140,11 @@ const DriverProfile = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="full_name">Full Name</Label>
+                    <Label htmlFor="phone_number">Phone</Label>
                     <Input
-                      id="full_name"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                     />
                   </div>
                   <div>
@@ -177,14 +155,6 @@ const DriverProfile = () => {
                       onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
                     />
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -241,18 +211,13 @@ const DriverProfile = () => {
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium">Phone:</span>
-                    <span>{profile.phone || 'Not provided'}</span>
+                    <span>{profile.phone_number || 'Not provided'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium">License:</span>
                     <span>{profile.license_number || 'Not provided'}</span>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Address:</span>
-                  <span>{profile.address || 'Not provided'}</span>
                 </div>
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">

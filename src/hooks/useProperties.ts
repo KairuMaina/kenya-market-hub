@@ -58,7 +58,7 @@ export const useProperties = (filters?: PropertyFilters) => {
         query = query.lte('price', filters.maxPrice);
       }
       if (filters?.propertyType && ['house', 'apartment', 'land', 'commercial', 'office'].includes(filters.propertyType)) {
-        query = query.eq('property_type', filters.propertyType);
+        query = query.eq('property_type', filters.propertyType as 'house' | 'apartment' | 'land' | 'commercial' | 'office');
       }
       if (filters?.bedrooms) {
         query = query.eq('bedrooms', filters.bedrooms);
@@ -154,7 +154,11 @@ export const useCreatePropertyInquiry = () => {
       const { error } = await supabase
         .from('property_inquiries')
         .insert({
-          ...inquiryData,
+          property_id: inquiryData.property_id,
+          inquirer_name: inquiryData.inquirer_name,
+          inquirer_email: inquiryData.inquirer_email,
+          inquirer_phone: inquiryData.inquirer_phone,
+          message: inquiryData.message || '',
           inquirer_id: user?.id,
           status: 'new'
         });

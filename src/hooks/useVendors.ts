@@ -125,8 +125,9 @@ export const useVendorApplication = () => {
         .insert({
           business_name: applicationData.business_name,
           business_description: applicationData.business_description,
-          contact_email: applicationData.business_email,
-          contact_phone: applicationData.business_phone,
+          business_email: applicationData.business_email,
+          business_phone: applicationData.business_phone,
+          business_address: applicationData.business_address,
           user_id: user.id,
           status: 'pending',
           submitted_at: new Date().toISOString(),
@@ -183,7 +184,7 @@ export const useMyVendorProfile = () => {
       // Check for recent application
       const { data: vendorApplication, error: vendorAppError } = await supabase
         .from('vendor_applications')
-        .select('status, business_name, business_description, contact_email, contact_phone, submitted_at, service_type')
+        .select('status, business_name, business_description, business_email, business_phone, submitted_at, service_type')
         .eq('user_id', user.id)
         .order('submitted_at', { ascending: false })
         .limit(1)
@@ -198,8 +199,8 @@ export const useMyVendorProfile = () => {
           verification_status: vendorApplication.status,
           business_name: vendorApplication.business_name,
           business_description: vendorApplication.business_description,
-          business_email: vendorApplication.contact_email,
-          business_phone: vendorApplication.contact_phone,
+          business_email: vendorApplication.business_email,
+          business_phone: vendorApplication.business_phone,
           is_active: false,
           commission_rate: 0,
           created_at: vendorApplication.submitted_at,

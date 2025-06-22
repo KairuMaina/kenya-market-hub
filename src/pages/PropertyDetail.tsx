@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProperty, useIncrementPropertyViews, useCreatePropertyInquiry } from '@/hooks/useProperties';
+import { useProperty, useCreatePropertyInquiry } from '@/hooks/useProperties';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,14 +32,7 @@ const PropertyDetail = () => {
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   
   const { data: property, isLoading, error } = useProperty(id!);
-  const incrementViews = useIncrementPropertyViews();
   const createInquiry = useCreatePropertyInquiry();
-
-  useEffect(() => {
-    if (property && id) {
-      incrementViews.mutate(id);
-    }
-  }, [property, id]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -96,7 +89,7 @@ const PropertyDetail = () => {
     <>
       <SEOHead 
         title={`${property.title} - Soko Smart`}
-        description={property.description || `${property.property_type} for ${property.listing_type} in ${property.city || property.location_address}`}
+        description={property.description || `${property.property_type} for ${property.listing_type} in ${property.county || property.location_address}`}
         image={primaryImage}
       />
       
@@ -248,20 +241,6 @@ const PropertyDetail = () => {
                       </div>
                     )}
 
-                    {/* Features */}
-                    {property.features && property.features.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Features</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {property.features.map((feature, index) => (
-                            <Badge key={index} variant="outline">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Virtual Tour */}
                     {property.virtual_tour_url && (
                       <div>
@@ -365,12 +344,6 @@ const PropertyDetail = () => {
                       <span className="text-gray-600">Listing Type:</span>
                       <span className="capitalize">For {property.listing_type}</span>
                     </div>
-                    {property.city && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">City:</span>
-                        <span>{property.city}</span>
-                      </div>
-                    )}
                     {property.county && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">County:</span>
