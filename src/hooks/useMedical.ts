@@ -15,6 +15,7 @@ export interface MedicalProvider {
   rating: number;
   created_at: string;
   updated_at: string;
+  specialization?: string; // Add this for compatibility
 }
 
 export interface MedicalApplication {
@@ -23,7 +24,7 @@ export interface MedicalApplication {
   full_name: string;
   email: string;
   phone: string;
-  provider_type: string;
+  provider_type: 'doctor' | 'nurse' | 'pharmacist' | 'lab_technician' | 'ambulance_driver' | 'dentist' | 'physiotherapist';
   license_number: string;
   specialization_id?: string;
   documents?: any;
@@ -120,7 +121,7 @@ export const useMedicalApplicationMutation = () => {
         .insert({
           ...applicationData,
           user_id: user.id,
-          status: 'pending',
+          status: 'pending' as const,
           submitted_at: new Date().toISOString()
         });
 

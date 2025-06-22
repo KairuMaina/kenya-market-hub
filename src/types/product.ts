@@ -44,4 +44,17 @@ export interface Property {
   views_count?: number;
   created_at?: string;
   updated_at?: string;
+  // Add missing properties for compatibility
+  location_coordinates?: any;
+  county?: string;
+  city?: string;
+  amenities?: string[];
+  features?: string[];
+  images?: string[];
+  virtual_tour_url?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  available_from?: string;
+  owner_id?: string;
+  agent_id?: string;
 }

@@ -29,7 +29,7 @@ const NewAdminDashboard = () => {
     );
   }
 
-  const activeCoupons = coupons.filter((coupon: Coupon) => coupon.is_active);
+  const activeCoupons = (coupons as Coupon[]).filter((coupon: Coupon) => coupon.is_active);
 
   return (
     <ModernAdminLayout>
