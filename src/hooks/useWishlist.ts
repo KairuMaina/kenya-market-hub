@@ -81,7 +81,6 @@ export const useRemoveFromWishlist = () => {
   });
 };
 
-// Additional exports for compatibility
 export const useToggleWishlist = () => {
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
@@ -98,6 +97,11 @@ export const useToggleWishlist = () => {
 };
 
 export const useIsInWishlist = (productId: string) => {
-  const { data: wishlist } = useWishlist();
-  return wishlist?.some(item => item.product_id === productId) || false;
+  const { data: wishlist, isLoading } = useWishlist();
+  const isInWishlist = wishlist?.some(item => item.product_id === productId) || false;
+  
+  return {
+    data: isInWishlist,
+    isLoading
+  };
 };

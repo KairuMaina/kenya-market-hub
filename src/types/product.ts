@@ -39,4 +39,15 @@ export interface Property {
   created_at: string;
   updated_at: string;
   name: string; // alias for title
+  city?: string;
+  county?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  features?: string[];
+  virtual_tour_url?: string;
+  available_from?: string;
+  location_coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }

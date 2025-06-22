@@ -55,7 +55,7 @@ const OptimizedProductCard = memo<OptimizedProductCardProps>(({
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleWishlist.mutate(product.id);
+    toggleWishlist.mutate({ productId: product.id, isInWishlist });
   };
 
   const handleCardClick = () => {

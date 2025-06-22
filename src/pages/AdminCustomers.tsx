@@ -131,7 +131,7 @@ const AdminCustomers = () => {
                         </Badge>
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {profile.city && profile.country ? `${profile.city}, ${profile.country}` : profile.country || 'Not specified'}
+                        Not specified
                       </td>
                       <td className="p-4 text-sm text-gray-600">
                         {new Date(profile.created_at || '').toLocaleDateString()}

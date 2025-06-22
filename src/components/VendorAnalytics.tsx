@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   LineChart, 
@@ -25,11 +24,12 @@ import {
   Package, 
   Star, 
   Eye,
-  ShoppingCart,
-  Users
+  ShoppingCart
 } from 'lucide-react';
 import { useVendorAnalytics } from '@/hooks/useVendorAnalytics';
 import LoadingSpinner from '@/components/LoadingSpinner';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const VendorAnalytics = () => {
   const { data: analyticsData, isLoading, error } = useVendorAnalytics();
@@ -102,6 +102,12 @@ const VendorAnalytics = () => {
     }
   ];
 
+  // Add colors to category data
+  const categoryDataWithColors = analyticsData.categoryData.map((item, index) => ({
+    ...item,
+    color: COLORS[index % COLORS.length]
+  }));
+
   return (
     <div className="space-y-6">
       {/* Key Metrics */}
@@ -147,10 +153,10 @@ const VendorAnalytics = () => {
                 <Tooltip />
                 <Line 
                   type="monotone" 
-                  dataKey="sales" 
+                  dataKey="revenue" 
                   stroke="#3b82f6" 
                   strokeWidth={2}
-                  name="Sales (KSh)"
+                  name="Revenue (KSh)"
                 />
                 <Line 
                   type="monotone" 
@@ -171,19 +177,19 @@ const VendorAnalytics = () => {
             <CardDescription>Revenue distribution across product categories</CardDescription>
           </CardHeader>
           <CardContent>
-            {analyticsData.categoryData.length > 0 ? (
+            {categoryDataWithColors.length > 0 ? (
               <>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={analyticsData.categoryData}
+                      data={categoryDataWithColors}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
                       outerRadius={100}
                       dataKey="value"
                     >
-                      {analyticsData.categoryData.map((entry, index) => (
+                      {categoryDataWithColors.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -191,7 +197,7 @@ const VendorAnalytics = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  {analyticsData.categoryData.map((category, index) => (
+                  {categoryDataWithColors.map((category, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full" 

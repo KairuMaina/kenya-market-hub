@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
@@ -19,7 +20,7 @@ const WishlistButton = ({ productId, size = 'sm' }: WishlistButtonProps) => {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist.mutate(productId);
+    toggleWishlist.mutate({ productId, isInWishlist });
   };
 
   return (
