@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -16,13 +15,24 @@ export interface Property {
   location_address: string;
   agent_id?: string;
   owner_id?: string;
-  images?: any;
-  amenities?: any;
+  images?: string[];
+  amenities?: string[];
+  features?: string[];
   status?: string;
   views_count?: number;
   created_at?: string;
   updated_at?: string;
   is_featured?: boolean;
+  location_coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  county?: string;
+  city?: string;
+  virtual_tour_url?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  available_from?: string;
 }
 
 export interface PropertyFilters {
@@ -80,7 +90,11 @@ export const useProperties = (filters?: PropertyFilters) => {
         location_address: property.location_address || 'No address provided',
         is_featured: property.is_featured || false,
         area_sqm: property.area_sqm || 0,
-        views_count: property.views_count || 0
+        views_count: property.views_count || 0,
+        location_coordinates: property.location_coordinates ? {
+          lat: property.location_coordinates.x || property.location_coordinates[0],
+          lng: property.location_coordinates.y || property.location_coordinates[1]
+        } : undefined
       })) as Property[];
     }
   });

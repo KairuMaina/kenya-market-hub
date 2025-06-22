@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Property } from '@/types/product';
+import { Property } from '@/types/property';
 import PropertyMap from '@/components/real-estate/PropertyMap';
 
 interface PropertyMapViewProps {
@@ -28,7 +28,7 @@ const PropertyMapView = ({
   const transformedProperties = properties.map(property => ({
     ...property,
     is_featured: property.is_featured || false,
-    title: property.name || property.title,
+    title: property.title,
   }));
 
   return (

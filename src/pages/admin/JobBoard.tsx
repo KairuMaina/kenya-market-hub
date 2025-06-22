@@ -22,7 +22,8 @@ const JobBoard: React.FC = () => {
     setLoading(true);
     try {
       const response = await getJobs();
-      const jobData = Array.isArray(response) ? response : response.data || [];
+      // Handle both array and paginated response formats
+      const jobData = Array.isArray(response) ? response : response?.data || [];
       setJobs(jobData);
     } catch (error) {
       toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
