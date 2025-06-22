@@ -3,18 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Plus, Users, Package, BarChart3, Store, Tag, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import AddProductModal from '@/components/AddProductModal';
 import { useVendorApplications } from '@/hooks/useVendors';
 import { useAdminVendors } from '@/hooks/useAdminVendors';
+import AdminStatsCards from '@/components/admin/AdminStatsCards';
+import AdminProductsTab from '@/components/admin/AdminProductsTab';
+import AdminUsersTab from '@/components/admin/AdminUsersTab';
+import AdminOrdersTab from '@/components/admin/AdminOrdersTab';
+import AdminTransactionsTab from '@/components/admin/AdminTransactionsTab';
+import AdminVendorsTab from '@/components/admin/AdminVendorsTab';
+import AdminCouponsTab from '@/components/admin/AdminCouponsTab';
 
 interface UserProfile {
   id: string;
@@ -422,18 +425,23 @@ const NewAdminDashboard = () => {
       case 'completed':
       case 'delivered':
       case 'approved':
-        return 'default';
+        return 'default' as const;
       case 'pending':
       case 'processing':
-        return 'secondary';
+        return 'secondary' as const;
       case 'failed':
       case 'cancelled':
       case 'rejected':
-        return 'destructive';
+        return 'destructive' as const;
       default:
-        return 'outline';
+        return 'outline' as const;
     }
   };
+
+  // Calculate stats
+  const revenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+  const vendorApplicationsCount = vendorApplications?.length || 0;
+  const pendingApplicationsCount = vendorApplications?.filter(app => app.status === 'pending').length || 0;
 
   return (
     <MainLayout>
@@ -443,61 +451,14 @@ const NewAdminDashboard = () => {
           <p className="text-muted-foreground">Manage your marketplace</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{products?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orders?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                KSH {transactions?.reduce((sum, t) => sum + Number(t.amount), 0)?.toFixed(2) || '0.00'}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vendor Applications</CardTitle>
-              <Store className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {vendorApplications?.length || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {vendorApplications?.filter(app => app.status === 'pending').length || 0} pending
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <AdminStatsCards 
+          usersCount={users?.length || 0}
+          productsCount={products?.length || 0}
+          ordersCount={orders?.length || 0}
+          revenue={revenue}
+          vendorApplicationsCount={vendorApplicationsCount}
+          pendingApplicationsCount={pendingApplicationsCount}
+        />
 
         <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
@@ -510,349 +471,56 @@ const NewAdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="products" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Product Management</CardTitle>
-                    <CardDescription>Manage your marketplace products</CardDescription>
-                  </div>
-                  <Button onClick={() => setShowAddProduct(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {productsLoading ? (
-                  <div>Loading products...</div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Stock</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products?.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.category}</TableCell>
-                          <TableCell>KSH {Number(product.price).toLocaleString()}</TableCell>
-                          <TableCell>
-                            <Badge variant={product.in_stock ? 'default' : 'destructive'}>
-                              {product.in_stock ? `${product.stock_quantity || 0} in stock` : 'Out of stock'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteProduct(product.id)}
-                              disabled={deleteProduct.isPending}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+            <AdminProductsTab 
+              products={products}
+              isLoading={productsLoading}
+              onAddProduct={() => setShowAddProduct(true)}
+              onDeleteProduct={handleDeleteProduct}
+              isDeleting={deleteProduct.isPending}
+            />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage registered users</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {usersLoading ? (
-                  <div>Loading users...</div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users?.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.full_name || 'N/A'}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                              {user.role || 'customer'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user.id)}
-                              disabled={deleteUser.isPending}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+            <AdminUsersTab 
+              users={users}
+              isLoading={usersLoading}
+              onDeleteUser={handleDeleteUser}
+              isDeleting={deleteUser.isPending}
+            />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Management</CardTitle>
-                <CardDescription>View and manage customer orders</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {ordersLoading ? (
-                  <div>Loading orders...</div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Payment Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {orders?.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-mono">{order.id.slice(0, 8)}...</TableCell>
-                          <TableCell>{order.user_name || order.user_email || 'Unknown'}</TableCell>
-                          <TableCell>KSH {Number(order.total_amount).toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(order.status)}>
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(order.payment_status)}>
-                              {order.payment_status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+            <AdminOrdersTab 
+              orders={orders}
+              isLoading={ordersLoading}
+              getStatusBadgeVariant={getStatusBadgeVariant}
+            />
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>View payment transactions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {transactionsLoading ? (
-                  <div>Loading transactions...</div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Transaction ID</TableHead>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions?.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell className="font-mono">{transaction.id.slice(0, 8)}...</TableCell>
-                          <TableCell className="font-mono">{transaction.order_id.slice(0, 8)}...</TableCell>
-                          <TableCell>KSH {Number(transaction.amount).toFixed(2)}</TableCell>
-                          <TableCell className="capitalize">{transaction.payment_method}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                              {transaction.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+            <AdminTransactionsTab 
+              transactions={transactions}
+              isLoading={transactionsLoading}
+              getStatusBadgeVariant={getStatusBadgeVariant}
+            />
           </TabsContent>
 
           <TabsContent value="vendors" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Vendors</CardTitle>
-                    <CardDescription>
-                      View and manage all vendor profiles. New vendors will be listed here as soon as they are approved.
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <input
-                        placeholder="Search vendors..."
-                        value={vendorSearchTerm}
-                        onChange={(e) => {
-                          setVendorSearchTerm(e.target.value);
-                          setVendorPage(1);
-                        }}
-                        className="pl-9 w-64 h-9 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        style={{ paddingLeft: 36 }}
-                      />
-                      <span className="absolute left-3 top-2.5 text-gray-400 pointer-events-none">
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M5 11a6 6 0 1112 0 6 6 0 01-12 0z" stroke="#a3a3a3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {adminVendorsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                    <span className="ml-2 text-orange-500">Loading vendors...</span>
-                  </div>
-                ) : adminVendorsError ? (
-                  <div className="text-red-500 bg-red-50 p-4 rounded">
-                    Error loading vendors: {adminVendorsError.message}
-                  </div>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr className="bg-orange-50">
-                            <th className="px-4 py-2 text-left font-semibold">Business Name</th>
-                            <th className="px-4 py-2 text-left font-semibold">Email</th>
-                            <th className="px-4 py-2 font-semibold">Status</th>
-                            <th className="px-4 py-2 font-semibold">Products</th>
-                            <th className="px-4 py-2 font-semibold">Revenue</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {adminVendorsData?.length > 0 ? adminVendorsData.map((vendor) => (
-                            <tr key={vendor.id} className="hover:bg-orange-50 transition-all">
-                              <td className="px-4 py-2 font-medium">{vendor.business_name}</td>
-                              <td className="px-4 py-2">{vendor.business_email || 'N/A'}</td>
-                              <td className="px-4 py-2">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  vendor.verification_status === 'approved'
-                                    ? 'bg-green-100 text-green-700'
-                                    : vendor.verification_status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-700'
-                                    : 'bg-red-100 text-red-700'
-                                }`}>
-                                  {vendor.verification_status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-2">{vendor.products_count}</td>
-                              <td className="px-4 py-2 text-green-700 font-semibold">KSh {Number(vendor.total_revenue).toLocaleString()}</td>
-                            </tr>
-                          )) : (
-                            <tr>
-                              <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
-                                No vendors found.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <AdminVendorsTab 
+              adminVendorsData={adminVendorsData}
+              adminVendorsLoading={adminVendorsLoading}
+              adminVendorsError={adminVendorsError}
+              vendorSearchTerm={vendorSearchTerm}
+              setVendorSearchTerm={setVendorSearchTerm}
+              setVendorPage={setVendorPage}
+            />
           </TabsContent>
 
           <TabsContent value="coupons" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Coupon Management</CardTitle>
-                    <CardDescription>Manage discount coupons and promotions</CardDescription>
-                  </div>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Coupon
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {couponsLoading ? (
-                  <div>Loading coupons...</div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Code</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Value</TableHead>
-                        <TableHead>Usage</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {coupons?.map((coupon) => (
-                        <TableRow key={coupon.id}>
-                          <TableCell className="font-mono">{coupon.code}</TableCell>
-                          <TableCell className="capitalize">{coupon.discount_type}</TableCell>
-                          <TableCell>
-                            {coupon.discount_type === 'percentage' 
-                              ? `${coupon.discount_amount}%` 
-                              : `KSH ${coupon.discount_amount}`}
-                          </TableCell>
-                          <TableCell>
-                            {coupon.used_count}/{coupon.usage_limit || '∞'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
-                              {coupon.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="destructive" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+            <AdminCouponsTab 
+              coupons={coupons}
+              isLoading={couponsLoading}
+            />
           </TabsContent>
         </Tabs>
       </div>
