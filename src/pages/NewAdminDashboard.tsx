@@ -52,8 +52,8 @@ interface VendorApplication {
   user_id: string;
   business_name: string;
   business_description: string;
-  contact_phone: string;
-  contact_email: string;
+  business_phone: string;
+  business_email: string;
   status: string;
   submitted_at: string;
 }
@@ -61,15 +61,23 @@ interface VendorApplication {
 interface Coupon {
   id: string;
   code: string;
-  discount_amount: number;
+  discount_value: number;
   discount_type: string;
-  used_count: number;
+  usage_count: number;
   usage_limit?: number;
-  expires_at: string;
+  end_date: string;
   created_at: string;
   is_active: boolean;
   minimum_order_amount: number;
   updated_at: string;
+  name: string;
+  description?: string;
+  start_date: string;
+  maximum_discount_amount?: number;
+  user_usage_limit?: number;
+  applicable_products?: string[];
+  applicable_categories?: string[];
+  created_by?: string;
 }
 
 const NewAdminDashboard = () => {
@@ -286,7 +294,7 @@ const NewAdminDashboard = () => {
   // Fetch vendor profiles for admin
   const [vendorPage, setVendorPage] = useState(1);
   const [vendorSearchTerm, setVendorSearchTerm] = useState('');
-  const { data: adminVendorsData, isLoading: adminVendorsLoading, error: adminVendorsError } = useAdminVendors(vendorPage, 10, vendorSearchTerm);
+  const { data: adminVendorsData, isLoading: adminVendorsLoading, error: adminVendorsError } = useAdminVendors();
 
   // Add console logging to debug the vendor applications data
   useEffect(() => {
@@ -307,7 +315,33 @@ const NewAdminDashboard = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      
+      // Transform the data to match the Coupon interface
+      return data.map(coupon => ({
+        id: coupon.id,
+        code: coupon.code,
+        name: coupon.name || '',
+        description: coupon.description || '',
+        discount_value: coupon.discount_value,
+        discount_type: coupon.discount_type,
+        minimum_order_amount: coupon.minimum_order_amount || 0,
+        maximum_discount_amount: coupon.maximum_discount_amount,
+        usage_limit: coupon.usage_limit,
+        user_usage_limit: coupon.user_usage_limit || 1,
+        usage_count: coupon.usage_count || 0,
+        start_date: coupon.start_date,
+        end_date: coupon.end_date,
+        is_active: coupon.is_active,
+        applicable_products: coupon.applicable_products || [],
+        applicable_categories: coupon.applicable_categories || [],
+        created_by: coupon.created_by,
+        created_at: coupon.created_at,
+        updated_at: coupon.updated_at,
+        // Map missing properties
+        discount_amount: coupon.discount_value, // Map to expected property
+        used_count: coupon.usage_count || 0, // Map to expected property
+        expires_at: coupon.end_date // Map to expected property
+      }));
     }
   });
 
@@ -371,8 +405,8 @@ const NewAdminDashboard = () => {
             user_id: application.user_id,
             business_name: application.business_name,
             business_description: application.business_description,
-            contact_phone: application.contact_phone,
-            contact_email: application.contact_email,
+            business_phone: application.business_phone,
+            business_email: application.business_email,
             verification_status: 'approved'
           });
         
