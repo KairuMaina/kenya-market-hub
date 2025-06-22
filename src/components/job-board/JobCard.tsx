@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,9 +21,10 @@ interface JobCardProps {
     created_at: string;
   };
   className?: string;
+  style?: React.CSSProperties;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, className = '' }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, className = '', style }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -36,7 +38,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, className = '' }) => {
   };
 
   return (
-    <Card className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden ${className}`}>
+    <Card 
+      className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-lg overflow-hidden ${className}`}
+      style={style}
+    >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
