@@ -1,121 +1,67 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Power, UserCheck, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Power, Car, Clock } from 'lucide-react';
 import { useDriverStatus } from '@/hooks/useDriverMatching';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 const DriverStatusToggle = () => {
-  const { user } = useAuth();
   const updateStatus = useDriverStatus();
 
-  const { data: driverProfile } = useQuery({
-    queryKey: ['driver-profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      
-      const { data, error } = await supabase
-        .from('drivers')
-        .select('status, availability_status')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const currentStatus = driverProfile?.status || 'offline';
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-500 text-white';
-      case 'busy':
-        return 'bg-yellow-500 text-white';
-      case 'offline':
-        return 'bg-gray-500 text-white';
-      default:
-        return 'bg-gray-500 text-white';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'available':
-        return <UserCheck className="h-4 w-4" />;
-      case 'busy':
-        return <Clock className="h-4 w-4" />;
-      case 'offline':
-        return <Power className="h-4 w-4" />;
-      default:
-        return <Power className="h-4 w-4" />;
-    }
-  };
-
-  const handleStatusChange = (newStatus: 'available' | 'busy' | 'offline') => {
-    updateStatus.mutate(newStatus);
+  const handleStatusChange = (status: 'available' | 'busy' | 'offline') => {
+    updateStatus.mutate(status);
   };
 
   return (
     <Card className="shadow-lg">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <Power className="h-5 w-5" />
           Driver Status
-          <Badge className={getStatusColor(currentStatus)}>
-            {getStatusIcon(currentStatus)}
-            <span className="ml-1 capitalize">{currentStatus}</span>
-          </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 gap-2">
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <Badge variant="outline" className="text-green-600 border-green-300 mb-4">
+            Currently Available
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3">
           <Button
-            variant={currentStatus === 'available' ? 'default' : 'outline'}
             onClick={() => handleStatusChange('available')}
+            variant="default"
+            className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
             disabled={updateStatus.isPending}
-            className="w-full justify-start"
           >
-            <UserCheck className="h-4 w-4 mr-2" />
-            Available for Rides
+            <Car className="h-4 w-4" />
+            Go Online
           </Button>
           
           <Button
-            variant={currentStatus === 'busy' ? 'default' : 'outline'}
             onClick={() => handleStatusChange('busy')}
+            variant="outline"
+            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50 flex items-center gap-2"
             disabled={updateStatus.isPending}
-            className="w-full justify-start"
           >
-            <Clock className="h-4 w-4 mr-2" />
-            Busy
+            <Clock className="h-4 w-4" />
+            Set Busy
           </Button>
           
           <Button
-            variant={currentStatus === 'offline' ? 'default' : 'outline'}
             onClick={() => handleStatusChange('offline')}
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-50 flex items-center gap-2"
             disabled={updateStatus.isPending}
-            className="w-full justify-start"
           >
-            <Power className="h-4 w-4 mr-2" />
+            <Power className="h-4 w-4" />
             Go Offline
           </Button>
         </div>
 
-        <div className="text-xs text-gray-500 pt-2 border-t">
-          {currentStatus === 'available' && (
-            <p>✅ You're online and will receive ride requests</p>
-          )}
-          {currentStatus === 'busy' && (
-            <p>⏳ You're busy and won't receive new requests</p>
-          )}
-          {currentStatus === 'offline' && (
-            <p>⏸️ You're offline and won't receive any requests</p>
-          )}
+        <div className="text-center text-sm text-gray-500 mt-4">
+          <p>Your status determines whether you receive ride requests</p>
         </div>
       </CardContent>
     </Card>

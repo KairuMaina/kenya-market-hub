@@ -1,0 +1,134 @@
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  /* Button spacing fixes for mobile */
+  .mobile-button-spacing {
+    @apply space-y-3 sm:space-y-0 sm:space-x-3 sm:flex sm:flex-row;
+  }
+  
+  .mobile-safe-padding {
+    @apply px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12;
+  }
+  
+  .mobile-card-spacing {
+    @apply space-y-4 sm:space-y-6;
+  }
+  
+  /* Container overflow fixes */
+  .mobile-container {
+    @apply max-w-full overflow-x-hidden;
+  }
+  
+  /* Form button fixes */
+  .mobile-form-buttons {
+    @apply flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:justify-end;
+  }
+  
+  /* Chat and forum button fixes */
+  .mobile-action-buttons {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:space-x-3 lg:gap-0;
+  }
+  
+  /* Prevent container overlap */
+  .mobile-section {
+    @apply mb-6 sm:mb-8 lg:mb-12;
+  }
+  
+  /* Header responsive fixes */
+  .mobile-header {
+    @apply flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0;
+  }
+  
+  /* Navigation responsive fixes */
+  .mobile-nav {
+    @apply flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4;
+  }
+}
+
+/* Specific fixes for overlapping issues */
+@media (max-width: 640px) {
+  /* Auth page fixes */
+  .auth-container {
+    min-height: 100vh;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .auth-card {
+    width: 100%;
+    max-width: 400px;
+    margin: 0;
+  }
+  
+  /* Button container fixes */
+  .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  
+  .button-container > * {
+    width: 100%;
+  }
+  
+  /* Chat and forum page fixes */
+  .chat-forum-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Service hub card fixes */
+  .service-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .service-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Admin page fixes */
+  .admin-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Medium screen fixes */
+@media (min-width: 641px) and (max-width: 768px) {
+  .tablet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tablet-spacing {
+    gap: 1rem;
+  }
+}
+
+/* Ensure no horizontal scroll */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.container, .main-content {
+  max-width: 100%;
+  overflow-x: hidden;
+}

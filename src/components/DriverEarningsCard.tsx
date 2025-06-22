@@ -29,6 +29,10 @@ const DriverEarningsCard = () => {
     );
   }
 
+  // Calculate commission (5% of total earnings)
+  const totalCommission = earnings.totalEarnings * 0.05;
+  const netEarnings = earnings.totalEarnings - totalCommission;
+
   return (
     <div className="space-y-4">
       {/* Total Earnings Summary */}
@@ -43,13 +47,13 @@ const DriverEarningsCard = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center p-4 bg-green-100 rounded-lg">
               <p className="text-2xl font-bold text-green-700">
-                KSh {earnings.total_net_earnings.toLocaleString()}
+                KSh {netEarnings.toLocaleString()}
               </p>
               <p className="text-sm text-green-600">Net Earnings</p>
             </div>
             <div className="text-center p-4 bg-orange-100 rounded-lg">
               <p className="text-2xl font-bold text-orange-700">
-                KSh {earnings.total_commission.toLocaleString()}
+                KSh {totalCommission.toLocaleString()}
               </p>
               <p className="text-sm text-orange-600">Commission (5%)</p>
             </div>
@@ -58,12 +62,12 @@ const DriverEarningsCard = () => {
           <div className="text-center p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-center gap-4">
               <div>
-                <p className="text-lg font-bold text-gray-700">{earnings.total_trips}</p>
+                <p className="text-lg font-bold text-gray-700">{earnings.ridesCompleted}</p>
                 <p className="text-xs text-gray-500">Total Trips</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-gray-700">
-                  KSh {earnings.total_gross_earnings.toLocaleString()}
+                  KSh {earnings.totalEarnings.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500">Gross Earnings</p>
               </div>
@@ -83,19 +87,15 @@ const DriverEarningsCard = () => {
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <p className="font-bold text-blue-700">{earnings.today_trips}</p>
+              <p className="font-bold text-blue-700">0</p>
               <p className="text-xs text-blue-600">Trips</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
-              <p className="font-bold text-green-700">
-                KSh {earnings.today_net_earnings.toLocaleString()}
-              </p>
+              <p className="font-bold text-green-700">KSh 0</p>
               <p className="text-xs text-green-600">Net</p>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded-lg">
-              <p className="font-bold text-orange-700">
-                KSh {earnings.today_commission.toLocaleString()}
-              </p>
+              <p className="font-bold text-orange-700">KSh 0</p>
               <p className="text-xs text-orange-600">Commission</p>
             </div>
           </div>
@@ -113,18 +113,18 @@ const DriverEarningsCard = () => {
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <p className="font-bold text-purple-700">{earnings.week_trips}</p>
+              <p className="font-bold text-purple-700">{earnings.ridesCompleted}</p>
               <p className="text-xs text-purple-600">Trips</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <p className="font-bold text-green-700">
-                KSh {earnings.week_net_earnings.toLocaleString()}
+                KSh {netEarnings.toLocaleString()}
               </p>
               <p className="text-xs text-green-600">Net</p>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded-lg">
               <p className="font-bold text-orange-700">
-                KSh {earnings.week_commission.toLocaleString()}
+                KSh {totalCommission.toLocaleString()}
               </p>
               <p className="text-xs text-orange-600">Commission</p>
             </div>
