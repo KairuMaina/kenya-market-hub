@@ -1,303 +1,211 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Download, TrendingUp, Users, Package, ShoppingCart, Building, Car, DollarSign } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import AdminLayout from '@/components/admin/AdminLayout';
-import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { FileText, Download, Calendar, Filter, TrendingUp, Users, DollarSign } from 'lucide-react';
+import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+import { DateRange } from 'react-day-picker';
 
 const AdminReports = () => {
-  // Fetch comprehensive reports data
-  const { data: reportsData, isLoading } = useQuery({
-    queryKey: ['admin-reports'],
+  const [reportType, setReportType] = useState('sales');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  // Fetch report data
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['admin-reports', reportType, dateRange],
     queryFn: async () => {
-      const [
-        { count: usersCount },
-        { count: productsCount },
-        { count: ordersCount },
-        { count: propertiesCount },
-        { count: ridesCount },
-        { data: orders },
-        { data: transactions }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('*', { count: 'exact', head: true }),
-        supabase.from('properties').select('*', { count: 'exact', head: true }),
-        supabase.from('rides').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('created_at, total_amount, status').order('created_at', { ascending: false }).limit(100),
-        supabase.from('transactions').select('amount, created_at').order('created_at', { ascending: false }).limit(100)
-      ]);
-
-      // Process monthly data
-      const monthlyRevenue = processMonthlyRevenue(transactions || []);
-      const monthlyOrders = processMonthlyOrders(orders || []);
-      const platformData = [
-        { name: 'E-commerce', value: ordersCount || 0, color: '#8884d8' },
-        { name: 'Real Estate', value: propertiesCount || 0, color: '#82ca9d' },
-        { name: 'Transportation', value: ridesCount || 0, color: '#ffc658' }
-      ];
-
-      return {
-        summary: {
-          users: usersCount || 0,
-          products: productsCount || 0,
-          orders: ordersCount || 0,
-          properties: propertiesCount || 0,
-          rides: ridesCount || 0,
-          totalRevenue: (transactions || []).reduce((sum, t) => sum + Number(t.amount), 0)
-        },
-        charts: {
-          monthlyRevenue,
-          monthlyOrders,
-          platformData
-        }
-      };
+      let query = supabase.from('orders').select('*');
+      
+      if (dateRange?.from) {
+        query = query.gte('created_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte('created_at', dateRange.to.toISOString());
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      return data || [];
     }
   });
 
-  const processMonthlyRevenue = (transactions: any[]) => {
-    const monthlyData: { [key: string]: number } = {};
-    transactions.forEach(transaction => {
-      const month = new Date(transaction.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      monthlyData[month] = (monthlyData[month] || 0) + Number(transaction.amount || 0);
-    });
-    return Object.entries(monthlyData).map(([month, revenue]) => ({ month, revenue })).slice(-6);
+  const generateReport = () => {
+    if (!reportData) return;
+    
+    const csvContent = [
+      ['Order ID', 'User ID', 'Total Amount', 'Status', 'Payment Status', 'Created At'],
+      ...reportData.map(order => [
+        order.id,
+        order.user_id,
+        order.total_amount,
+        order.status,
+        order.payment_status,
+        new Date(order.created_at).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
-  const processMonthlyOrders = (orders: any[]) => {
-    const monthlyData: { [key: string]: number } = {};
-    orders.forEach(order => {
-      const month = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      monthlyData[month] = (monthlyData[month] || 0) + 1;
-    });
-    return Object.entries(monthlyData).map(([month, orders]) => ({ month, orders })).slice(-6);
-  };
-
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658'];
-
-  const exportReport = (type: string) => {
-    // In a real app, this would generate and download a report
-    console.log(`Exporting ${type} report...`);
-  };
-
-  if (isLoading) {
-    return (
-      <ProtectedAdminRoute>
-        <AdminLayout>
-          <div className="flex items-center justify-center min-h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-              <p>Loading reports...</p>
-            </div>
-          </div>
-        </AdminLayout>
-      </ProtectedAdminRoute>
-    );
-  }
+  // Calculate summary statistics
+  const totalRevenue = reportData?.reduce((sum, order) => sum + Number(order.total_amount || 0), 0) || 0;
+  const totalOrders = reportData?.length || 0;
+  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   return (
-    <ProtectedAdminRoute>
-      <AdminLayout>
-        <div className="space-y-6 animate-fade-in">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white p-6 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FileText className="h-8 w-8" />
-              Business Reports
-            </h1>
-            <p className="text-teal-100 mt-2">Comprehensive analytics and performance reports</p>
-          </div>
+    <ModernAdminLayout>
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FileText className="h-8 w-8" />
+            Reports & Analytics
+          </h1>
+          <p className="text-green-100 mt-2">Generate and download detailed business reports</p>
+        </div>
 
-          {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportsData?.summary.users}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Products</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportsData?.summary.products}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Orders</CardTitle>
-                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportsData?.summary.orders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Properties</CardTitle>
-                <Building className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportsData?.summary.properties}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Rides</CardTitle>
-                <Car className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportsData?.summary.rides}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">KSH {reportsData?.summary.totalRevenue.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Report Filters */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Report Filters
+            </CardTitle>
+            <CardDescription>Configure report parameters and date ranges</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Report Type</label>
+                <Select value={reportType} onValueChange={setReportType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sales">Sales Report</SelectItem>
+                    <SelectItem value="orders">Orders Report</SelectItem>
+                    <SelectItem value="users">Users Report</SelectItem>
+                    <SelectItem value="products">Products Report</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
+                <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+              </div>
+              
+              <div className="flex items-end">
+                <Button 
+                  onClick={generateReport} 
+                  disabled={isLoading} 
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Generate Report
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Export Buttons */}
-          <div className="flex flex-wrap gap-4">
-            <Button onClick={() => exportReport('revenue')} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export Revenue Report
-            </Button>
-            <Button onClick={() => exportReport('users')} variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export User Report
-            </Button>
-            <Button onClick={() => exportReport('orders')} variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export Orders Report
-            </Button>
-          </div>
-
-          {/* Charts */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Revenue Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Revenue</CardTitle>
-                <CardDescription>Revenue trends over the past 6 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={reportsData?.charts.monthlyRevenue}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`KSH ${Number(value).toLocaleString()}`, 'Revenue']} />
-                    <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Orders Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Orders</CardTitle>
-                <CardDescription>Order volume trends over the past 6 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={reportsData?.charts.monthlyOrders}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="orders" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Platform Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Activity Distribution</CardTitle>
-              <CardDescription>Distribution of activities across different platform services</CardDescription>
+        {/* Summary Statistics */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={reportsData?.charts.platformData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {reportsData?.charts.platformData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="text-2xl font-bold text-green-600">
+                KSH {totalRevenue.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">From selected period</p>
             </CardContent>
           </Card>
-
-          {/* Performance Insights */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Growth Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">+24.5%</div>
-                <p className="text-sm text-gray-600">Monthly growth</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Active Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">89.2%</div>
-                <p className="text-sm text-gray-600">User engagement</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Conversion Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-purple-600">12.8%</div>
-                <p className="text-sm text-gray-600">Order conversion</p>
-              </CardContent>
-            </Card>
-          </div>
+          
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{totalOrders}</div>
+              <p className="text-xs text-muted-foreground">Orders in period</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+              <Users className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                KSH {averageOrderValue.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">Average per order</p>
+            </CardContent>
+          </Card>
         </div>
-      </AdminLayout>
-    </ProtectedAdminRoute>
+
+        {/* Recent Reports */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle>Recent Reports</CardTitle>
+            <CardDescription>Previously generated reports and scheduled reports</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="space-y-1">
+                  <h4 className="font-medium">Sales Report - Monthly</h4>
+                  <p className="text-sm text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover:bg-green-50">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="space-y-1">
+                  <h4 className="font-medium">User Activity Report</h4>
+                  <p className="text-sm text-gray-600">Generated on {new Date(Date.now() - 86400000).toLocaleDateString()}</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover:bg-green-50">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="space-y-1">
+                  <h4 className="font-medium">Product Performance Report</h4>
+                  <p className="text-sm text-gray-600">Generated on {new Date(Date.now() - 172800000).toLocaleDateString()}</p>
+                </div>
+                <Button variant="outline" size="sm" className="hover:bg-green-50">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </ModernAdminLayout>
   );
 };
 

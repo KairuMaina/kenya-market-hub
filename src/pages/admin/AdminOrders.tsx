@@ -5,298 +5,274 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingCart, Eye, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import { ShoppingCart, Eye, Package, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Fetch orders
+  // Fetch orders with user profiles separately
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
-    }
-  });
+      if (ordersError) throw ordersError;
 
-  // Fetch profiles for customer names
-  const { data: profiles } = useQuery({
-    queryKey: ['admin-profiles-for-orders'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch user profiles separately
+      const userIds = [...new Set(ordersData.map(order => order.user_id))];
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select('id, email, full_name, phone')
+        .in('id', userIds);
       
-      if (error) {
-        console.error('Profiles fetch error:', error);
-        return [];
-      }
-      return data || [];
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const ordersWithProfiles = ordersData.map(order => ({
+        ...order,
+        user_profile: profilesData.find(profile => profile.id === order.user_id)
+      }));
+
+      return ordersWithProfiles || [];
     }
   });
 
-  const getCustomerName = (userId: string) => {
-    const profile = profiles?.find(p => p.id === userId);
-    return profile ? (profile.full_name || profile.email) : 'Unknown';
-  };
+  // Update order status mutation
+  const updateOrderStatus = useMutation({
+    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast({ title: "Order status updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error updating order", 
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
       case 'completed':
-        return 'default';
+        return 'bg-green-100 text-green-800';
       case 'pending':
-        return 'outline';
-      case 'cancelled':
-        return 'destructive';
+        return 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'secondary';
+        return 'bg-blue-100 text-blue-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
       default:
-        return 'outline';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const handleView = (order: any) => {
+  const handleViewOrder = (order: any) => {
     setSelectedOrder(order);
     setIsViewModalOpen(true);
   };
 
+  const handleStatusUpdate = (orderId: string, newStatus: string) => {
+    updateOrderStatus.mutate({ orderId, newStatus });
+  };
+
   // Calculate statistics
+  const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount || 0), 0) || 0;
   const totalOrders = orders?.length || 0;
   const pendingOrders = orders?.filter(order => order.status === 'pending').length || 0;
   const completedOrders = orders?.filter(order => order.status === 'completed').length || 0;
-  const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount || 0), 0) || 0;
 
   return (
-    <ProtectedAdminRoute>
-      <AdminLayout>
-        <div className="space-y-4 sm:space-y-6 animate-fade-in">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8" />
-              Order Management
-            </h1>
-            <p className="text-purple-100 mt-2 text-sm sm:text-base">Manage customer orders and transactions</p>
-          </div>
+    <ModernAdminLayout>
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <ShoppingCart className="h-8 w-8" />
+            Order Management
+          </h1>
+          <p className="text-green-100 mt-2">Track and manage customer orders</p>
+        </div>
 
-          {/* Order Statistics */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Total Orders</CardTitle>
-                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{totalOrders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{pendingOrders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Completed</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{completedOrders}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">KSH {totalRevenue.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">All Orders</CardTitle>
-              <CardDescription className="text-sm">View and manage customer orders</CardDescription>
+        {/* Statistics Cards */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <Package className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading orders...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Order ID</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Customer</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Amount</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Payment</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {orders?.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="font-mono text-xs">
-                              #{order.id.slice(-8)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(order.created_at).toLocaleDateString()}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <div className="font-medium">{getCustomerName(order.user_id)}</div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="font-medium">KSH {Number(order.total_amount).toLocaleString()}</div>
-                            {order.discount_amount > 0 && (
-                              <div className="text-xs text-green-600">
-                                -KSH {Number(order.discount_amount).toLocaleString()} discount
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <Badge 
-                              variant={order.payment_status === 'completed' ? 'default' : 'outline'} 
-                              className="text-xs"
-                            >
-                              {order.payment_status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={getStatusBadgeVariant(order.status)} 
-                              className="text-xs"
-                            >
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-xs px-2 py-1"
-                              onClick={() => handleView(order)}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <div className="text-2xl font-bold">{totalOrders}</div>
+              <p className="text-xs text-muted-foreground">All time orders</p>
             </CardContent>
           </Card>
 
-          {/* View Order Details Modal */}
-          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  Order Details
-                </DialogTitle>
-                <DialogDescription>
-                  Order #{selectedOrder?.id.slice(-8)}
-                </DialogDescription>
-              </DialogHeader>
-              
-              {selectedOrder && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium">Customer:</span>
-                        <p className="text-sm">{getCustomerName(selectedOrder.user_id)}</p>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium">Order Date:</span>
-                        <p className="text-sm">{new Date(selectedOrder.created_at).toLocaleString()}</p>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium">Payment Method:</span>
-                        <p className="text-sm">{selectedOrder.payment_method || 'N/A'}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium">Total Amount:</span>
-                        <p className="text-lg font-bold text-green-600">
-                          KSH {Number(selectedOrder.total_amount).toLocaleString()}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium">Order Status:</span>
-                        <Badge variant={getStatusBadgeVariant(selectedOrder.status)} className="ml-2">
-                          {selectedOrder.status}
-                        </Badge>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium">Payment Status:</span>
-                        <Badge 
-                          variant={selectedOrder.payment_status === 'completed' ? 'default' : 'outline'} 
-                          className="ml-2"
-                        >
-                          {selectedOrder.payment_status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {selectedOrder.discount_amount > 0 && (
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <span className="text-sm font-medium text-green-800">Discount Applied:</span>
-                      <p className="text-sm text-green-700">
-                        KSH {Number(selectedOrder.discount_amount).toLocaleString()} discount
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedOrder.shipping_address && (
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium">Shipping Address:</span>
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <p className="text-sm">
-                          {typeof selectedOrder.shipping_address === 'string' 
-                            ? selectedOrder.shipping_address 
-                            : JSON.stringify(selectedOrder.shipping_address, null, 2)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                KSH {totalRevenue.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">Total sales</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{pendingOrders}</div>
+              <p className="text-xs text-muted-foreground">Awaiting processing</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{completedOrders}</div>
+              <p className="text-xs text-muted-foreground">Fulfilled orders</p>
+            </CardContent>
+          </Card>
         </div>
-      </AdminLayout>
-    </ProtectedAdminRoute>
+
+        {/* Orders Table */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl">Orders</CardTitle>
+            <CardDescription>Manage and track all customer orders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <span className="ml-2">Loading orders...</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <TableHead className="font-semibold">Order ID</TableHead>
+                      <TableHead className="font-semibold">Customer</TableHead>
+                      <TableHead className="font-semibold">Amount</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Date</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders?.map((order, index) => (
+                      <TableRow 
+                        key={order.id} 
+                        className="hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 transition-all duration-200"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <TableCell className="font-medium">#{order.id.slice(-8)}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{order.user_profile?.full_name || 'Unknown'}</p>
+                            <p className="text-sm text-gray-600">{order.user_profile?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold text-green-600">
+                          KSH {Number(order.total_amount || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewOrder(order)}
+                            className="hover:bg-blue-50"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Select onValueChange={(value) => handleStatusUpdate(order.id, value)}>
+                            <SelectTrigger className="w-32">
+                              <SelectValue placeholder="Update Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="processing">Processing</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* View Order Modal */}
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Order Details</DialogTitle>
+              <DialogDescription>
+                Order #{selectedOrder?.id.slice(-8)}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedOrder && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold">Customer Information</h4>
+                    <p>{selectedOrder.user_profile?.full_name || 'Unknown'}</p>
+                    <p className="text-sm text-gray-600">{selectedOrder.user_profile?.email}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Order Information</h4>
+                    <p>Total: KSH {Number(selectedOrder.total_amount || 0).toLocaleString()}</p>
+                    <p>Status: <Badge className={getStatusColor(selectedOrder.status)}>{selectedOrder.status}</Badge></p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Delivery Address</h4>
+                  <p>{selectedOrder.delivery_address || 'Not provided'}</p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </ModernAdminLayout>
   );
 };
 

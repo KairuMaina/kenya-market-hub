@@ -1,22 +1,28 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Package, Eye, TrendingUp, ShoppingCart, Star, DollarSign } from 'lucide-react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
-import LazyImage from '@/components/LazyImage';
+import { useToast } from '@/hooks/use-toast';
+import { Trash2, Plus, Package2, Edit, Eye } from 'lucide-react';
+import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+import AddProductModal from '@/components/AddProductModal';
+import EditProductModal from '@/components/EditProductModal';
+import ViewProductModal from '@/components/ViewProductModal';
 
 const AdminProducts = () => {
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showEditProduct, setShowEditProduct] = useState(false);
+  const [showViewProduct, setShowViewProduct] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Fetch products
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,251 +31,179 @@ const AdminProducts = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return data;
     }
   });
 
-  // Fetch vendors for product owner names
-  const { data: vendors } = useQuery({
-    queryKey: ['admin-vendors-for-products'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vendors')
-        .select('*');
-      
-      if (error) {
-        console.error('Vendors fetch error:', error);
-        return [];
-      }
-      return data || [];
+  // Delete product mutation
+  const deleteProduct = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast({ title: "Product deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error deleting product", 
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
-  const getVendorName = (vendorId: string) => {
-    const vendor = vendors?.find(v => v.id === vendorId);
-    return vendor ? vendor.business_name : 'Unknown Vendor';
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      deleteProduct.mutate(productId);
+    }
   };
 
-  const handleView = (product: any) => {
+  const handleProductAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+    setShowAddProduct(false);
+  };
+
+  const handleEditClick = (product) => {
     setSelectedProduct(product);
-    setIsViewModalOpen(true);
+    setShowEditProduct(true);
   };
 
-  // Calculate statistics
-  const totalProducts = products?.length || 0;
-  const inStockProducts = products?.filter(product => product.in_stock).length || 0;
-  const outOfStockProducts = totalProducts - inStockProducts;
-  const avgRating = products?.reduce((sum, product) => sum + (product.rating || 0), 0) / totalProducts || 0;
+  const handleViewClick = (product) => {
+    setSelectedProduct(product);
+    setShowViewProduct(true);
+  };
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+    setShowEditProduct(false);
+  };
 
   return (
-    <ProtectedAdminRoute>
-      <AdminLayout>
-        <div className="space-y-4 sm:space-y-6 animate-fade-in">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Package className="h-6 w-6 sm:h-8 sm:w-8" />
-              Product Management
-            </h1>
-            <p className="text-green-100 mt-2 text-sm sm:text-base">Manage marketplace products and inventory</p>
-          </div>
-
-          {/* Product Statistics */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Total Products</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{totalProducts}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">In Stock</CardTitle>
-                <ShoppingCart className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{inStockProducts}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Out of Stock</CardTitle>
-                <TrendingUp className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{outOfStockProducts}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Avg Rating</CardTitle>
-                <Star className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold">{avgRating.toFixed(1)}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">All Products</CardTitle>
-              <CardDescription className="text-sm">View and manage marketplace products</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                  <span className="ml-2 text-sm sm:text-base">Loading products...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Product</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Category</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Price</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Stock</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products?.map((product) => (
-                        <TableRow key={product.id} className="hover:bg-gray-50">
-                          <TableCell className="text-xs sm:text-sm">
-                            <div className="flex items-center gap-3">
-                              <LazyImage 
-                                src={product.image_url || '/placeholder.svg'} 
-                                alt={product.name}
-                                className="w-10 h-10 rounded-lg object-cover"
-                              />
-                              <div>
-                                <div className="font-medium">{product.name}</div>
-                                <div className="text-xs text-gray-500">{product.vendor_id ? getVendorName(product.vendor_id) : product.vendor}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                            <Badge variant="outline" className="text-xs">
-                              {product.category}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              <span>KSH {Number(product.price).toLocaleString()}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            <div className="text-center">
-                              <div className="font-medium">{product.stock_quantity}</div>
-                              <div className="text-xs text-gray-500">units</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={product.in_stock ? "default" : "destructive"} 
-                              className="text-xs"
-                            >
-                              {product.in_stock ? "In Stock" : "Out of Stock"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-xs px-2 py-1"
-                              onClick={() => handleView(product)}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* View Product Details Modal */}
-          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Product Details
-                </DialogTitle>
-                <DialogDescription>
-                  View details for {selectedProduct?.name}
-                </DialogDescription>
-              </DialogHeader>
-              
-              {selectedProduct && (
-                <div className="space-y-6">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/3">
-                      <LazyImage 
-                        src={selectedProduct.image_url || '/placeholder.svg'} 
-                        alt={selectedProduct.name}
-                        className="w-full rounded-lg object-cover"
-                      />
-                    </div>
-                    <div className="md:w-2/3 space-y-4">
-                      <div>
-                        <h3 className="text-xl font-bold">{selectedProduct.name}</h3>
-                        <p className="text-gray-600">{selectedProduct.description}</p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-sm font-medium">Price:</span>
-                          <p className="text-lg font-bold text-green-600">
-                            KSH {Number(selectedProduct.price).toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">Category:</span>
-                          <p className="text-sm">{selectedProduct.category}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">Brand:</span>
-                          <p className="text-sm">{selectedProduct.brand || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">Condition:</span>
-                          <p className="text-sm">{selectedProduct.condition}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <div className="text-lg font-bold">{selectedProduct.stock_quantity}</div>
-                          <div className="text-xs text-gray-500">Stock</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold">{selectedProduct.rating || 0}</div>
-                          <div className="text-xs text-gray-500">Rating</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold">{selectedProduct.reviews_count || 0}</div>
-                          <div className="text-xs text-gray-500">Reviews</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
+    <ModernAdminLayout>
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Package2 className="h-8 w-8" />
+            Product Management
+          </h1>
+          <p className="text-blue-100 mt-2">Manage your marketplace products</p>
         </div>
-      </AdminLayout>
-    </ProtectedAdminRoute>
+
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Products</CardTitle>
+                <CardDescription>Add, edit, and manage your product catalog</CardDescription>
+              </div>
+              <Button 
+                onClick={() => setShowAddProduct(true)}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {productsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2">Loading products...</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <TableHead className="font-semibold">Name</TableHead>
+                      <TableHead className="font-semibold">Category</TableHead>
+                      <TableHead className="font-semibold">Price</TableHead>
+                      <TableHead className="font-semibold">Stock</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products?.map((product, index) => (
+                      <TableRow 
+                        key={product.id} 
+                        className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-gradient-to-r from-blue-100 to-purple-100">
+                            {product.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-semibold text-green-600">
+                          KSH {Number(product.price).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={product.in_stock ? 'default' : 'destructive'} 
+                                 className={product.in_stock ? 'bg-gradient-to-r from-green-500 to-green-600' : ''}>
+                            {product.in_stock ? `${product.stock_quantity} in stock` : 'Out of stock'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewClick(product)}
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:scale-105"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEditClick(product)}
+                            className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 hover:scale-105"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteProduct(product.id)}
+                            disabled={deleteProduct.isPending}
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all duration-200 hover:scale-105"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <AddProductModal 
+        open={showAddProduct} 
+        onOpenChange={setShowAddProduct}
+        onSuccess={handleProductAdded}
+      />
+      <EditProductModal
+        open={showEditProduct}
+        product={selectedProduct}
+        onOpenChange={setShowEditProduct}
+        onSuccess={handleEditSuccess}
+      />
+      <ViewProductModal
+        open={showViewProduct}
+        product={selectedProduct}
+        onOpenChange={setShowViewProduct}
+      />
+    </ModernAdminLayout>
   );
 };
 
