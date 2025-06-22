@@ -26,8 +26,6 @@ export interface Ride {
 
 export const useRides = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const { data: userRides, isLoading } = useQuery({
     queryKey: ['rides', user?.id],
@@ -45,6 +43,9 @@ export const useRides = () => {
     },
     enabled: !!user,
   });
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const bookRideMutation = useMutation({
     mutationFn: async (booking: RideBooking) => {

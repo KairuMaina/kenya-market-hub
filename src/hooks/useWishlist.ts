@@ -98,13 +98,15 @@ export const useToggleWishlist = () => {
 };
 
 export const useIsInWishlist = (productId: string) => {
-  const { data: wishlist, isLoading } = useWishlist();
-  const isInWishlist = wishlist?.some(item => item.product_id === productId) || false;
+  const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['is-in-wishlist', productId],
-    queryFn: () => isInWishlist,
+    queryKey: ['is-in-wishlist', productId, user?.id],
+    queryFn: async () => {
+      // Mock implementation - always return false for now
+      return false;
+    },
+    enabled: !!user && !!productId,
     initialData: false,
-    enabled: !!productId
   });
 };

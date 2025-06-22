@@ -22,7 +22,7 @@ const Insurance: React.FC = () => {
   });
 
   const { data: plans = [], isLoading } = useInsurancePlans(filters);
-  const { purchasePolicy } = useInsuranceOperations();
+  const { createPolicy } = useInsuranceOperations();
 
   // Filter plans based on search
   const filteredPlans = plans.filter(plan => 
@@ -45,7 +45,7 @@ const Insurance: React.FC = () => {
       // Additional policy creation logic would go here
     };
 
-    await purchasePolicy.mutateAsync(policyData);
+    await createPolicy.mutateAsync(policyData);
   };
 
   const handleComparePlan = (planId: string) => {
