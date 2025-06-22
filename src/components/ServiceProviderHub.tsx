@@ -110,6 +110,53 @@ const ServiceProviderHub = () => {
     }
   };
 
+  const getActionButton = (service: any) => {
+    const isApproved = service.profile?.verification_status === 'approved';
+    const isPending = service.profile?.verification_status === 'pending';
+    const isRejected = service.profile?.verification_status === 'rejected';
+
+    if (isApproved) {
+      return (
+        <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+          <Link to={service.dashboardPath}>
+            <span>Access Dashboard</span>
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
+        </Button>
+      );
+    }
+
+    if (isPending) {
+      return (
+        <Button disabled className="w-full bg-yellow-100 text-yellow-800 cursor-not-allowed">
+          <Clock className="w-4 h-4 mr-2" />
+          <span>Application Under Review</span>
+        </Button>
+      );
+    }
+
+    if (isRejected) {
+      return (
+        <Button asChild variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50">
+          <Link to={service.registrationPath}>
+            <span>Reapply Now</span>
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
+        </Button>
+      );
+    }
+
+    // Not registered or no status
+    return (
+      <Button asChild variant="outline" className="w-full">
+        <Link to={service.registrationPath}>
+          <span>Apply Now</span>
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Link>
+      </Button>
+    );
+  };
+
   return (
     <ResponsiveContainer>
       <div className="space-y-8">
@@ -127,7 +174,6 @@ const ServiceProviderHub = () => {
         <ResponsiveGrid cols={{ default: 1, md: 2, lg: 3 }}>
           {serviceTypes.map((service) => {
             const ServiceIcon = service.icon;
-            const isApproved = service.profile?.verification_status === 'approved';
             
             return (
               <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-opacity-60">
@@ -148,21 +194,7 @@ const ServiceProviderHub = () => {
                   </p>
                   
                   <div className="space-y-2">
-                    {isApproved ? (
-                      <Button asChild className="w-full">
-                        <Link to={service.dashboardPath}>
-                          <span>Open Dashboard</span>
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button asChild variant="outline" className="w-full">
-                        <Link to={service.registrationPath}>
-                          <span>Apply Now</span>
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
-                      </Button>
-                    )}
+                    {getActionButton(service)}
                   </div>
                 </CardContent>
               </Card>
