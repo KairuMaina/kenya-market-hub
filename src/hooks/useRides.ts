@@ -95,19 +95,3 @@ export const useRides = () => {
     isBookingRide: bookRideMutation.isPending,
   };
 };
-
-// Simplified fare calculations hook to avoid deep type instantiation
-export const useFareCalculations = () => {
-  return useQuery({
-    queryKey: ['fare-calculations'],
-    queryFn: async (): Promise<any[]> => {
-      const { data, error } = await supabase
-        .from('fare_calculations')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
