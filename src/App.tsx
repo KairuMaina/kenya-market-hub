@@ -46,6 +46,50 @@ import Events from './pages/Events';
 function App() {
   const queryClient = new QueryClient();
 
+  // Add global structured data for the organization
+  React.useEffect(() => {
+    const organizationData = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Soko Smart",
+      "url": window.location.origin,
+      "logo": `${window.location.origin}/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png`,
+      "description": "Kenya's premier marketplace for products, real estate, rides, services and jobs",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "KE",
+        "addressRegion": "Nairobi",
+        "addressLocality": "Nairobi"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "Kenya"
+      },
+      "sameAs": [
+        "https://facebook.com/sokosmart",
+        "https://twitter.com/sokosmart",
+        "https://instagram.com/sokosmart"
+      ],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${window.location.origin}/search?q={search_term_string}`,
+        "query-input": "required name=search_term_string"
+      }
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'organization-schema';
+    script.textContent = JSON.stringify(organizationData);
+    
+    const existing = document.getElementById('organization-schema');
+    if (existing) {
+      existing.remove();
+    }
+    
+    document.head.appendChild(script);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
