@@ -4,20 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   UtensilsCrossed, 
   Plus, 
   Search, 
   Edit, 
   Trash, 
-  MapPin, 
-  Clock, 
   Star,
   TrendingUp,
   Users,
   DollarSign
 } from 'lucide-react';
+import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
 
 const AdminFoodDelivery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,28 +149,30 @@ const AdminFoodDelivery: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'preparing': return 'bg-orange-100 text-orange-800';
-      case 'on the way': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'default';
+      case 'pending': return 'secondary';
+      case 'preparing': return 'outline';
+      case 'on the way': return 'outline';
+      case 'delivered': return 'default';
+      default: return 'secondary';
     }
   };
 
   return (
-    <div className="min-h-screen bg-orange-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <ModernAdminLayout>
+      <div className="space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Food Delivery Management</h1>
-          <p className="text-gray-600">Manage restaurants, grocery stores, and orders</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Food Delivery Management</h1>
+            <p className="text-gray-600">Manage restaurants, grocery stores, and orders</p>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
-            <Card key={index} className="border-orange-200">
+            <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -187,29 +188,24 @@ const AdminFoodDelivery: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
-          <div className="flex space-x-1 bg-white rounded-lg p-1 border border-orange-200">
-            {['restaurants', 'grocery', 'orders'].map((tab) => (
-              <Button
-                key={tab}
-                variant={selectedTab === tab ? 'default' : 'ghost'}
-                onClick={() => setSelectedTab(tab)}
-                className={selectedTab === tab 
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                  : 'hover:bg-orange-50'
-                }
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Button>
-            ))}
-          </div>
+        <div className="flex space-x-1 bg-white rounded-lg p-1 border">
+          {['restaurants', 'grocery', 'orders'].map((tab) => (
+            <Button
+              key={tab}
+              variant={selectedTab === tab ? 'default' : 'ghost'}
+              onClick={() => setSelectedTab(tab)}
+              className="capitalize"
+            >
+              {tab}
+            </Button>
+          ))}
         </div>
 
         {/* Content based on selected tab */}
-        <Card className="border-orange-200">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">
+              <CardTitle className="text-xl capitalize">
                 {selectedTab === 'restaurants' && 'Restaurants'}
                 {selectedTab === 'grocery' && 'Grocery Stores'}
                 {selectedTab === 'orders' && 'Recent Orders'}
@@ -225,7 +221,7 @@ const AdminFoodDelivery: React.FC = () => {
                   />
                 </div>
                 {selectedTab !== 'orders' && (
-                  <Button className="bg-orange-500 hover:bg-orange-600">
+                  <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Add {selectedTab === 'restaurants' ? 'Restaurant' : 'Store'}
                   </Button>
@@ -235,160 +231,154 @@ const AdminFoodDelivery: React.FC = () => {
           </CardHeader>
           <CardContent>
             {selectedTab === 'restaurants' && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-orange-200">
-                      <th className="text-left py-3 px-4">Restaurant</th>
-                      <th className="text-left py-3 px-4">Owner</th>
-                      <th className="text-left py-3 px-4">Cuisine</th>
-                      <th className="text-left py-3 px-4">Rating</th>
-                      <th className="text-left py-3 px-4">Orders</th>
-                      <th className="text-left py-3 px-4">Status</th>
-                      <th className="text-left py-3 px-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {restaurants.map((restaurant) => (
-                      <tr key={restaurant.id} className="border-b border-orange-100">
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-medium">{restaurant.name}</p>
-                            <p className="text-sm text-gray-600">{restaurant.location}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-medium">{restaurant.owner}</p>
-                            <p className="text-sm text-gray-600">{restaurant.email}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{restaurant.cuisine}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span>{restaurant.rating}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{restaurant.orders}</td>
-                        <td className="py-3 px-4">
-                          <Badge className={getStatusColor(restaurant.status)}>
-                            {restaurant.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-red-600">
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Restaurant</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Cuisine</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Orders</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {restaurants.map((restaurant) => (
+                    <TableRow key={restaurant.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{restaurant.name}</p>
+                          <p className="text-sm text-gray-600">{restaurant.location}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{restaurant.owner}</p>
+                          <p className="text-sm text-gray-600">{restaurant.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{restaurant.cuisine}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span>{restaurant.rating}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{restaurant.orders}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(restaurant.status)}>
+                          {restaurant.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600">
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
 
             {selectedTab === 'grocery' && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-orange-200">
-                      <th className="text-left py-3 px-4">Store Name</th>
-                      <th className="text-left py-3 px-4">Owner</th>
-                      <th className="text-left py-3 px-4">Category</th>
-                      <th className="text-left py-3 px-4">Rating</th>
-                      <th className="text-left py-3 px-4">Orders</th>
-                      <th className="text-left py-3 px-4">Status</th>
-                      <th className="text-left py-3 px-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groceryStores.map((store) => (
-                      <tr key={store.id} className="border-b border-orange-100">
-                        <td className="py-3 px-4 font-medium">{store.name}</td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-medium">{store.owner}</p>
-                            <p className="text-sm text-gray-600">{store.email}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{store.category}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span>{store.rating}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{store.orders}</td>
-                        <td className="py-3 px-4">
-                          <Badge className={getStatusColor(store.status)}>
-                            {store.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-red-600">
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Store Name</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Orders</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {groceryStores.map((store) => (
+                    <TableRow key={store.id}>
+                      <TableCell className="font-medium">{store.name}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{store.owner}</p>
+                          <p className="text-sm text-gray-600">{store.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{store.category}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span>{store.rating}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{store.orders}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(store.status)}>
+                          {store.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600">
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
 
             {selectedTab === 'orders' && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-orange-200">
-                      <th className="text-left py-3 px-4">Order #</th>
-                      <th className="text-left py-3 px-4">Customer</th>
-                      <th className="text-left py-3 px-4">Restaurant</th>
-                      <th className="text-left py-3 px-4">Amount</th>
-                      <th className="text-left py-3 px-4">Status</th>
-                      <th className="text-left py-3 px-4">Time</th>
-                      <th className="text-left py-3 px-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((order) => (
-                      <tr key={order.id} className="border-b border-orange-100">
-                        <td className="py-3 px-4 font-medium">{order.orderNumber}</td>
-                        <td className="py-3 px-4">{order.customer}</td>
-                        <td className="py-3 px-4">{order.restaurant}</td>
-                        <td className="py-3 px-4">KSh {order.amount.toLocaleString()}</td>
-                        <td className="py-3 px-4">
-                          <Badge className={getStatusColor(order.status)}>
-                            {order.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{order.time}</td>
-                        <td className="py-3 px-4">
-                          <Button variant="outline" size="sm">
-                            View Details
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Restaurant</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                      <TableCell>{order.customer}</TableCell>
+                      <TableCell>{order.restaurant}</TableCell>
+                      <TableCell>KSh {order.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">{order.time}</TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ModernAdminLayout>
   );
 };
 
