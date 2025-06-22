@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +33,12 @@ const JobBoardEnhanced: React.FC = () => {
       const response = await getJobs();
       // Handle both array and paginated response formats
       const jobData = Array.isArray(response) ? response : response?.data || [];
-      setJobs(jobData);
+      // Ensure all jobs have required fields
+      const formattedJobs = jobData.map((job: any) => ({
+        ...job,
+        location: job.location || 'Not specified'
+      }));
+      setJobs(formattedJobs);
     } catch (error) {
       toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
     } finally {
@@ -44,7 +48,7 @@ const JobBoardEnhanced: React.FC = () => {
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(search.toLowerCase()) ||
-    job.location.toLowerCase().includes(search.toLowerCase()) ||
+    (job.location && job.location.toLowerCase().includes(search.toLowerCase())) ||
     job.category.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -130,7 +134,7 @@ const JobBoardEnhanced: React.FC = () => {
                 
                 <div className="flex items-center text-sm text-gray-600 mb-2">
                   <MapPin className="mr-1 h-3 w-3" />
-                  {job.location}
+                  {job.location || 'Not specified'}
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">

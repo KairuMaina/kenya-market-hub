@@ -1,39 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Property {
-  id: string;
-  title: string;
-  description?: string;
-  price: number;
-  listing_type: string;
-  property_type: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  area_sqm?: number;
-  location_address: string;
-  agent_id?: string;
-  owner_id?: string;
-  images?: string[];
-  amenities?: string[];
-  features?: string[];
-  status?: string;
-  views_count?: number;
-  created_at?: string;
-  updated_at?: string;
-  is_featured?: boolean;
-  location_coordinates?: {
-    lat: number;
-    lng: number;
-  };
-  county?: string;
-  city?: string;
-  virtual_tour_url?: string;
-  contact_phone?: string;
-  contact_email?: string;
-  available_from?: string;
-}
+import { Property } from '@/types/property';
 
 export interface PropertyFilters {
   location?: string;
@@ -92,8 +61,12 @@ export const useProperties = (filters?: PropertyFilters) => {
         area_sqm: property.area_sqm || 0,
         views_count: property.views_count || 0,
         location_coordinates: property.location_coordinates ? {
-          lat: property.location_coordinates.x || property.location_coordinates[0],
-          lng: property.location_coordinates.y || property.location_coordinates[1]
+          lat: typeof property.location_coordinates === 'object' && property.location_coordinates !== null && 'x' in property.location_coordinates 
+            ? (property.location_coordinates as any).x 
+            : Array.isArray(property.location_coordinates) ? property.location_coordinates[0] : 0,
+          lng: typeof property.location_coordinates === 'object' && property.location_coordinates !== null && 'y' in property.location_coordinates 
+            ? (property.location_coordinates as any).y 
+            : Array.isArray(property.location_coordinates) ? property.location_coordinates[1] : 0
         } : undefined
       })) as Property[];
     }

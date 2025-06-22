@@ -3,7 +3,7 @@ export interface Job {
   id: number;
   title: string;
   description: string;
-  location: string;
+  location?: string;
   category: string;
   salary: string;
   status: string;

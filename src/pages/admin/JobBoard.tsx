@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -24,7 +23,12 @@ const JobBoard: React.FC = () => {
       const response = await getJobs();
       // Handle both array and paginated response formats
       const jobData = Array.isArray(response) ? response : response?.data || [];
-      setJobs(jobData);
+      // Ensure all jobs have required fields
+      const formattedJobs = jobData.map((job: any) => ({
+        ...job,
+        location: job.location || 'Not specified'
+      }));
+      setJobs(formattedJobs);
     } catch (error) {
       toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
     } finally {
@@ -34,7 +38,7 @@ const JobBoard: React.FC = () => {
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(search.toLowerCase()) ||
-    job.location.toLowerCase().includes(search.toLowerCase()) ||
+    (job.location && job.location.toLowerCase().includes(search.toLowerCase())) ||
     job.category.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -70,7 +74,7 @@ const JobBoard: React.FC = () => {
     setFormData({
       title: job.title,
       description: job.description,
-      location: job.location,
+      location: job.location || '',
       category: job.category,
       salary: job.salary,
       status: job.status,
@@ -223,7 +227,7 @@ const JobBoard: React.FC = () => {
               filteredJobs.map(job => (
                 <TableRow key={job.id}>
                   <TableCell>{job.title}</TableCell>
-                  <TableCell>{job.location}</TableCell>
+                  <TableCell>{job.location || 'Not specified'}</TableCell>
                   <TableCell>{job.category}</TableCell>
                   <TableCell>{job.salary}</TableCell>
                   <TableCell>{job.status}</TableCell>
