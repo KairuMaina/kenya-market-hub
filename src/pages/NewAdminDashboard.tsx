@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
@@ -48,9 +49,8 @@ interface VendorApplication {
   user_id: string;
   business_name: string;
   business_description: string;
-  business_address: string;
-  business_phone: string;
-  business_email: string;
+  contact_phone: string;
+  contact_email: string;
   status: string;
   submitted_at: string;
 }
@@ -58,14 +58,15 @@ interface VendorApplication {
 interface Coupon {
   id: string;
   code: string;
-  name: string;
+  discount_amount: number;
   discount_type: string;
-  discount_value: number;
-  usage_count: number;
+  used_count: number;
   usage_limit?: number;
-  start_date: string;
-  end_date: string;
+  expires_at: string;
+  created_at: string;
   is_active: boolean;
+  minimum_order_amount: number;
+  updated_at: string;
 }
 
 const NewAdminDashboard = () => {
@@ -367,9 +368,8 @@ const NewAdminDashboard = () => {
             user_id: application.user_id,
             business_name: application.business_name,
             business_description: application.business_description,
-            business_address: application.business_address,
-            business_phone: application.business_phone,
-            business_email: application.business_email,
+            contact_phone: application.contact_phone,
+            contact_email: application.contact_email,
             verification_status: 'approved'
           });
         
@@ -545,7 +545,7 @@ const NewAdminDashboard = () => {
                           <TableCell>KSH {Number(product.price).toLocaleString()}</TableCell>
                           <TableCell>
                             <Badge variant={product.in_stock ? 'default' : 'destructive'}>
-                              {product.in_stock ? `${product.stock_quantity} in stock` : 'Out of stock'}
+                              {product.in_stock ? `${product.stock_quantity || 0} in stock` : 'Out of stock'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -760,7 +760,7 @@ const NewAdminDashboard = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {adminVendorsData?.vendors?.length > 0 ? adminVendorsData.vendors.map((vendor) => (
+                          {adminVendorsData?.length > 0 ? adminVendorsData.map((vendor) => (
                             <tr key={vendor.id} className="hover:bg-orange-50 transition-all">
                               <td className="px-4 py-2 font-medium">{vendor.business_name}</td>
                               <td className="px-4 py-2">{vendor.business_email || 'N/A'}</td>
@@ -788,34 +788,6 @@ const NewAdminDashboard = () => {
                         </tbody>
                       </table>
                     </div>
-                    {adminVendorsData && adminVendorsData.totalPages > 1 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <p className="text-sm text-gray-600">
-                          Showing {((vendorPage - 1) * 10) + 1} to {Math.min(vendorPage * 10, adminVendorsData.total)} of {adminVendorsData.total} vendors
-                        </p>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setVendorPage(prev => Math.max(prev - 1, 1))}
-                            disabled={vendorPage === 1}
-                          >
-                            Previous
-                          </Button>
-                          <span className="text-sm">
-                            Page {vendorPage} of {adminVendorsData.totalPages}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setVendorPage(prev => Math.min(prev + 1, adminVendorsData.totalPages))}
-                            disabled={vendorPage === adminVendorsData.totalPages}
-                          >
-                            Next
-                          </Button>
-                        </div>
-                      </div>
-                    )}
                   </>
                 )}
               </CardContent>
@@ -844,7 +816,6 @@ const NewAdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Code</TableHead>
-                        <TableHead>Name</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Value</TableHead>
                         <TableHead>Usage</TableHead>
@@ -856,15 +827,14 @@ const NewAdminDashboard = () => {
                       {coupons?.map((coupon) => (
                         <TableRow key={coupon.id}>
                           <TableCell className="font-mono">{coupon.code}</TableCell>
-                          <TableCell>{coupon.name}</TableCell>
                           <TableCell className="capitalize">{coupon.discount_type}</TableCell>
                           <TableCell>
                             {coupon.discount_type === 'percentage' 
-                              ? `${coupon.discount_value}%` 
-                              : `KSH ${coupon.discount_value}`}
+                              ? `${coupon.discount_amount}%` 
+                              : `KSH ${coupon.discount_amount}`}
                           </TableCell>
                           <TableCell>
-                            {coupon.usage_count}/{coupon.usage_limit || '∞'}
+                            {coupon.used_count}/{coupon.usage_limit || '∞'}
                           </TableCell>
                           <TableCell>
                             <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
