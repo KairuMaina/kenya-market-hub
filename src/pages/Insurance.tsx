@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,11 +37,28 @@ const Insurance: React.FC = () => {
       return;
     }
 
-    // Create policy data
+    // Find the selected plan
+    const selectedPlan = plans.find(plan => plan.id === planId);
+    if (!selectedPlan) return;
+
+    // Create complete policy data
     const policyData = {
       userId: user.id,
-      planId,
-      // Additional policy creation logic would go here
+      providerId: selectedPlan.providerId,
+      providerName: selectedPlan.providerName,
+      category: selectedPlan.category,
+      policyNumber: `POL-${Date.now()}`,
+      policyName: selectedPlan.name,
+      coverageType: selectedPlan.coverageType,
+      premium: selectedPlan.premium,
+      coverageAmount: selectedPlan.coverageAmount,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+      status: 'Active' as const,
+      documents: [],
+      claims: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     await createPolicy.mutateAsync(policyData);

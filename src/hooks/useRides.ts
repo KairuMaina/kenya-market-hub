@@ -26,6 +26,8 @@ export interface Ride {
 
 export const useRides = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: userRides, isLoading } = useQuery({
     queryKey: ['rides', user?.id],
@@ -43,9 +45,6 @@ export const useRides = () => {
     },
     enabled: !!user,
   });
-
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const bookRideMutation = useMutation({
     mutationFn: async (booking: RideBooking) => {
@@ -95,19 +94,4 @@ export const useRides = () => {
     bookRide: bookRideMutation.mutate,
     isBookingRide: bookRideMutation.isPending,
   };
-};
-
-export const useFareCalculations = () => {
-  return useQuery({
-    queryKey: ['fare-calculations'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fare_calculations')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
 };
