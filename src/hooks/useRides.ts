@@ -95,3 +95,18 @@ export const useRides = () => {
     isBookingRide: bookRideMutation.isPending,
   };
 };
+
+export const useFareCalculations = () => {
+  return useQuery({
+    queryKey: ['fare-calculations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('fare_calculations')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+};

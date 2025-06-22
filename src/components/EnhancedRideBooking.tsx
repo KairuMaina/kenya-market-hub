@@ -8,7 +8,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin, Navigation, Car, Bike, Clock, DollarSign } from 'lucide-react';
 import MapBox from './MapBox';
 import { useCreateRide } from '@/hooks/useCreateRide';
-import { useFareCalculations } from '@/hooks/useRides';
 
 interface EnhancedRideBookingProps {
   onRideBooked?: (rideId: string) => void;
@@ -25,7 +24,6 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
 
   const createRide = useCreateRide();
-  const { data: fareCalculations } = useFareCalculations();
 
   // Get user's current location
   useEffect(() => {
@@ -48,17 +46,20 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
 
   // Calculate estimated fare when locations change
   useEffect(() => {
-    if (pickupLocation && destinationLocation && fareCalculations) {
-      const fare = fareCalculations.find(f => f.vehicle_type === vehicleType);
-      if (fare) {
-        // Simple distance calculation (in real app, use proper routing API)
-        const distance = calculateDistance(pickupLocation, destinationLocation);
-        const calculatedFare = fare.base_fare + (distance * fare.per_km_rate);
-        setEstimatedFare(Math.max(calculatedFare, fare.minimum_fare));
-        setEstimatedTime(Math.round(distance * 2)); // Rough estimate: 2 minutes per km
-      }
+    if (pickupLocation && destinationLocation) {
+      // Simple distance calculation (in real app, use proper routing API)
+      const distance = calculateDistance(pickupLocation, destinationLocation);
+      
+      // Simple fare calculation
+      const baseFare = vehicleType === 'taxi' ? 100 : 60;
+      const perKmRate = vehicleType === 'taxi' ? 50 : 30;
+      const calculatedFare = baseFare + (distance * perKmRate);
+      const minimumFare = vehicleType === 'taxi' ? 150 : 100;
+      
+      setEstimatedFare(Math.max(calculatedFare, minimumFare));
+      setEstimatedTime(Math.round(distance * 2)); // Rough estimate: 2 minutes per km
     }
-  }, [pickupLocation, destinationLocation, vehicleType, fareCalculations]);
+  }, [pickupLocation, destinationLocation, vehicleType]);
 
   const calculateDistance = (point1: { lat: number; lng: number }, point2: { lat: number; lng: number }) => {
     const R = 6371; // Earth's radius in km
