@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEnhancedRides, useRideMatchingRequests } from '@/hooks/useEnhancedRides';
+import { useEnhancedRides } from '@/hooks/useEnhancedRides';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import RidesHeader from '@/components/rides/RidesHeader';
@@ -15,7 +15,6 @@ const Rides = () => {
   const { user, loading } = useAuth();
   const { data: rides, isLoading } = useEnhancedRides();
   const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
-  const { data: matchingRequests } = useRideMatchingRequests(selectedRideId || undefined);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState({});
 
