@@ -19,10 +19,16 @@ export interface AdminVendor {
   full_name?: string;
 }
 
+export interface AdminVendorsResponse {
+  vendors: AdminVendor[];
+  total: number;
+  totalPages: number;
+}
+
 export const useAdminVendors = () => {
   return useQuery({
     queryKey: ['admin-vendors'],
-    queryFn: async () => {
+    queryFn: async (): Promise<AdminVendorsResponse> => {
       const { data, error } = await supabase
         .from('vendors')
         .select('*')
@@ -36,7 +42,11 @@ export const useAdminVendors = () => {
         status: vendor.verification_status || 'pending'
       })) || [];
       
-      return vendorsWithNames as AdminVendor[];
+      return {
+        vendors: vendorsWithNames,
+        total: vendorsWithNames.length,
+        totalPages: Math.ceil(vendorsWithNames.length / 10)
+      };
     }
   });
 };
@@ -64,6 +74,66 @@ export const useUpdateVendorStatus = () => {
     onError: (error: any) => {
       toast({
         title: 'Error updating vendor status',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useApproveVendorApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (vendorId: string) => {
+      const { error } = await supabase
+        .from('vendors')
+        .update({ 
+          verification_status: 'approved',
+          is_active: true
+        })
+        .eq('id', vendorId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      toast({ title: 'Vendor application approved successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error approving vendor application',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useRejectVendorApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (vendorId: string) => {
+      const { error } = await supabase
+        .from('vendors')
+        .update({ 
+          verification_status: 'rejected',
+          is_active: false
+        })
+        .eq('id', vendorId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      toast({ title: 'Vendor application rejected' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error rejecting vendor application',
         description: error.message,
         variant: 'destructive'
       });

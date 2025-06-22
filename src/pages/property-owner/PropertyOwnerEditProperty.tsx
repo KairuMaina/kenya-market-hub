@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,14 +34,13 @@ const PropertyOwnerEditProperty = () => {
     city: '',
     amenities: [],
     features: [],
-    is_featured: false,
     contact_phone: '',
     contact_email: '',
-    available_from: ''
+    available_from: '',
+    is_featured: false
   });
 
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
 
   const { data: property, isLoading } = useQuery({
     queryKey: ['property', id],
@@ -76,10 +74,10 @@ const PropertyOwnerEditProperty = () => {
         city: property.city || '',
         amenities: property.amenities || [],
         features: property.features || [],
-        is_featured: property.is_featured || false,
         contact_phone: property.contact_phone || '',
         contact_email: property.contact_email || '',
-        available_from: property.available_from || ''
+        available_from: property.available_from || '',
+        is_featured: property.is_featured || false
       });
       setExistingImages(property.images || []);
     }
@@ -98,12 +96,9 @@ const PropertyOwnerEditProperty = () => {
     }));
   };
 
-  const handleNewImagesUpload = (files: File[]) => {
-    setNewImageFiles(prev => [...prev, ...files]);
-  };
-
   const handleImagesChange = (images: string[]) => {
     setExistingImages(images);
+    setFormData(prev => ({ ...prev, images }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,10 +108,8 @@ const PropertyOwnerEditProperty = () => {
 
     try {
       await updateProperty.mutateAsync({
-        propertyId: id,
-        propertyData: formData,
-        newImages: newImageFiles,
-        existingImages
+        id,
+        data: formData
       });
       
       navigate('/property-owner/properties');
@@ -358,9 +351,9 @@ const PropertyOwnerEditProperty = () => {
               </CardHeader>
               <CardContent>
                 <PropertyImageManager
-                  images={[...existingImages, ...newImageFiles.map(file => URL.createObjectURL(file))]}
+                  images={existingImages}
                   onImagesChange={handleImagesChange}
-                  onNewImagesUpload={handleNewImagesUpload}
+                  onNewImagesUpload={() => {}}
                   maxImages={10}
                 />
               </CardContent>

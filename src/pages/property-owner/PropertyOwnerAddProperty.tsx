@@ -1,4 +1,3 @@
-
 import React, { useState }from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,14 +28,13 @@ const PropertyOwnerAddProperty = () => {
     city: '',
     amenities: [],
     features: [],
-    is_featured: false,
     contact_phone: '',
     contact_email: '',
-    available_from: ''
+    available_from: '',
+    is_featured: false
   });
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
 
   const handleInputChange = (field: keyof PropertyFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,28 +50,21 @@ const PropertyOwnerAddProperty = () => {
   };
 
   const handleNewImagesUpload = (files: File[]) => {
-    setNewImageFiles(prev => [...prev, ...files]);
-    
-    // Create preview URLs
     const newPreviews = files.map(file => URL.createObjectURL(file));
     setUploadedImages(prev => [...prev, ...newPreviews]);
+    setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...newPreviews] }));
   };
 
   const handleImagesChange = (images: string[]) => {
     setUploadedImages(images);
-    // Note: This is a simplified approach. In a real app, you'd need to track
-    // which images are new files vs existing URLs more carefully
+    setFormData(prev => ({ ...prev, images }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await createProperty.mutateAsync({
-        propertyData: formData,
-        images: newImageFiles
-      });
-      
+      await createProperty.mutateAsync(formData);
       navigate('/property-owner/properties');
     } catch (error) {
       console.error('Failed to create property:', error);

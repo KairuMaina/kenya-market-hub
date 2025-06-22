@@ -5,17 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getJobs, deleteJob, createJob, updateJob } from '@/integrations/supabase/jobBoardApi';
+import { Job } from '@/types/job';
 import MainLayout from '@/components/MainLayout';
-
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  location: string;
-  category: string;
-  salary: string;
-  status: string;
-}
 
 const JobBoard: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -31,7 +22,6 @@ const JobBoard: React.FC = () => {
     setLoading(true);
     try {
       const response = await getJobs();
-      // Handle both array and paginated response
       const jobData = Array.isArray(response) ? response : response.data || [];
       setJobs(jobData);
     } catch (error) {

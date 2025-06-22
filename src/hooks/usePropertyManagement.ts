@@ -2,28 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Property } from '@/types/property';
+import { Property, PropertyFormData } from '@/types/property';
 
-export interface PropertyFormData {
-  title: string;
-  description?: string;
-  property_type: string;
-  listing_type: string;
-  price: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  area_sqm?: number;
-  location_address: string;
-  county?: string;
-  city?: string;
-  amenities?: string[];
-  features?: string[];
-  images?: string[];
-  virtual_tour_url?: string;
-  contact_phone?: string;
-  contact_email?: string;
-  available_from?: string;
-}
+export { type PropertyFormData } from '@/types/property';
 
 export const useCreateProperty = () => {
   const queryClient = useQueryClient();
@@ -39,8 +20,8 @@ export const useCreateProperty = () => {
         .insert({
           ...propertyData,
           owner_id: user.id,
-          status: 'available',
-          is_featured: false,
+          status: 'available' as const,
+          is_featured: propertyData.is_featured || false,
           views_count: 0,
         })
         .select()

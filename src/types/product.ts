@@ -23,38 +23,3 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
-
-// Legacy Property interface for compatibility
-export interface Property {
-  id: string;
-  name: string;
-  location: string;
-  image_url: string;
-  price: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  area_sqm?: number;
-  property_type?: string;
-  listing_type?: string;
-  title?: string;
-  description?: string;
-  location_address?: string;
-  status?: string;
-  is_featured?: boolean;
-  views_count?: number;
-  created_at?: string;
-  updated_at?: string;
-  // Add missing properties for compatibility
-  location_coordinates?: any;
-  county?: string;
-  city?: string;
-  amenities?: string[];
-  features?: string[];
-  images?: string[];
-  virtual_tour_url?: string;
-  contact_phone?: string;
-  contact_email?: string;
-  available_from?: string;
-  owner_id?: string;
-  agent_id?: string;
-}

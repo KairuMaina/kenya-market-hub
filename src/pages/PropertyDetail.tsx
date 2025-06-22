@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProperty, useCreatePropertyInquiry, Property } from '@/hooks/useProperties';
+import { useProperty, useCreatePropertyInquiry } from '@/hooks/useProperties';
+import { Property } from '@/types/property';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +47,6 @@ const PropertyDetail = () => {
         console.log('Error sharing:', error);
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
       toast({
         title: 'Link Copied',

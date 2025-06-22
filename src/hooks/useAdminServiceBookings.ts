@@ -6,7 +6,7 @@ export interface ServiceBooking {
   id: string;
   customer_id: string;
   provider_id: string;
-  service_type?: string;
+  service_type: string;
   service_category_id?: string;
   booking_date: string;
   status: string;
@@ -42,7 +42,7 @@ export const useAdminServiceBookings = () => {
           
           return {
             ...booking,
-            service_type: 'General Service', // Default fallback
+            service_type: 'General Service',
             customer_name: customerProfile.data?.full_name || customerProfile.data?.email || 'Unknown',
             provider_name: providerProfile.data?.full_name || providerProfile.data?.email || 'Unknown',
           };
