@@ -42,6 +42,9 @@ import Insurance from './modules/insurance/pages/Insurance';
 import AdminInsurance from './modules/insurance/pages/AdminInsurance';
 import FoodDelivery from './pages/FoodDelivery';
 import Events from './pages/Events';
+import CityLandingPage from '@/components/seo/CityLandingPage';
+import AdvancedSitemapGenerator from '@/components/seo/AdvancedSitemapGenerator';
+import PerformanceOptimizer from '@/components/seo/PerformanceOptimizer';
 
 function App() {
   const queryClient = new QueryClient();
@@ -98,6 +101,8 @@ function App() {
             <Toaster />
             <SoundEffects />
             <PerformanceMonitor />
+            <AdvancedSitemapGenerator />
+            <PerformanceOptimizer />
             <ErrorBoundary>
               <Router>
                 <Routes>
@@ -132,6 +137,7 @@ function App() {
                   <Route path="/events" element={<Events />} />
                   <Route path="/jobs" element={<Jobs />} />
                   <Route path="/jobs/:id" element={<JobDetail />} />
+                  <Route path="/city/:cityName" element={<CityLandingPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>
