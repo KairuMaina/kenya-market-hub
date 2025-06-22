@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProperty, useCreatePropertyInquiry } from '@/hooks/useProperties';
+import { useProperty, useCreatePropertyInquiry, Property } from '@/hooks/useProperties';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

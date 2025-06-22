@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { getJobs, deleteJob } from '@/integrations/supabase/jobBoardApi';
+import { getJobs, deleteJob, createJob, updateJob } from '@/integrations/supabase/jobBoardApi';
 import MainLayout from '@/components/MainLayout';
 
 interface Job {
@@ -29,8 +30,10 @@ const JobBoard: React.FC = () => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const data = await getJobs();
-      setJobs(data);
+      const response = await getJobs();
+      // Handle both array and paginated response
+      const jobData = Array.isArray(response) ? response : response.data || [];
+      setJobs(jobData);
     } catch (error) {
       toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
     } finally {
@@ -195,7 +198,7 @@ const JobBoard: React.FC = () => {
               </div>
             </div>
             <div className="mt-4 flex space-x-2">
-              <Button type="submit" variant="primary">
+              <Button type="submit">
                 {editingJob ? 'Update Job' : 'Create Job'}
               </Button>
               <Button type="button" variant="ghost" onClick={() => { setShowForm(false); resetForm(); }}>

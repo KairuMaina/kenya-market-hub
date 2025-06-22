@@ -6,14 +6,19 @@ export interface ServiceBooking {
   id: string;
   customer_id: string;
   provider_id: string;
-  service_type: string;
+  service_type?: string;
+  service_category_id?: string;
   booking_date: string;
   status: string;
-  price: number;
+  price?: number;
+  total_amount?: number;
   description: string;
-  location: string;
+  location?: string;
+  booking_address?: string;
   created_at: string;
   updated_at: string;
+  customer_name?: string;
+  provider_name?: string;
 }
 
 export const useAdminServiceBookings = () => {
@@ -37,13 +42,14 @@ export const useAdminServiceBookings = () => {
           
           return {
             ...booking,
+            service_type: 'General Service', // Default fallback
             customer_name: customerProfile.data?.full_name || customerProfile.data?.email || 'Unknown',
             provider_name: providerProfile.data?.full_name || providerProfile.data?.email || 'Unknown',
           };
         })
       );
       
-      return bookingsWithNames;
+      return bookingsWithNames as ServiceBooking[];
     }
   });
 };

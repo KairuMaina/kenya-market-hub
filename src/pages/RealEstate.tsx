@@ -3,12 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType } from '@/hooks/useProperties';
+import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType, Property } from '@/hooks/useProperties';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters from '@/components/PropertyFilters';
 import PropertyInquiryModal from '@/components/PropertyInquiryModal';
 import PropertyMapView from '@/components/PropertyMapView';
-import { Property } from '@/hooks/useProperties';
 import { useNavigate } from 'react-router-dom';
 
 // Import new components

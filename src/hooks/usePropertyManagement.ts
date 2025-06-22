@@ -2,183 +2,120 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Property } from '@/types/property';
 
-export interface PropertyFeature {
-  id: string;
-  name: string;
-  category: string;
+export interface PropertyFormData {
+  title: string;
+  description?: string;
+  property_type: string;
+  listing_type: string;
+  price: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  area_sqm?: number;
+  location_address: string;
+  county?: string;
+  city?: string;
+  amenities?: string[];
+  features?: string[];
+  images?: string[];
+  virtual_tour_url?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  available_from?: string;
 }
 
-export const usePropertyFeatures = () => {
-  return useQuery({
-    queryKey: ['property-features'],
-    queryFn: async () => {
-      // Since property_features table doesn't exist, return mock data
-      return [
-        { id: '1', name: 'Swimming Pool', category: 'Amenities' },
-        { id: '2', name: 'Parking', category: 'Amenities' },
-        { id: '3', name: 'Security', category: 'Safety' },
-        { id: '4', name: 'Garden', category: 'Outdoor' }
-      ] as PropertyFeature[];
-    }
-  });
-};
-
-export const useAddPropertyFeature = () => {
+export const useCreateProperty = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async (feature: Omit<PropertyFeature, 'id'>) => {
-      // Mock implementation since table doesn't exist
-      return { id: Date.now().toString(), ...feature };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      toast({
-        title: 'Feature added',
-        description: 'Property feature has been added successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error adding feature',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-};
-
-export const usePropertyInquiries = () => {
-  return useQuery({
-    queryKey: ['property-inquiries'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('property_inquiries')
-        .select(`
-          *,
-          properties (
-            id,
-            title,
-            price,
-            location
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-};
-
-export const usePropertyViewings = () => {
-  return useQuery({
-    queryKey: ['property-viewings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('property_viewings')
-        .select(`
-          *,
-          properties (
-            id,
-            title,
-            location
-          )
-        `)
-        .order('scheduled_date', { ascending: true });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-};
-
-export const useUpdateInquiryStatus = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  return useMutation({
-    mutationFn: async ({ inquiryId, status }: { inquiryId: string; status: string }) => {
-      const { error } = await supabase
-        .from('property_inquiries')
-        .update({ status })
-        .eq('id', inquiryId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-inquiries'] });
-      toast({
-        title: 'Status updated',
-        description: 'Inquiry status has been updated successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error updating status',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-};
-
-export const useUpdateViewingStatus = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  return useMutation({
-    mutationFn: async ({ viewingId, status }: { viewingId: string; status: string }) => {
-      const { error } = await supabase
-        .from('property_viewings')
-        .update({ status })
-        .eq('id', viewingId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-viewings'] });
-      toast({
-        title: 'Status updated',
-        description: 'Viewing status has been updated successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error updating status',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-};
-
-export const usePropertyAnalytics = () => {
-  return useQuery({
-    queryKey: ['property-analytics'],
-    queryFn: async () => {
+    mutationFn: async (propertyData: PropertyFormData) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      
-      // Get properties for the current user
-      const { data: properties, error: propertiesError } = await supabase
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
         .from('properties')
-        .select('id, views')
-        .eq('owner_id', user.id);
-      
-      if (propertiesError) throw propertiesError;
-      
-      // Mock analytics since we can't access the views properly
-      const totalProperties = properties?.length || 0;
-      const totalViews = totalProperties * 10; // Mock data
-      
-      return {
-        totalProperties,
-        totalViews,
-        avgViewsPerProperty: totalProperties > 0 ? totalViews / totalProperties : 0
-      };
+        .insert({
+          ...propertyData,
+          owner_id: user.id,
+          status: 'available',
+          is_featured: false,
+          views_count: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      toast({ title: 'Property created successfully!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error creating property',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useUpdateProperty = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<PropertyFormData> }) => {
+      const { data: updatedProperty, error } = await supabase
+        .from('properties')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updatedProperty;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      toast({ title: 'Property updated successfully!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating property',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+export const useDeleteProperty = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      toast({ title: 'Property deleted successfully!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error deleting property',
+        description: error.message,
+        variant: 'destructive'
+      });
     }
   });
 };
