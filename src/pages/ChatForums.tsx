@@ -14,68 +14,71 @@ import {
   Reply,
   MoreHorizontal,
   Send,
-  Hash
+  Hash,
+  Clock
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import HeroSection from '@/components/shared/HeroSection';
+import BusinessDirectory from '@/components/chat/BusinessDirectory';
+import CreatePostModal from '@/components/chat/CreatePostModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { 
+  useForumCategories, 
+  useForumPosts, 
+  useChatConversations, 
+  useChatMessages,
+  useSendMessage 
+} from '@/hooks/useChatForums';
+import { formatDistanceToNow } from 'date-fns';
 
 const ChatForums = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data
-  const recentChats = [
-    { id: '1', name: 'John Doe', lastMessage: 'Thanks for the help!', time: '2m ago', unread: 2 },
-    { id: '2', name: 'Sarah Wilson', lastMessage: 'See you tomorrow', time: '1h ago', unread: 0 },
-    { id: '3', name: 'Mike Johnson', lastMessage: 'Great job on the project', time: '3h ago', unread: 1 }
-  ];
+  const { data: categories } = useForumCategories();
+  const { data: posts } = useForumPosts();
+  const { data: conversations } = useChatConversations();
+  const { data: messages } = useChatMessages(activeChat);
+  const sendMessage = useSendMessage();
 
-  const forumCategories = [
-    { id: 'parenting', name: 'Parenting & Family', posts: 145, members: 1200, color: 'bg-pink-100 text-pink-800' },
-    { id: 'finance', name: 'Personal Finance', posts: 89, members: 890, color: 'bg-green-100 text-green-800' },
-    { id: 'events', name: 'Local Events', posts: 67, members: 560, color: 'bg-purple-100 text-purple-800' },
-    { id: 'tech', name: 'Technology', posts: 123, members: 980, color: 'bg-blue-100 text-blue-800' },
-    { id: 'business', name: 'Small Business', posts: 78, members: 670, color: 'bg-orange-100 text-orange-800' },
-    { id: 'health', name: 'Health & Wellness', posts: 92, members: 780, color: 'bg-cyan-100 text-cyan-800' }
-  ];
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
-  const recentPosts = [
-    {
-      id: '1',
-      title: 'Best schools in Nairobi for kindergarten?',
-      author: 'MaryK',
-      category: 'Parenting & Family',
-      replies: 12,
-      likes: 8,
-      time: '2h ago'
-    },
-    {
-      id: '2',
-      title: 'Small business loan options in Kenya',
-      author: 'PeterM',
-      category: 'Personal Finance',
-      replies: 6,
-      likes: 15,
-      time: '4h ago'
-    },
-    {
-      id: '3',
-      title: 'Weekend farmers market locations',
-      author: 'GraceW',
-      category: 'Local Events',
-      replies: 9,
-      likes: 5,
-      time: '6h ago'
-    }
-  ];
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      // Handle sending message
-      setMessage('');
+    if (message.trim() && activeChat) {
+      sendMessage.mutate({
+        conversationId: activeChat,
+        content: message
+      }, {
+        onSuccess: () => setMessage('')
+      });
     }
+  };
+
+  const filteredConversations = conversations?.filter(conv =>
+    conv.other_participant?.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const getTimeAgo = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
   return (
@@ -90,7 +93,7 @@ const ChatForums = () => {
 
         <div className="max-w-7xl mx-auto px-4">
           <Tabs defaultValue="forums" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="forums" className="flex items-center gap-2">
                 <Hash className="h-4 w-4" />
                 Community Forums
@@ -98,6 +101,10 @@ const ChatForums = () => {
               <TabsTrigger value="messages" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 Private Messages
+              </TabsTrigger>
+              <TabsTrigger value="businesses" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Contact Businesses
               </TabsTrigger>
             </TabsList>
 
@@ -113,13 +120,13 @@ const ChatForums = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {forumCategories.map((category) => (
+                      {categories?.map((category) => (
                         <div key={category.id} className="p-3 rounded-lg border hover:bg-gray-50 cursor-pointer">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{category.name}</h4>
-                            <Badge className={category.color}>{category.posts}</Badge>
+                            <Badge variant="outline">{category.post_count}</Badge>
                           </div>
-                          <p className="text-sm text-gray-500">{category.members} members</p>
+                          <p className="text-sm text-gray-500">{category.member_count} members</p>
                         </div>
                       ))}
                     </CardContent>
@@ -132,7 +139,11 @@ const ChatForums = () => {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle>Recent Discussions</CardTitle>
-                        <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                        <Button 
+                          size="sm" 
+                          className="bg-orange-600 hover:bg-orange-700"
+                          onClick={() => setShowCreatePost(true)}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           New Post
                         </Button>
@@ -140,15 +151,18 @@ const ChatForums = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {recentPosts.map((post) => (
+                        {posts?.map((post) => (
                           <div key={post.id} className="p-4 border rounded-lg hover:bg-gray-50">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <h3 className="font-medium text-gray-900 mb-1">{post.title}</h3>
                                 <div className="flex items-center gap-4 text-sm text-gray-500">
-                                  <span>by {post.author}</span>
-                                  <Badge variant="outline">{post.category}</Badge>
-                                  <span>{post.time}</span>
+                                  <span>by {post.author?.full_name}</span>
+                                  <Badge variant="outline">{post.category?.name}</Badge>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {getTimeAgo(post.created_at)}
+                                  </span>
                                 </div>
                               </div>
                               <Button variant="ghost" size="sm">
@@ -158,15 +172,20 @@ const ChatForums = () => {
                             <div className="flex items-center gap-4 mt-3">
                               <Button variant="ghost" size="sm" className="text-gray-500">
                                 <Reply className="h-4 w-4 mr-1" />
-                                {post.replies} replies
+                                {post.reply_count} replies
                               </Button>
                               <Button variant="ghost" size="sm" className="text-gray-500">
                                 <Heart className="h-4 w-4 mr-1" />
-                                {post.likes} likes
+                                {post.like_count} likes
                               </Button>
                             </div>
                           </div>
                         ))}
+                        {!posts?.length && (
+                          <div className="text-center text-gray-500 py-8">
+                            No posts yet. Be the first to start a discussion!
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -186,31 +205,44 @@ const ChatForums = () => {
                       </CardTitle>
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input placeholder="Search conversations..." className="pl-10" />
+                        <Input 
+                          placeholder="Search conversations..." 
+                          className="pl-10"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="space-y-1">
-                        {recentChats.map((chat) => (
-                          <div
-                            key={chat.id}
-                            onClick={() => setActiveChat(chat.id)}
-                            className={`p-3 cursor-pointer hover:bg-gray-50 ${
-                              activeChat === chat.id ? 'bg-orange-50 border-r-2 border-orange-500' : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-medium">{chat.name}</h4>
-                              <span className="text-xs text-gray-500">{chat.time}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
-                              {chat.unread > 0 && (
-                                <Badge className="bg-orange-600 text-white text-xs">{chat.unread}</Badge>
-                              )}
-                            </div>
+                        {filteredConversations.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500">
+                            No conversations yet. Start chatting with businesses!
                           </div>
-                        ))}
+                        ) : (
+                          filteredConversations.map((chat) => (
+                            <div
+                              key={chat.id}
+                              onClick={() => setActiveChat(chat.id)}
+                              className={`p-3 cursor-pointer hover:bg-gray-50 ${
+                                activeChat === chat.id ? 'bg-orange-50 border-r-2 border-orange-500' : ''
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-medium">{chat.other_participant?.full_name}</h4>
+                                <span className="text-xs text-gray-500">
+                                  {chat.last_message_at ? getTimeAgo(chat.last_message_at) : ''}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm text-gray-600 truncate">{chat.last_message}</p>
+                                {chat.unread_count > 0 && (
+                                  <Badge className="bg-orange-600 text-white text-xs">{chat.unread_count}</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -223,23 +255,30 @@ const ChatForums = () => {
                       <>
                         <CardHeader className="border-b">
                           <CardTitle>
-                            {recentChats.find(chat => chat.id === activeChat)?.name}
+                            {conversations?.find(chat => chat.id === activeChat)?.other_participant?.full_name}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 p-4">
-                          <div className="space-y-4 mb-4">
-                            <div className="flex justify-start">
-                              <div className="bg-gray-100 rounded-lg p-3 max-w-xs">
-                                <p className="text-sm">Hello! How are you doing?</p>
-                                <span className="text-xs text-gray-500">10:30 AM</span>
+                        <CardContent className="flex-1 p-4 overflow-y-auto max-h-72">
+                          <div className="space-y-4">
+                            {messages?.map((msg) => (
+                              <div 
+                                key={msg.id}
+                                className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                              >
+                                <div className={`rounded-lg p-3 max-w-xs ${
+                                  msg.sender_id === user.id 
+                                    ? 'bg-orange-600 text-white' 
+                                    : 'bg-gray-100 text-gray-900'
+                                }`}>
+                                  <p className="text-sm">{msg.content}</p>
+                                  <span className={`text-xs ${
+                                    msg.sender_id === user.id ? 'text-orange-200' : 'text-gray-500'
+                                  }`}>
+                                    {getTimeAgo(msg.created_at)}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <div className="bg-orange-600 text-white rounded-lg p-3 max-w-xs">
-                                <p className="text-sm">I'm doing great, thanks! How about you?</p>
-                                <span className="text-xs text-orange-200">10:32 AM</span>
-                              </div>
-                            </div>
+                            ))}
                           </div>
                         </CardContent>
                         <div className="p-4 border-t">
@@ -249,8 +288,13 @@ const ChatForums = () => {
                               onChange={(e) => setMessage(e.target.value)}
                               placeholder="Type a message..."
                               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                              disabled={sendMessage.isPending}
                             />
-                            <Button onClick={handleSendMessage} className="bg-orange-600 hover:bg-orange-700">
+                            <Button 
+                              onClick={handleSendMessage} 
+                              className="bg-orange-600 hover:bg-orange-700"
+                              disabled={sendMessage.isPending || !message.trim()}
+                            >
                               <Send className="h-4 w-4" />
                             </Button>
                           </div>
@@ -268,9 +312,18 @@ const ChatForums = () => {
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="businesses">
+              <BusinessDirectory />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      <CreatePostModal
+        isOpen={showCreatePost}
+        onClose={() => setShowCreatePost(false)}
+      />
     </MainLayout>
   );
 };
