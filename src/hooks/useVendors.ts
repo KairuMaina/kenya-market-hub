@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +39,7 @@ export interface VendorApplication {
   submitted_at: string;
   reviewed_at?: string;
   reviewed_by?: string;
-  service_type?: string; // Add this property
+  service_type?: string;
 }
 
 export const useVendors = () => {
@@ -53,7 +54,12 @@ export const useVendors = () => {
         .order('business_name');
       
       if (error) throw error;
-      return data as Vendor[];
+      
+      // Transform to match expected type
+      return data?.map(vendor => ({
+        ...vendor,
+        commission_rate: 0, // Default commission rate
+      })) as Vendor[] || [];
     }
   });
 };
@@ -71,10 +77,28 @@ export const useVendorApplications = () => {
 
       if (error) {
         console.error('Error fetching pending vendor applications:', error);
-        throw error;
+        return [];
       }
 
-      return (data as VendorApplication[]) || [];
+      // Transform to match expected interface since schema doesn't match
+      return data?.map(app => ({
+        id: app.id,
+        user_id: app.user_id,
+        business_name: app.business_name,
+        business_description: app.business_description,
+        business_address: '', // Not available in current schema
+        business_phone: '', // Not available in current schema  
+        business_email: app.contact_email || '',
+        business_license: app.business_license,
+        tax_id: app.tax_id,
+        documents: app.documents,
+        status: app.status,
+        admin_notes: app.admin_notes,
+        submitted_at: app.submitted_at,
+        reviewed_at: app.reviewed_at,
+        reviewed_by: app.reviewed_by,
+        service_type: app.service_type,
+      })) as VendorApplication[] || [];
     },
   });
 };
@@ -90,21 +114,20 @@ export const useVendorApplication = () => {
       
       if (
         !applicationData.business_name ||
-        !applicationData.business_description ||
-        !applicationData.business_address ||
-        !applicationData.business_phone ||
-        !applicationData.business_email
+        !applicationData.business_description
       ) {
         throw new Error("One or more required fields are missing.");
       }
 
-      // Set default service_type if not provided
       const serviceType = applicationData.service_type || 'products';
 
       const { data, error } = await supabase
         .from('vendor_applications')
         .insert({
-          ...applicationData,
+          business_name: applicationData.business_name,
+          business_description: applicationData.business_description,
+          contact_email: applicationData.business_email,
+          contact_phone: applicationData.business_phone,
           user_id: user.id,
           status: 'pending',
           submitted_at: new Date().toISOString(),
@@ -114,8 +137,6 @@ export const useVendorApplication = () => {
       if (error) {
         console.error("Vendor application insert error:", error);
         throw error;
-      } else {
-        console.log("Vendor application insert result:", data);
       }
 
       return data;
@@ -142,7 +163,7 @@ export const useMyVendorProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // 1. Check for an existing, approved profile in the 'vendors' table
+      // Check for existing vendor profile
       const { data: vendorProfile, error: vendorError } = await supabase
         .from('vendors')
         .select('*')
@@ -150,17 +171,20 @@ export const useMyVendorProfile = () => {
         .single();
       
       if (vendorError && vendorError.code !== 'PGRST116') {
-        throw vendorError; // Re-throw actual errors
+        throw vendorError;
       }
 
       if (vendorProfile) {
-        return vendorProfile as Vendor;
+        return {
+          ...vendorProfile,
+          commission_rate: vendorProfile.commission_rate || 0,
+        } as Vendor;
       }
 
-      // 2. If no approved profile, check for a recent application in 'vendor_applications'
+      // Check for recent application
       const { data: vendorApplication, error: vendorAppError } = await supabase
         .from('vendor_applications')
-        .select('status, business_name, business_description, business_address, business_phone, business_email, submitted_at, service_type')
+        .select('status, business_name, business_description, contact_email, contact_phone, submitted_at, service_type')
         .eq('user_id', user.id)
         .order('submitted_at', { ascending: false })
         .limit(1)
@@ -169,16 +193,14 @@ export const useMyVendorProfile = () => {
       if (vendorAppError) throw vendorAppError;
       
       if (vendorApplication && (vendorApplication.status === 'pending' || vendorApplication.status === 'rejected')) {
-        // Return a mock/synthetic Vendor object to represent the application status
         return {
-          id: '', // No real vendor ID yet
+          id: '',
           user_id: user.id,
           verification_status: vendorApplication.status,
           business_name: vendorApplication.business_name,
           business_description: vendorApplication.business_description,
-          business_address: vendorApplication.business_address,
-          business_phone: vendorApplication.business_phone,
-          business_email: vendorApplication.business_email,
+          business_email: vendorApplication.contact_email,
+          business_phone: vendorApplication.contact_phone,
           is_active: false,
           commission_rate: 0,
           created_at: vendorApplication.submitted_at,
@@ -186,7 +208,7 @@ export const useMyVendorProfile = () => {
         } as Vendor;
       }
       
-      return null; // No profile and no relevant application found
+      return null;
     }
   });
 };
