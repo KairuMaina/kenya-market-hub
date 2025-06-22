@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -54,10 +55,9 @@ export const useVendors = () => {
       
       if (error) throw error;
       
-      // Transform to match expected type
       return data?.map(vendor => ({
         ...vendor,
-        commission_rate: 0, // Default commission rate
+        commission_rate: 0,
       })) as Vendor[] || [];
     }
   });
@@ -79,23 +79,22 @@ export const useVendorApplications = () => {
         return [];
       }
 
-      // Transform to match expected interface based on actual schema
       return data?.map(app => ({
         id: app.id,
         user_id: app.user_id,
         business_name: app.business_name,
         business_description: app.business_description,
-        business_address: '', // Not available in current schema
-        business_phone: '', // Not available in current schema  
-        business_email: app.contact_email || '',
-        business_license: '', // Not available in current schema
-        tax_id: '', // Not available in current schema
-        documents: null, // Not available in current schema
+        business_address: app.business_address || '',
+        business_phone: app.business_phone || '',  
+        business_email: app.business_email || '',
+        business_license: app.business_license || '',
+        tax_id: app.tax_id || '',
+        documents: app.documents,
         status: app.status,
-        admin_notes: '', // Not available in current schema
+        admin_notes: app.admin_notes || '',
         submitted_at: app.submitted_at,
-        reviewed_at: '', // Not available in current schema
-        reviewed_by: '', // Not available in current schema
+        reviewed_at: app.reviewed_at || '',
+        reviewed_by: app.reviewed_by || '',
         service_type: app.service_type,
       })) as VendorApplication[] || [];
     },
@@ -163,7 +162,6 @@ export const useMyVendorProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Check for existing vendor profile
       const { data: vendorProfile, error: vendorError } = await supabase
         .from('vendors')
         .select('*')
@@ -177,11 +175,10 @@ export const useMyVendorProfile = () => {
       if (vendorProfile) {
         return {
           ...vendorProfile,
-          commission_rate: 0, // Default commission rate since field doesn't exist
+          commission_rate: 0,
         } as Vendor;
       }
 
-      // Check for recent application
       const { data: vendorApplication, error: vendorAppError } = await supabase
         .from('vendor_applications')
         .select('status, business_name, business_description, business_email, business_phone, submitted_at, service_type')
