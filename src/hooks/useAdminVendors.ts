@@ -32,7 +32,8 @@ export const useAdminVendors = () => {
       
       const vendorsWithNames = data?.map(vendor => ({
         ...vendor,
-        full_name: vendor.business_email || vendor.business_name || 'Unknown'
+        full_name: vendor.business_email || vendor.business_name || 'Unknown',
+        status: vendor.verification_status || 'pending'
       })) || [];
       
       return vendorsWithNames as AdminVendor[];

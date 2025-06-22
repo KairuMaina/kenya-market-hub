@@ -25,8 +25,8 @@ export const useVendorApproval = () => {
           user_id: application.user_id,
           business_name: application.business_name,
           business_description: application.business_description,
-          contact_email: application.contact_email,
-          contact_phone: application.contact_phone,
+          business_email: application.business_email,
+          business_phone: application.business_phone,
           verification_status: 'approved',
           is_active: true
         });
@@ -109,8 +109,8 @@ export const useVendorApproval = () => {
         .update({
           business_name: vendor.business_name,
           business_description: vendor.business_description,
-          contact_email: vendor.contact_email,
-          contact_phone: vendor.contact_phone,
+          business_email: vendor.business_email,
+          business_phone: vendor.business_phone,
           business_address: vendor.business_address,
           verification_status: vendor.is_active ? 'approved' : 'pending',
           is_active: vendor.is_active

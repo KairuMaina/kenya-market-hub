@@ -24,12 +24,10 @@ export const useCreateRide = () => {
         user_id: user.id,
         pickup_address: data.pickupAddress,
         destination_address: data.destinationAddress,
-        pickup_latitude: data.pickupLocation.lat,
-        pickup_longitude: data.pickupLocation.lng,
-        destination_latitude: data.destinationLocation.lat,
-        destination_longitude: data.destinationLocation.lng,
+        pickup_location: `POINT(${data.pickupLocation.lng} ${data.pickupLocation.lat})`,
+        destination_location: `POINT(${data.destinationLocation.lng} ${data.destinationLocation.lat})`,
         vehicle_type: data.vehicleType,
-        status: 'pending'
+        status: 'requested'
       };
       
       const { data: ride, error } = await supabase

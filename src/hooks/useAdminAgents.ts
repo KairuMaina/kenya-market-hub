@@ -20,6 +20,10 @@ export interface AdminAgent {
   full_name?: string;
   is_verified?: boolean;
   is_active?: boolean;
+  bio?: string;
+  profile_image_url?: string;
+  website_url?: string;
+  total_sales?: number;
 }
 
 export const useAdminAgents = () => {
@@ -33,12 +37,17 @@ export const useAdminAgents = () => {
       
       if (error) throw error;
       
-      // Transform the data to include computed properties
+      // Transform the data to include computed properties and map missing fields
       const agentsWithNames = data?.map(agent => ({
         ...agent,
         full_name: agent.email || 'Unknown',
-        is_verified: agent.status === 'approved',
-        is_active: agent.status === 'approved'
+        is_verified: agent.is_verified,
+        is_active: agent.is_active,
+        status: agent.is_active ? 'approved' : 'pending',
+        address: 'Not specified',
+        specialization: Array.isArray(agent.specializations) ? agent.specializations.join(', ') : 'General',
+        experience_years: 0,
+        total_sales: agent.total_sales || 0
       })) || [];
       
       return agentsWithNames as AdminAgent[];
@@ -54,7 +63,10 @@ export const useUpdateAgentStatus = () => {
     mutationFn: async ({ agentId, status }: { agentId: string; status: string }) => {
       const { error } = await supabase
         .from('real_estate_agents')
-        .update({ status })
+        .update({ 
+          is_active: status === 'approved',
+          is_verified: status === 'approved'
+        })
         .eq('id', agentId);
       
       if (error) throw error;
@@ -86,11 +98,10 @@ export const useUpdateAgent = () => {
           license_number: agent.license_number,
           phone: agent.phone,
           email: agent.email,
-          address: agent.address,
-          specialization: agent.specialization,
-          experience_years: agent.experience_years,
+          bio: agent.bio,
           rating: agent.rating,
-          status: agent.is_active ? 'approved' : 'pending'
+          is_active: agent.is_active,
+          is_verified: agent.is_verified
         })
         .eq('id', agent.id);
       
