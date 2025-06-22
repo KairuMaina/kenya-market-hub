@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -80,7 +79,7 @@ export const useVendorApplications = () => {
         return [];
       }
 
-      // Transform to match expected interface since schema doesn't match
+      // Transform to match expected interface based on actual schema
       return data?.map(app => ({
         id: app.id,
         user_id: app.user_id,
@@ -89,14 +88,14 @@ export const useVendorApplications = () => {
         business_address: '', // Not available in current schema
         business_phone: '', // Not available in current schema  
         business_email: app.contact_email || '',
-        business_license: app.business_license,
-        tax_id: app.tax_id,
-        documents: app.documents,
+        business_license: '', // Not available in current schema
+        tax_id: '', // Not available in current schema
+        documents: null, // Not available in current schema
         status: app.status,
-        admin_notes: app.admin_notes,
+        admin_notes: '', // Not available in current schema
         submitted_at: app.submitted_at,
-        reviewed_at: app.reviewed_at,
-        reviewed_by: app.reviewed_by,
+        reviewed_at: '', // Not available in current schema
+        reviewed_by: '', // Not available in current schema
         service_type: app.service_type,
       })) as VendorApplication[] || [];
     },
@@ -177,7 +176,7 @@ export const useMyVendorProfile = () => {
       if (vendorProfile) {
         return {
           ...vendorProfile,
-          commission_rate: vendorProfile.commission_rate || 0,
+          commission_rate: 0, // Default commission rate since field doesn't exist
         } as Vendor;
       }
 

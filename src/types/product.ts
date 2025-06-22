@@ -17,6 +17,10 @@ export interface Product {
   year?: number;
   brand?: string;
   rating?: number;
+  reviews_count?: number;
+  sales?: number;
+  views?: number;
+  revenue?: number;
 }
 
 export interface Property {

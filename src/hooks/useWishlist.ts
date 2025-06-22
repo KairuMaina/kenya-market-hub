@@ -80,3 +80,24 @@ export const useRemoveFromWishlist = () => {
     }
   });
 };
+
+// Additional exports for compatibility
+export const useToggleWishlist = () => {
+  const addToWishlist = useAddToWishlist();
+  const removeFromWishlist = useRemoveFromWishlist();
+  
+  return useMutation({
+    mutationFn: async ({ productId, isInWishlist }: { productId: string; isInWishlist: boolean }) => {
+      if (isInWishlist) {
+        return removeFromWishlist.mutateAsync(productId);
+      } else {
+        return addToWishlist.mutateAsync(productId);
+      }
+    }
+  });
+};
+
+export const useIsInWishlist = (productId: string) => {
+  const { data: wishlist } = useWishlist();
+  return wishlist?.some(item => item.product_id === productId) || false;
+};
