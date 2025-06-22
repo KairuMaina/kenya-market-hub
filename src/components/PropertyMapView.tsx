@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Property } from '@/hooks/useProperties';
+import { Property } from '@/types/product';
 import PropertyMap from '@/components/real-estate/PropertyMap';
 
 interface PropertyMapViewProps {
@@ -17,17 +17,24 @@ const PropertyMapView = ({
   height = '400px'
 }: PropertyMapViewProps) => {
   const handlePropertySelect = (property: Property) => {
-    console.log('Property selected:', property.title);
+    console.log('Property selected:', property.name);
   };
 
   const handleViewDetails = (property: Property) => {
     window.open(`/property/${property.id}`, '_blank');
   };
 
+  // Transform properties to match the expected Property type
+  const transformedProperties = properties.map(property => ({
+    ...property,
+    is_featured: property.is_featured || false,
+    title: property.name,
+  }));
+
   return (
     <div style={{ height, width: '100%' }}>
       <PropertyMap
-        properties={properties}
+        properties={transformedProperties as any}
         onPropertySelect={handlePropertySelect}
         onViewDetails={handleViewDetails}
         center={center}

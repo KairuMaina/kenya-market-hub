@@ -27,7 +27,6 @@ export interface Ride {
 export const useRides = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const { data: userRides, isLoading } = useQuery({
     queryKey: ['rides', user?.id],
@@ -50,19 +49,11 @@ export const useRides = () => {
     mutationFn: async (booking: RideBooking) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Get fare calculation
-      const { data: fareData, error: fareError } = await supabase
-        .from('fare_calculations')
-        .select('*')
-        .eq('vehicle_type', booking.vehicleType)
-        .eq('is_active', true)
-        .single();
-
-      if (fareError) throw fareError;
-
       // Calculate estimated distance (simplified - in real app would use mapping service)
       const estimatedDistance = 5; // km
-      const estimatedFare = fareData.base_fare + (estimatedDistance * fareData.per_km_rate);
+      const baseFare = booking.vehicleType === 'taxi' ? 100 : 50;
+      const perKmRate = booking.vehicleType === 'taxi' ? 30 : 20;
+      const estimatedFare = baseFare + (estimatedDistance * perKmRate);
 
       const { data, error } = await supabase
         .from('rides')

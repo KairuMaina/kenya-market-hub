@@ -23,14 +23,14 @@ const RecentlyViewed = () => {
             <div key={item.id} className="group cursor-pointer">
               <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-2">
                 <img
-                  src={item.products?.image_url || '/placeholder.svg'}
-                  alt={item.products?.name}
+                  src={item.product?.image_url || '/placeholder.svg'}
+                  alt={item.product?.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
               </div>
-              <p className="text-sm font-medium truncate">{item.products?.name}</p>
+              <p className="text-sm font-medium truncate">{item.product?.name}</p>
               <p className="text-sm text-green-600 font-semibold">
-                KSH {Number(item.products?.price).toLocaleString()}
+                KSH {Number(item.product?.price).toLocaleString()}
               </p>
             </div>
           ))}

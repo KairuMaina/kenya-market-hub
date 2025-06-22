@@ -12,6 +12,7 @@ export interface Medication {
   requires_prescription: boolean;
   stock_quantity: number;
   manufacturer?: string;
+  image_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +32,7 @@ export const useMedications = () => {
           requires_prescription: false,
           stock_quantity: 100,
           manufacturer: 'Generic Pharma',
+          image_url: '/placeholder.svg',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -43,6 +45,7 @@ export const useMedications = () => {
           requires_prescription: true,
           stock_quantity: 50,
           manufacturer: 'MedCorp',
+          image_url: '/placeholder.svg',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }
