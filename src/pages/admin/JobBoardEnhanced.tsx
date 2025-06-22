@@ -105,7 +105,7 @@ const JobBoardEnhanced: React.FC = () => {
     },
     {
       title: 'Companies',
-      value: new Set(jobs.map(job => job.company_name)).size.toString(),
+      value: new Set(jobs.map(job => job.company || 'N/A')).size.toString(),
       change: '+15%',
       icon: Building,
       color: 'text-orange-600'
@@ -211,7 +211,7 @@ const JobBoardEnhanced: React.FC = () => {
                           <p className="text-sm text-gray-600 line-clamp-1">{job.description}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{job.company_name || 'N/A'}</TableCell>
+                      <TableCell>{job.company || 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <MapPin className="mr-1 h-3 w-3 text-gray-400" />
