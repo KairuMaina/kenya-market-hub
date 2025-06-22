@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MapPin, Navigation, Car, Bike, Clock, DollarSign } from 'lucide-react';
 import MapBox from './MapBox';
-import { useBookEnhancedRide } from '@/hooks/useEnhancedRides';
+import { useEnhancedRides } from '@/hooks/useEnhancedRides';
 import { useFareCalculations } from '@/hooks/useRides';
 
 interface EnhancedRideBookingProps {
@@ -24,7 +24,7 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
   const [estimatedFare, setEstimatedFare] = useState<number>(0);
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
 
-  const bookRide = useBookEnhancedRide();
+  const { createRide } = useEnhancedRides();
   const { data: fareCalculations } = useFareCalculations();
 
   // Get user's current location
@@ -84,7 +84,7 @@ const EnhancedRideBooking: React.FC<EnhancedRideBookingProps> = ({ onRideBooked 
       return;
     }
 
-    bookRide.mutate({
+    createRide.mutate({
       pickupAddress,
       destinationAddress,
       pickupLocation,

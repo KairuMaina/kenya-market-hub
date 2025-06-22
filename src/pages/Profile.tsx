@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useMyVendorProfile } from '@/hooks/useVendors';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
-import { Badge } from '@/components/ui/badge';
 
 const profileSchema = z.object({
   full_name: z.string().min(2, "Full name must be at least 2 characters.").optional().or(z.literal('')),
