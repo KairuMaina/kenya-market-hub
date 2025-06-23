@@ -1,11 +1,18 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Defensive check for React
-if (!React || typeof React.useState !== 'function') {
-  console.error('React is not properly loaded in CartContext');
-  throw new Error('React module is not available');
+// Immediate React validation
+if (!React) {
+  console.error('❌ React is null in CartContext');
+  throw new Error('React module is not available in CartContext');
 }
+
+if (typeof React.useState !== 'function') {
+  console.error('❌ React.useState is not available in CartContext');
+  throw new Error('React useState hook is not available');
+}
+
+console.log('✅ React validation passed in CartContext');
 
 interface CartItem {
   id: string;
@@ -41,8 +48,7 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  console.log('CartProvider rendering, React available:', !!React);
-  console.log('useState available:', typeof React.useState);
+  console.log('🔄 CartProvider rendering, React:', !!React, 'useState:', typeof React.useState);
   
   const [items, setItems] = useState<CartItem[]>([]);
 

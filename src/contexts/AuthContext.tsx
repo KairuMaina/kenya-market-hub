@@ -1,13 +1,21 @@
+
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Defensive check for React
-if (!React || typeof React.useState !== 'function') {
-  console.error('React is not properly loaded in AuthContext');
-  throw new Error('React module is not available');
+// Immediate React validation
+if (!React) {
+  console.error('❌ React is null in AuthContext');
+  throw new Error('React module is not available in AuthContext');
 }
+
+if (typeof React.useState !== 'function') {
+  console.error('❌ React.useState is not available in AuthContext');
+  throw new Error('React useState hook is not available');
+}
+
+console.log('✅ React validation passed in AuthContext');
 
 interface AuthContextType {
   user: User | null;
@@ -22,7 +30,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  console.log('AuthProvider rendering, React available:', !!React);
+  console.log('🔄 AuthProvider rendering, React:', !!React, 'useState:', typeof React.useState);
   
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -31,10 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('🔄 AuthProvider useEffect starting');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('🔄 Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -51,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
+      console.log('🔄 Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -65,7 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🔄 AuthProvider cleanup');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {

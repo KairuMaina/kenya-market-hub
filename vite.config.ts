@@ -17,11 +17,8 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      react: path.resolve('./node_modules/react'),
-      'react-dom': path.resolve('./node_modules/react-dom'),
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ['react', 'react-dom']
   },
   optimizeDeps: {
     include: [
@@ -49,7 +46,7 @@ export default defineConfig(({ mode }) => ({
       '@radix-ui/react-button'
     ],
     exclude: [],
-    force: true // Force re-optimization
+    force: true
   },
   build: {
     rollupOptions: {
@@ -67,10 +64,8 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  // Add esbuild options for better React handling
   esbuild: {
     jsx: 'automatic',
   },
-  // Clear cache on startup in development
   cacheDir: mode === 'development' ? 'node_modules/.vite-dev' : 'node_modules/.vite'
 }));
