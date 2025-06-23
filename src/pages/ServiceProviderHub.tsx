@@ -19,9 +19,20 @@ import {
 import MainLayout from '@/components/MainLayout';
 import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 import { useMyVendorProfile } from '@/hooks/useVendors';
-import { useMedicalApplicationStatus, useMyMedicalProviderProfile } from '@/hooks/useMedical';
 import { useNavigate } from 'react-router-dom';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
+
+// Import medical hooks with error handling
+let useMedicalApplicationStatus: any = () => ({ data: null });
+let useMyMedicalProviderProfile: any = () => ({ data: null });
+
+try {
+  const medicalHooks = require('@/hooks/useMedical');
+  useMedicalApplicationStatus = medicalHooks.useMedicalApplicationStatus;
+  useMyMedicalProviderProfile = medicalHooks.useMyMedicalProviderProfile;
+} catch (error) {
+  console.error('Failed to import medical hooks:', error);
+}
 
 const ServiceProviderHub = () => {
   console.log('🏠 ServiceProviderHub component rendering...');
