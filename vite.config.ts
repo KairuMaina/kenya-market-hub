@@ -11,7 +11,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      // Add React refresh options
+      fastRefresh: true,
+    }),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
@@ -27,6 +30,7 @@ export default defineConfig(({ mode }) => ({
     include: [
       'react', 
       'react-dom',
+      'react/jsx-runtime',
       '@radix-ui/react-tooltip',
       '@radix-ui/react-toast',
       '@radix-ui/react-dialog',
@@ -47,7 +51,8 @@ export default defineConfig(({ mode }) => ({
       '@radix-ui/react-badge',
       '@radix-ui/react-button'
     ],
-    exclude: []
+    exclude: [],
+    force: true // Force re-optimization
   },
   build: {
     rollupOptions: {
@@ -64,5 +69,11 @@ export default defineConfig(({ mode }) => ({
         }
       }
     }
-  }
+  },
+  // Add esbuild options for better React handling
+  esbuild: {
+    jsx: 'automatic',
+  },
+  // Clear cache on startup in development
+  cacheDir: mode === 'development' ? 'node_modules/.vite-dev' : 'node_modules/.vite'
 }));

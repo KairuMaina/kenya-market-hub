@@ -1,6 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// Defensive check for React
+if (!React || typeof React.useState !== 'function') {
+  console.error('React is not properly loaded in CartContext');
+  throw new Error('React module is not available');
+}
+
 interface CartItem {
   id: string;
   name: string;
@@ -35,6 +41,9 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  console.log('CartProvider rendering, React available:', !!React);
+  console.log('useState available:', typeof React.useState);
+  
   const [items, setItems] = useState<CartItem[]>([]);
 
   // Load cart from localStorage on mount

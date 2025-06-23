@@ -1,8 +1,13 @@
-
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// Defensive check for React
+if (!React || typeof React.useState !== 'function') {
+  console.error('React is not properly loaded in AuthContext');
+  throw new Error('React module is not available');
+}
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +22,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('AuthProvider rendering, React available:', !!React);
+  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
