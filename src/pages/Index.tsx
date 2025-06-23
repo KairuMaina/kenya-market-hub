@@ -213,24 +213,6 @@ const Index = () => {
     }
   ];
 
-  const features = [
-    {
-      icon: Zap,
-      title: 'Lightning Fast',
-      description: 'Quick and responsive platform for all your needs'
-    },
-    {
-      icon: Users,
-      title: 'Trusted Community',
-      description: 'Join thousands of verified users across Kenya'
-    },
-    {
-      icon: Heart,
-      title: 'Local First',
-      description: 'Supporting local businesses and communities'
-    }
-  ];
-
   if (statsLoading) {
     return (
       <FrontendLayout>
@@ -347,7 +329,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {miniApps.map((app) => (
               <Card 
                 key={app.id} 
@@ -391,61 +373,6 @@ const Index = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-
-          {/* Features Section */}
-          <div className="bg-gray-50 rounded-3xl p-8 mb-16">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                Why Choose Soko Smart?
-              </h3>
-              <p className="text-lg text-gray-600">
-                Built for Kenya, by Kenyans
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="h-8 w-8 text-orange-600" />
-                  </div>
-                  <h4 className="text-xl font-semibold mb-2">{feature.title}</h4>
-                  <p className="text-gray-600">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Call to Action */}
-          <div className="text-center">
-            <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-none">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">
-                  Ready to Get Started?
-                </h3>
-                <p className="text-lg text-orange-100 mb-6">
-                  Join thousands of Kenyans who trust Soko Smart for their daily needs
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    size="lg"
-                    onClick={() => navigate('/auth')}
-                    className="bg-white text-orange-600 hover:bg-orange-50"
-                  >
-                    Sign Up Free
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => navigate('/service-hub')}
-                    className="border-white text-white hover:bg-white hover:text-orange-600"
-                  >
-                    Become a Partner
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
