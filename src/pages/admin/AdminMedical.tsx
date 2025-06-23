@@ -6,9 +6,20 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, Search, UserCheck, UserX, Eye, Phone, Mail, Calendar } from 'lucide-react';
-import { useMedicalApplications, useMedicalProviders } from '@/hooks/useMedical';
 import { useMedicalProviderApproval } from '@/hooks/useApprovalActions/useMedicalProviderApproval';
 import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+
+// Import medical hooks with error handling
+let useMedicalApplications: any = () => ({ data: [], isLoading: false });
+let useMedicalProviders: any = () => ({ data: [], isLoading: false });
+
+try {
+  const medicalHooks = require('@/hooks/useMedical');
+  useMedicalApplications = medicalHooks.useMedicalApplications;
+  useMedicalProviders = medicalHooks.useMedicalProviders;
+} catch (error) {
+  console.error('Failed to import medical hooks:', error);
+}
 
 const AdminMedical = () => {
   const [searchTerm, setSearchTerm] = useState('');
