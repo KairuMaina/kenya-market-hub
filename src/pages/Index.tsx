@@ -15,16 +15,13 @@ import {
   Briefcase, 
   MessageCircle,
   ArrowRight,
-  Star,
-  Users,
-  Zap,
-  Heart,
   ChevronLeft,
   ChevronRight,
   Play,
   Pause
 } from 'lucide-react';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
+import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useHomeStats } from '@/hooks/useHomeStats';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -227,7 +224,7 @@ const Index = () => {
     <FrontendLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Hero Section with Slideshow */}
-        <div className="relative h-[80vh] min-h-[600px] overflow-hidden">
+        <div className="relative h-[80vh] min-h-[600px] overflow-hidden rounded-b-2xl">
           {/* Background Image with Overlay */}
           <div 
             className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out"
@@ -265,7 +262,7 @@ const Index = () => {
             <div className="text-center text-white max-w-4xl mx-auto">
               {/* Brand Name */}
               <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-                Soko Smart
+                Sokko Smart
               </h1>
 
               {/* Slide Content */}
@@ -284,16 +281,16 @@ const Index = () => {
                   <Button
                     size="lg"
                     onClick={currentSlideData.ctaAction}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 text-base shadow-lg"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                   >
                     {currentSlideData.cta}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
                     onClick={() => navigate('/service-hub')}
-                    className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-6 py-3 text-base backdrop-blur-sm bg-white/10"
+                    className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-8 py-4 text-lg rounded-xl backdrop-blur-sm bg-white/10"
                   >
                     Become a Partner
                   </Button>
@@ -329,34 +326,34 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {miniApps.map((app) => (
               <Card 
                 key={app.id} 
-                className="group hover:shadow-lg transition-all duration-300 border hover:border-orange-200 cursor-pointer"
+                className="group hover:shadow-xl transition-all duration-300 border hover:border-orange-200 cursor-pointer rounded-2xl overflow-hidden transform hover:scale-105"
                 onClick={() => navigate(app.route)}
               >
                 <div className="relative overflow-hidden">
                   <div 
-                    className="h-28 bg-cover bg-center"
+                    className="h-32 bg-cover bg-center"
                     style={{ 
                       backgroundImage: `url(https://images.unsplash.com/${app.image})`,
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-2 right-2">
-                    <Badge className="bg-white/90 text-gray-800 text-xs">
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-white/90 text-gray-800 text-xs rounded-lg">
                       {app.stats}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-2 left-2">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${app.color} text-white`}>
+                  <div className="absolute bottom-3 left-3">
+                    <div className={`p-2 rounded-xl bg-gradient-to-r ${app.color} text-white`}>
                       <app.icon className="h-5 w-5" />
                     </div>
                   </div>
                 </div>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base group-hover:text-orange-600 transition-colors">
+                  <CardTitle className="text-lg group-hover:text-orange-600 transition-colors">
                     {app.title}
                   </CardTitle>
                   <CardDescription className="text-sm">
@@ -365,10 +362,10 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white text-sm`}
+                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white text-sm rounded-xl`}
                   >
                     Explore
-                    <ArrowRight className="ml-2 h-3 w-3" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardContent>
               </Card>
@@ -376,6 +373,8 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </FrontendLayout>
   );
 };

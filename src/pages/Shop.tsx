@@ -3,8 +3,23 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Star, Plus, Minus, Eye } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  Star, 
+  Plus, 
+  Minus, 
+  Eye,
+  Filter,
+  ChevronDown
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
+import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
@@ -122,7 +137,6 @@ const Shop = () => {
       description: `${quantity} x ${product.name} added to your cart`,
     });
 
-    // Reset quantity after adding to cart
     setQuantities(prev => ({
       ...prev,
       [product.id]: 1
@@ -138,7 +152,7 @@ const Shop = () => {
     <FrontendLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-12">
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-12 rounded-b-2xl mb-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <div className="mb-4">
               <ShoppingBag className="h-10 w-10 mx-auto mb-3 text-white" />
@@ -150,18 +164,49 @@ const Shop = () => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Categories */}
+        <div className="max-w-6xl mx-auto px-4 pb-8">
+          {/* Categories - Mobile Dropdown, Desktop Pills */}
           <div className="mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">Shop by Category</h2>
-            <div className="flex flex-wrap gap-2">
+            
+            {/* Mobile Dropdown */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between rounded-xl border-gray-300 hover:border-orange-300"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      {selectedCategory}
+                    </div>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-full bg-white border shadow-lg rounded-xl">
+                  {categories.map((category) => (
+                    <DropdownMenuItem
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className="hover:bg-orange-50 hover:text-orange-700 cursor-pointer"
+                    >
+                      {category}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Desktop Pills */}
+            <div className="hidden md:flex flex-wrap gap-2">
               {categories.map((category) => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
-                  className={`text-sm h-8 ${
+                  className={`text-sm h-10 rounded-xl ${
                     selectedCategory === category 
                       ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0' 
                       : 'border-gray-300 text-gray-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300'
@@ -174,40 +219,40 @@ const Shop = () => {
           </div>
 
           {/* Products Header */}
-          <div className="flex justify-between items-center mb-5">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">
               {selectedCategory} ({filteredProducts.length} products)
             </h2>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="hover:shadow-lg transition-all duration-300 border hover:border-orange-200">
+              <Card key={product.id} className="hover:shadow-xl transition-all duration-300 border hover:border-orange-200 rounded-2xl overflow-hidden transform hover:scale-105">
                 <div className="relative overflow-hidden">
                   <div 
-                    className="h-36 bg-cover bg-center cursor-pointer"
+                    className="h-48 bg-cover bg-center cursor-pointer"
                     style={{ 
                       backgroundImage: `url(https://images.unsplash.com/${product.image}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80)`,
                     }}
                     onClick={() => handleViewProduct(product)}
                   />
-                  <Badge className="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
+                  <Badge className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-lg">
                     New
                   </Badge>
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="absolute top-2 left-2 h-7 w-7 p-0 bg-white/90 hover:bg-white"
+                    className="absolute top-3 left-3 h-8 w-8 p-0 bg-white/90 hover:bg-white rounded-lg"
                     onClick={() => handleViewProduct(product)}
                   >
-                    <Eye className="h-3 w-3" />
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </div>
                 
-                <CardHeader className="pb-2 px-3 pt-3">
+                <CardHeader className="pb-3 px-4 pt-4">
                   <CardTitle 
-                    className="text-sm line-clamp-2 cursor-pointer hover:text-orange-600 transition-colors"
+                    className="text-base line-clamp-2 cursor-pointer hover:text-orange-600 transition-colors"
                     onClick={() => handleViewProduct(product)}
                   >
                     {product.name}
@@ -229,31 +274,31 @@ const Shop = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="px-3 pb-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-base font-bold text-gray-900">
+                <CardContent className="px-4 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-lg font-bold text-gray-900">
                       KSH {product.price.toLocaleString()}
                     </span>
                   </div>
                   
                   {/* Quantity Controls */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center border rounded-md">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center border rounded-xl overflow-hidden">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 hover:bg-gray-100"
+                        className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
                         onClick={() => handleQuantityChange(product.id, -1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="px-2 text-sm font-medium">
+                      <span className="px-3 text-sm font-medium min-w-[40px] text-center">
                         {quantities[product.id] || 1}
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 hover:bg-gray-100"
+                        className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
                         onClick={() => handleQuantityChange(product.id, 1)}
                       >
                         <Plus className="h-3 w-3" />
@@ -263,7 +308,7 @@ const Shop = () => {
 
                   <Button 
                     size="sm" 
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xs h-8"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm h-10 rounded-xl"
                     onClick={() => handleAddToCart(product)}
                   >
                     Add to Cart
@@ -277,7 +322,7 @@ const Shop = () => {
           <div className="text-center mt-8">
             <Button 
               onClick={() => navigate('/products')}
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-xl"
             >
               View All Products
             </Button>
@@ -291,6 +336,8 @@ const Shop = () => {
           product={selectedProduct}
         />
       </div>
+      
+      <Footer />
     </FrontendLayout>
   );
 };

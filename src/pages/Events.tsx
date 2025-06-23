@@ -2,6 +2,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
+import Footer from '@/components/Footer';
 import EventSystem from '@/components/events/EventSystem';
 
 const Events: React.FC = () => {
@@ -9,7 +10,7 @@ const Events: React.FC = () => {
     <FrontendLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-16">
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-16 rounded-b-2xl mb-8">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <Calendar className="h-16 w-16 mx-auto mb-4" />
@@ -21,10 +22,12 @@ const Events: React.FC = () => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 pb-8">
           <EventSystem />
         </div>
       </div>
+      
+      <Footer />
     </FrontendLayout>
   );
 };
