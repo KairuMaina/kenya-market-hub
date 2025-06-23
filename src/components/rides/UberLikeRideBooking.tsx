@@ -58,6 +58,14 @@ const UberLikeRideBooking = () => {
     try {
       // Simulate geocoding for demo (in real app, use Google Maps API)
       const pickupCoords = { lat: -1.2921, lng: 36.8219 }; // Nairobi coords as default
+      const destinationCoords = { lat: -1.3021, lng: 36.8319 }; // Slightly different coords for destination
+      
+      // Update booking data with coordinates
+      setBookingData(prev => ({
+        ...prev,
+        pickup_location: pickupCoords,
+        destination_location: destinationCoords
+      }));
       
       const { data: drivers, error } = await supabase.rpc('find_nearby_drivers', {
         pickup_lat: pickupCoords.lat,
@@ -68,7 +76,14 @@ const UberLikeRideBooking = () => {
 
       if (error) throw error;
 
-      setAvailableDrivers(drivers || []);
+      // Transform the response to match our Driver interface
+      const transformedDrivers: Driver[] = drivers?.map((driver: any) => ({
+        id: driver.driver_id,
+        distance_km: driver.distance_km,
+        estimated_pickup_minutes: driver.estimated_pickup_minutes
+      })) || [];
+
+      setAvailableDrivers(transformedDrivers);
       
       // Calculate estimated fare based on distance
       const baseFare = bookingData.vehicle_type === 'taxi' ? 200 : 150;
@@ -97,6 +112,15 @@ const UberLikeRideBooking = () => {
       return;
     }
 
+    if (!bookingData.pickup_location || !bookingData.destination_location) {
+      toast({
+        title: 'Error',
+        description: 'Location data is missing. Please search for drivers again.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsBooking(true);
     try {
       const { data: ride, error } = await supabase
@@ -105,6 +129,8 @@ const UberLikeRideBooking = () => {
           user_id: user?.id,
           pickup_address: bookingData.pickup_address,
           destination_address: bookingData.destination_address,
+          pickup_location: `POINT(${bookingData.pickup_location.lng} ${bookingData.pickup_location.lat})`,
+          destination_location: `POINT(${bookingData.destination_location.lng} ${bookingData.destination_location.lat})`,
           vehicle_type: bookingData.vehicle_type,
           estimated_fare: estimatedFare,
           status: 'requested'
