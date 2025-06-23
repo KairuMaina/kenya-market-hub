@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,12 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 const Index = () => {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useHomeStats();
+
+  const brandImages = [
+    '/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png',
+    '/lovable-uploads/6aa2ba30-ca09-474b-a8ed-8c5162002f95.png',
+    '/lovable-uploads/14140c8d-7f46-44aa-951e-b7981b0a39b5.png'
+  ];
 
   const miniApps = [
     {
@@ -182,6 +187,22 @@ const Index = () => {
             <p className="text-xl md:text-2xl text-orange-100 mb-8 max-w-3xl mx-auto">
               Kenya's Complete Digital Marketplace - Everything you need in one place
             </p>
+            
+            {/* Brand Slideshow */}
+            <div className="mb-8">
+              <div className="flex justify-center items-center space-x-8 animate-pulse">
+                {brandImages.map((image, index) => (
+                  <div key={index} className="w-16 h-16 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <img 
+                      alt={`Brand ${index + 1}`} 
+                      src={image} 
+                      className="w-12 h-12 object-contain opacity-80 hover:opacity-100 transition-opacity" 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"

@@ -14,16 +14,21 @@ import {
   TrendingUp,
   Award,
   Shield,
-  Zap
+  Zap,
+  Plus,
+  Minus
 } from 'lucide-react';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
 import { useProducts } from '@/hooks/useProducts';
-import OptimizedProductCard from '@/components/OptimizedProductCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Shop: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const { addToCart, items, updateQuantity } = useCart();
+  const { toast } = useToast();
   
   const { data: products, isLoading } = useProducts({
     searchQuery: searchTerm,
@@ -59,6 +64,33 @@ const Shop: React.FC = () => {
       description: 'Only verified vendors'
     }
   ];
+
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image_url || '/placeholder-product.jpg',
+      vendor: product.vendor || 'Unknown Vendor'
+    });
+    toast({
+      title: 'Added to cart',
+      description: `${product.name} has been added to your cart.`
+    });
+  };
+
+  const getCartQuantity = (productId: string) => {
+    const item = items.find(item => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      updateQuantity(productId, 0);
+    } else {
+      updateQuantity(productId, newQuantity);
+    }
+  };
 
   return (
     <FrontendLayout>
@@ -146,9 +178,92 @@ const Shop: React.FC = () => {
               </div>
             ) : products && products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <OptimizedProductCard key={product.id} product={product} />
-                ))}
+                {products.map((product) => {
+                  const cartQuantity = getCartQuantity(product.id);
+                  
+                  return (
+                    <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative">
+                        <img 
+                          src={product.image_url || '/placeholder-product.jpg'} 
+                          alt={product.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        >
+                          <Heart className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm text-gray-600 ml-1">
+                              {product.rating || 0} ({product.reviews_count || 0})
+                            </span>
+                          </div>
+                          {product.in_stock && (
+                            <Badge variant="secondary" className="text-green-600">
+                              In Stock
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <span className="text-2xl font-bold text-gray-900">
+                              KSh {Number(product.price).toLocaleString()}
+                            </span>
+                            {product.original_price && (
+                              <span className="text-sm text-gray-500 line-through ml-2">
+                                KSh {Number(product.original_price).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {cartQuantity > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleQuantityChange(product.id, cartQuantity - 1)}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="font-medium w-8 text-center">{cartQuantity}</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleQuantityChange(product.id, cartQuantity + 1)}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <span className="text-sm text-green-600 font-medium">In Cart</span>
+                            </div>
+                          ) : (
+                            <Button 
+                              className="w-full bg-blue-600 hover:bg-blue-700"
+                              onClick={() => handleAddToCart(product)}
+                              disabled={!product.in_stock}
+                            >
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              Add to Cart
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
