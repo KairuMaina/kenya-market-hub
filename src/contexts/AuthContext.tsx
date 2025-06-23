@@ -4,19 +4,6 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Immediate React validation
-if (!React) {
-  console.error('❌ React is null in AuthContext');
-  throw new Error('React module is not available in AuthContext');
-}
-
-if (typeof React.useState !== 'function') {
-  console.error('❌ React.useState is not available in AuthContext');
-  throw new Error('React useState hook is not available');
-}
-
-console.log('✅ React validation passed in AuthContext');
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -30,8 +17,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  console.log('🔄 AuthProvider rendering, React:', !!React, 'useState:', typeof React.useState);
-  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,8 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('🔄 AuthProvider useEffect starting');
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -76,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      console.log('🔄 AuthProvider cleanup');
       subscription.unsubscribe();
     };
   }, []);

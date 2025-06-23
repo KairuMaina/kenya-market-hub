@@ -1,2 +1,4 @@
 
-export { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+
+export { useAuth };
