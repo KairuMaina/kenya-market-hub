@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAdminVendors, useApproveVendorApplication, useRejectVendorApplication, useUpdateVendorStatus } from '@/hooks/useAdminVendors';
+import { useAdminVendors, useUpdateVendorStatus } from '@/hooks/useAdminVendors';
+import { useVendorApproval } from '@/hooks/useApprovalActions/useVendorApproval';
 import { Check, X, Search, Store, Users, Clock, CheckCircle } from 'lucide-react';
 import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
 
@@ -14,13 +14,12 @@ const AdminVendors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   
   const { data: vendorsData, isLoading, error } = useAdminVendors();
-  const approveVendorApplication = useApproveVendorApplication();
-  const rejectVendorApplication = useRejectVendorApplication();
+  const { approveApplication, rejectApplication } = useVendorApproval();
   const updateVendorStatus = useUpdateVendorStatus();
 
   const handleApprove = async (vendorId: string) => {
     try {
-      await approveVendorApplication.mutateAsync(vendorId);
+      await updateVendorStatus.mutateAsync({ vendorId, status: 'approved' });
     } catch (error) {
       console.error('Error approving vendor:', error);
     }
@@ -28,7 +27,7 @@ const AdminVendors = () => {
 
   const handleReject = async (vendorId: string) => {
     try {
-      await rejectVendorApplication.mutateAsync(vendorId);
+      await updateVendorStatus.mutateAsync({ vendorId, status: 'rejected' });
     } catch (error) {
       console.error('Error rejecting vendor:', error);
     }
@@ -208,7 +207,7 @@ const AdminVendors = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleApprove(vendor.id)}
-                                disabled={approveVendorApplication.isPending}
+                                disabled={updateVendorStatus.isPending}
                                 className="text-green-600 hover:text-green-700 hover:bg-green-50 transition-all duration-200"
                               >
                                 <Check className="h-4 w-4" />
@@ -217,7 +216,7 @@ const AdminVendors = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleReject(vendor.id)}
-                                disabled={rejectVendorApplication.isPending}
+                                disabled={updateVendorStatus.isPending}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"
                               >
                                 <X className="h-4 w-4" />
