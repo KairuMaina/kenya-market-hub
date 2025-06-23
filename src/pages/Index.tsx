@@ -110,12 +110,6 @@ const Index = () => {
 
   const currentSlideData = heroSlides[currentSlide];
 
-  const brandImages = [
-    '/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png',
-    '/lovable-uploads/6aa2ba30-ca09-474b-a8ed-8c5162002f95.png',
-    '/lovable-uploads/14140c8d-7f46-44aa-951e-b7981b0a39b5.png'
-  ];
-
   const miniApps = [
     {
       id: 'ecommerce',
@@ -350,21 +344,6 @@ const Index = () => {
                 }`}
               />
             ))}
-          </div>
-
-          {/* Brand Carousel */}
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-            <div className="flex justify-center items-center space-x-8">
-              {brandImages.map((image, index) => (
-                <div key={index} className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <img 
-                    alt={`Brand ${index + 1}`} 
-                    src={image} 
-                    className="w-8 h-8 object-contain opacity-80 hover:opacity-100 transition-opacity" 
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
