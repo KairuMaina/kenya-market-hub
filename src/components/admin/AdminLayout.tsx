@@ -28,7 +28,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-                  <p className="text-sm text-gray-600">Soko Smart Management</p>
+                  <p className="text-sm text-gray-600">Sokko Sasa Management</p>
                 </div>
               </div>
             </div>
