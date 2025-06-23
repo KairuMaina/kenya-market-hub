@@ -17,16 +17,20 @@ import { useNavigate } from 'react-router-dom';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
 import ServiceProviderCard from '@/components/ServiceProviderCard';
 
-// Import medical hooks with error handling
+// Import medical hooks with proper ES6 imports instead of require
 let useMedicalApplicationStatus: any = () => ({ data: null });
 let useMyMedicalProviderProfile: any = () => ({ data: null });
 
 try {
-  const medicalHooks = require('@/hooks/useMedical');
-  useMedicalApplicationStatus = medicalHooks.useMedicalApplicationStatus;
-  useMyMedicalProviderProfile = medicalHooks.useMyMedicalProviderProfile;
+  // Use dynamic imports instead of require for better compatibility
+  import('@/hooks/useMedical').then((medicalHooks) => {
+    useMedicalApplicationStatus = medicalHooks.useMedicalApplicationStatus;
+    useMyMedicalProviderProfile = medicalHooks.useMyMedicalProviderProfile;
+  }).catch(() => {
+    console.log('Medical hooks not available');
+  });
 } catch (error) {
-  console.error('Failed to import medical hooks:', error);
+  console.log('Medical hooks import failed:', error);
 }
 
 const ServiceProviderHub = () => {

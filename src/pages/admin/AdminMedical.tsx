@@ -1,169 +1,177 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { AlertCircle, Search, UserCheck } from 'lucide-react';
-import { useMedicalProviderApproval } from '@/hooks/useApprovalActions/useMedicalProviderApproval';
-import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertCircle, UserCheck, Clock, Users, Stethoscope } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import MedicalApplicationsList from '@/components/admin/MedicalApplicationsList';
 import VerifiedProvidersList from '@/components/admin/VerifiedProvidersList';
-import ApplicationReviewModal from '@/components/admin/ApplicationReviewModal';
 
-// Import medical hooks with error handling
+// Import medical hooks with proper ES6 imports
 let useMedicalApplications: any = () => ({ data: [], isLoading: false });
 let useMedicalProviders: any = () => ({ data: [], isLoading: false });
+let useApproveMedicalApplication: any = () => ({ mutate: () => {}, isLoading: false });
+let useRejectMedicalApplication: any = () => ({ mutate: () => {}, isLoading: false });
 
 try {
-  const medicalHooks = require('@/hooks/useMedical');
-  useMedicalApplications = medicalHooks.useMedicalApplications;
-  useMedicalProviders = medicalHooks.useMedicalProviders;
+  // Use dynamic imports for better compatibility
+  import('@/hooks/useMedical').then((medicalHooks) => {
+    useMedicalApplications = medicalHooks.useMedicalApplications;
+    useMedicalProviders = medicalHooks.useMedicalProviders;
+    useApproveMedicalApplication = medicalHooks.useApproveMedicalApplication;
+    useRejectMedicalApplication = medicalHooks.useRejectMedicalApplication;
+  }).catch(() => {
+    console.log('Medical hooks not available');
+  });
 } catch (error) {
-  console.error('Failed to import medical hooks:', error);
+  console.log('Medical hooks import failed:', error);
 }
 
 const AdminMedical = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedApplication, setSelectedApplication] = useState<any>(null);
-  const [rejectionNotes, setRejectionNotes] = useState('');
-
+  const { toast } = useToast();
+  
+  // Get medical data using hooks with fallbacks
   const { data: applications = [], isLoading: applicationsLoading } = useMedicalApplications();
   const { data: providers = [], isLoading: providersLoading } = useMedicalProviders();
-  const { approveApplication, rejectApplication } = useMedicalProviderApproval();
+  const { mutate: approveApplication, isLoading: isApproving } = useApproveMedicalApplication();
+  const { mutate: rejectApplication, isLoading: isRejecting } = useRejectMedicalApplication();
 
-  const handleApprove = async (applicationId: string) => {
-    try {
-      await approveApplication.mutateAsync(applicationId);
-      setSelectedApplication(null);
-    } catch (error) {
-      console.error('Error approving application:', error);
-    }
+  // Filter applications and providers
+  const pendingApplications = applications.filter((app: any) => app.status === 'pending');
+  const verifiedProviders = providers.filter((provider: any) => provider.is_verified && provider.is_active);
+
+  const handleApprove = (applicationId: string) => {
+    approveApplication(applicationId, {
+      onSuccess: () => {
+        toast({
+          title: "Application Approved",
+          description: "Medical provider has been approved successfully.",
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Approval Failed",
+          description: error.message || "Failed to approve application",
+          variant: "destructive"
+        });
+      }
+    });
   };
 
-  const handleReject = async (applicationId: string, adminNotes?: string) => {
-    try {
-      await rejectApplication.mutateAsync({
-        applicationId,
-        adminNotes: adminNotes || rejectionNotes
-      });
-      setSelectedApplication(null);
-      setRejectionNotes('');
-    } catch (error) {
-      console.error('Error rejecting application:', error);
-    }
+  const handleReject = (applicationId: string, notes: string) => {
+    rejectApplication({ applicationId, notes }, {
+      onSuccess: () => {
+        toast({
+          title: "Application Rejected",
+          description: "Medical provider application has been rejected.",
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Rejection Failed",
+          description: error.message || "Failed to reject application",
+          variant: "destructive"
+        });
+      }
+    });
   };
-
-  const filteredApplications = applications.filter((app: any) =>
-    app.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.provider_type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredProviders = providers.filter((provider: any) =>
-    provider.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.provider_type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (applicationsLoading || providersLoading) {
-    return (
-      <ModernAdminLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading medical data...</p>
-          </div>
-        </div>
-      </ModernAdminLayout>
-    );
-  }
 
   return (
-    <ModernAdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Medical Providers</h1>
-            <p className="text-gray-600">Manage medical provider applications and profiles</p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search providers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full lg:w-64"
-              />
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Medical Providers</h1>
+          <p className="text-gray-600 mt-1">Manage medical provider applications and verified professionals</p>
         </div>
-
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Applications</p>
-                  <p className="text-2xl font-bold text-orange-600">{applications.length}</p>
-                </div>
-                <AlertCircle className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Verified Providers</p>
-                  <p className="text-2xl font-bold text-green-600">{providers.filter((p: any) => p.is_verified).length}</p>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Providers</p>
-                  <p className="text-2xl font-bold text-orange-600">{providers.filter((p: any) => p.is_active).length}</p>
-                </div>
-                <UserCheck className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Applications List */}
-        <MedicalApplicationsList
-          applications={filteredApplications}
-          onReview={setSelectedApplication}
-          onApprove={handleApprove}
-          onReject={setSelectedApplication}
-          isApproving={approveApplication.isPending}
-        />
-
-        {/* Verified Providers */}
-        <VerifiedProvidersList providers={filteredProviders} />
-
-        {/* Application Review Modal */}
-        <ApplicationReviewModal
-          application={selectedApplication}
-          onClose={() => {
-            setSelectedApplication(null);
-            setRejectionNotes('');
-          }}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          isApproving={approveApplication.isPending}
-          isRejecting={rejectApplication.isPending}
-        />
       </div>
-    </ModernAdminLayout>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">Pending Applications</CardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingApplications.length}</div>
+            <Badge variant="outline" className="mt-2 text-orange-600 border-orange-200">
+              Awaiting Review
+            </Badge>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">Verified Providers</CardTitle>
+            <UserCheck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{verifiedProviders.length}</div>
+            <Badge className="mt-2 bg-green-100 text-green-800 border-green-200">
+              Active & Verified
+            </Badge>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+            <Users className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{applications.length}</div>
+            <Badge variant="secondary" className="mt-2 bg-orange-50 text-orange-700 border-orange-200">
+              All Time
+            </Badge>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">All Providers</CardTitle>
+            <Stethoscope className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{providers.length}</div>
+            <Badge variant="outline" className="mt-2 text-gray-600 border-gray-300">
+              Total Registered
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs for Applications and Providers */}
+      <Tabs defaultValue="applications" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="applications" className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Pending Applications ({pendingApplications.length})
+          </TabsTrigger>
+          <TabsTrigger value="providers" className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            Verified Providers ({verifiedProviders.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="applications" className="mt-6">
+          <MedicalApplicationsList
+            applications={pendingApplications}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            isApproving={isApproving}
+            isRejecting={isRejecting}
+            isLoading={applicationsLoading}
+          />
+        </TabsContent>
+
+        <TabsContent value="providers" className="mt-6">
+          <VerifiedProvidersList providers={verifiedProviders} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
