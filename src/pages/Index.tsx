@@ -281,17 +281,6 @@ const Index = () => {
           {/* Hero Content */}
           <div className="relative z-10 flex items-center justify-center h-full px-4">
             <div className="text-center text-white max-w-4xl mx-auto">
-              {/* Logo */}
-              <div className="flex items-center justify-center mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <img 
-                    alt="Soko Smart Logo" 
-                    src="/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png" 
-                    className="w-16 h-16 object-contain" 
-                  />
-                </div>
-              </div>
-
               {/* Brand Name */}
               <h1 className="text-5xl md:text-7xl font-bold mb-4 animate-fade-in">
                 Soko Smart
