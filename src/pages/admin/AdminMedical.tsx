@@ -1,24 +1,19 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, UserCheck, Clock, Users, Stethoscope } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import MedicalApplicationsList from '@/components/admin/MedicalApplicationsList';
 import VerifiedProvidersList from '@/components/admin/VerifiedProvidersList';
 import { 
   useMedicalApplications, 
   useMedicalProviders, 
   useApproveMedicalApplication, 
-  useRejectMedicalApplication,
-  type MedicalApplication 
+  useRejectMedicalApplication 
 } from '@/hooks/useMedical';
 
 const AdminMedical = () => {
-  const { toast } = useToast();
-  
   // Get medical data using hooks
   const { data: applications = [], isLoading: applicationsLoading } = useMedicalApplications();
   const { data: providers = [], isLoading: providersLoading } = useMedicalProviders();
@@ -26,14 +21,14 @@ const AdminMedical = () => {
   const { mutate: rejectApplication, isPending: isRejecting } = useRejectMedicalApplication();
 
   // Filter applications and providers
-  const pendingApplications = applications.filter((app: any) => app.status === 'pending');
-  const verifiedProviders = providers.filter((provider: any) => provider.is_verified && provider.is_active);
+  const pendingApplications = applications.filter((app) => app.status === 'pending');
+  const verifiedProviders = providers.filter((provider) => provider.is_verified && provider.is_active);
 
-  const handleApprove = (application: MedicalApplication) => {
-    approveApplication(application.id);
+  const handleApprove = (applicationId: string) => {
+    approveApplication(applicationId);
   };
 
-  const handleReject = (application: MedicalApplication) => {
+  const handleReject = (application: any) => {
     const notes = prompt('Please provide a reason for rejection:');
     if (notes) {
       rejectApplication({ applicationId: application.id, notes });
