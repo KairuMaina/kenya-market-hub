@@ -1,11 +1,10 @@
-import * as React from 'react';
+
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
-import { validateReactModule } from '@/utils/reactValidation';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import EmailConfirmation from '@/pages/EmailConfirmation';
@@ -46,16 +45,6 @@ import AdvancedSitemapGenerator from '@/components/seo/AdvancedSitemapGenerator'
 import PerformanceOptimizer from '@/components/seo/PerformanceOptimizer';
 
 function App() {
-  // Validate React before doing anything else
-  React.useEffect(() => {
-    try {
-      validateReactModule();
-      console.log('App initialized successfully with React validation');
-    } catch (error) {
-      console.error('React validation failed:', error);
-    }
-  }, []);
-
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -64,50 +53,6 @@ function App() {
       },
     },
   });
-
-  // Add global structured data for the organization
-  React.useEffect(() => {
-    const organizationData = {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Soko Smart",
-      "url": window.location.origin,
-      "logo": `${window.location.origin}/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png`,
-      "description": "Kenya's premier marketplace for products, real estate, rides, services and jobs",
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "KE",
-        "addressRegion": "Nairobi",
-        "addressLocality": "Nairobi"
-      },
-      "areaServed": {
-        "@type": "Country",
-        "name": "Kenya"
-      },
-      "sameAs": [
-        "https://facebook.com/sokosmart",
-        "https://twitter.com/sokosmart",
-        "https://instagram.com/sokosmart"
-      ],
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": `${window.location.origin}/search?q={search_term_string}`,
-        "query-input": "required name=search_term_string"
-      }
-    };
-
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.id = 'organization-schema';
-    script.textContent = JSON.stringify(organizationData);
-    
-    const existing = document.getElementById('organization-schema');
-    if (existing) {
-      existing.remove();
-    }
-    
-    document.head.appendChild(script);
-  }, []);
 
   return (
     <ErrorBoundary>
