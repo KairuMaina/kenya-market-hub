@@ -15,7 +15,7 @@ export interface MedicalProvider {
   rating: number;
   created_at: string;
   updated_at: string;
-  specialization?: string; // Add this for compatibility
+  specialization?: string;
 }
 
 export interface MedicalApplication {
