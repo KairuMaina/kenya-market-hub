@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, DollarSign, Ticket, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Event {
   id: string;
@@ -25,15 +26,11 @@ interface Event {
   category: string;
 }
 
-interface TicketPurchase {
-  event_id: string;
-  quantity: number;
-  total_amount: number;
-}
-
 const EventSystem = () => {
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -81,7 +78,7 @@ const EventSystem = () => {
       max_attendees: 200,
       current_attendees: 89,
       organizer_name: 'Startup Hub',
-      organizer_verified: false, // Unverified organizer - should show warning
+      organizer_verified: false,
       category: 'Business'
     }
   ];
@@ -93,6 +90,7 @@ const EventSystem = () => {
         description: 'Please sign in to purchase tickets',
         variant: 'destructive'
       });
+      navigate('/auth');
       return;
     }
 
@@ -116,68 +114,32 @@ const EventSystem = () => {
 
     setIsPurchasing(true);
     try {
-      const totalAmount = event.price * ticketQuantity;
-
-      // Create order for ticket purchase
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: totalAmount,
-          status: 'pending',
-          payment_status: 'pending',
-          shipping_address: {
-            event_id: event.id,
-            event_title: event.title,
-            type: 'event_ticket'
-          }
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Add order items (tickets)
-      await supabase.from('order_items').insert({
-        order_id: order.id,
-        product_id: event.id, // Using event ID as product ID
-        quantity: ticketQuantity,
-        unit_price: event.price,
-        total_price: totalAmount
-      });
-
-      // In a real app, integrate with payment processor here
-      // For demo, we'll mark as completed
-      await supabase
-        .from('orders')
-        .update({ status: 'completed', payment_status: 'completed' })
-        .eq('id', order.id);
-
-      // Send confirmation notification
-      await supabase.from('notifications').insert({
-        user_id: user.id,
-        title: 'Ticket Purchase Confirmed',
-        message: `You have successfully purchased ${ticketQuantity} ticket(s) for ${event.title}`,
-        type: 'success',
-        metadata: {
-          event_id: event.id,
-          order_id: order.id,
-          tickets: ticketQuantity
-        }
-      });
+      // Add tickets to cart as products
+      for (let i = 0; i < ticketQuantity; i++) {
+        addToCart({
+          id: `event-${event.id}`,
+          name: `${event.title} - Event Ticket`,
+          price: event.price,
+          image: event.image_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+          vendor: event.organizer_name
+        });
+      }
 
       toast({
-        title: 'Tickets Purchased!',
-        description: `Successfully purchased ${ticketQuantity} ticket(s) for ${event.title}`,
+        title: 'Tickets Added to Cart!',
+        description: `${ticketQuantity} ticket(s) for ${event.title} added to cart`,
       });
 
       setSelectedEvent(null);
       setTicketQuantity(1);
 
+      // Navigate to checkout
+      navigate('/checkout');
+
     } catch (error) {
       toast({
         title: 'Purchase Failed',
-        description: 'Failed to purchase tickets. Please try again.',
+        description: 'Failed to add tickets to cart. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -203,7 +165,7 @@ const EventSystem = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {events.map((event) => (
-          <Card key={event.id} className="overflow-hidden">
+          <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border hover:border-orange-200">
             <div className="relative">
               {event.image_url ? (
                 <img
@@ -212,11 +174,11 @@ const EventSystem = () => {
                   className="w-full h-48 object-cover"
                 />
               ) : (
-                <div className="w-full h-48 bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                <div className="w-full h-48 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">
                   <Calendar className="h-12 w-12 text-white" />
                 </div>
               )}
-              <Badge className="absolute top-2 right-2 bg-purple-500">
+              <Badge className="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white">
                 {event.category}
               </Badge>
             </div>
@@ -240,19 +202,19 @@ const EventSystem = () => {
               
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-purple-500" />
+                  <Calendar className="h-4 w-4 text-orange-500" />
                   <span>{formatDate(event.date)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-purple-500" />
+                  <Clock className="h-4 w-4 text-orange-500" />
                   <span>{event.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-purple-500" />
+                  <MapPin className="h-4 w-4 text-orange-500" />
                   <span>{event.location}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-purple-500" />
+                  <Users className="h-4 w-4 text-orange-500" />
                   <span>{event.current_attendees}/{event.max_attendees} attending</span>
                 </div>
               </div>
@@ -267,7 +229,7 @@ const EventSystem = () => {
                 <Button
                   size="sm"
                   onClick={() => setSelectedEvent(event)}
-                  className="bg-purple-500 hover:bg-purple-600"
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                   disabled={!event.organizer_verified || event.current_attendees >= event.max_attendees}
                 >
                   <Ticket className="h-3 w-3 mr-1" />
@@ -333,9 +295,9 @@ const EventSystem = () => {
                 <Button
                   onClick={() => purchaseTickets(selectedEvent)}
                   disabled={isPurchasing}
-                  className="flex-1 bg-purple-500 hover:bg-purple-600"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                 >
-                  {isPurchasing ? 'Processing...' : 'Purchase'}
+                  {isPurchasing ? 'Processing...' : 'Add to Cart & Checkout'}
                 </Button>
               </div>
             </CardContent>
