@@ -70,7 +70,7 @@ const Shop: React.FC = () => {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image_url || '/placeholder-product.jpg',
+      image: product.image_url || '/placeholder.svg',
       vendor: product.vendor || 'Unknown Vendor'
     });
     toast({
@@ -185,7 +185,7 @@ const Shop: React.FC = () => {
                     <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="relative">
                         <img 
-                          src={product.image_url || '/placeholder-product.jpg'} 
+                          src={product.image_url || '/placeholder.svg'} 
                           alt={product.name}
                           className="w-full h-48 object-cover"
                         />
