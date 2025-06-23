@@ -77,8 +77,8 @@ export const useForumPosts = (categoryId?: string) => {
         .from('forum_posts')
         .select(`
           *,
-          author:profiles!forum_posts_author_id_fkey(full_name),
-          category:forum_categories!forum_posts_category_id_fkey(name)
+          author:profiles(full_name),
+          category:forum_categories(name)
         `)
         .order('created_at', { ascending: false });
       
@@ -89,7 +89,7 @@ export const useForumPosts = (categoryId?: string) => {
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as ForumPost[];
+      return data as any;
     }
   });
 };
@@ -159,7 +159,7 @@ export const useChatConversations = () => {
         unread_count: 0 // TODO: Implement unread count logic
       })) || [];
       
-      return transformedData as ChatConversation[];
+      return transformedData as any;
     },
     enabled: !!user
   });

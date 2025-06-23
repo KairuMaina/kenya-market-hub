@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Send, Search, MessageCircle } from 'lucide-react';
 import { useChatConversations, useChatMessages, useSendMessage } from '@/hooks/useChatForums';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 
 const ChatInterface = () => {
