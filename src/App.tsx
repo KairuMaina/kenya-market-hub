@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import Index from '@/pages/Index';
@@ -60,49 +59,47 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <TooltipProvider delayDuration={300}>
-              <Router>
-                <Toaster />
-                <SoundEffects />
-                <PerformanceMonitor />
-                <AdvancedSitemapGenerator />
-                <PerformanceOptimizer />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/email-confirmation" element={<EmailConfirmation />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product-search" element={<AdvancedProductSearch />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/shop/*" element={<Shop />} />
-                  <Route path="/rides/*" element={<Rides />} />
-                  <Route path="/services/*" element={<Services />} />
-                  <Route path="/service-provider-hub" element={<ServiceProviderHub />} />
-                  <Route path="/service-hub" element={<ServiceHubUnified />} />
-                  <Route path="/chat-forums" element={<ChatForums />} />
-                  <Route path="/services-app/*" element={<ServicesApp />} />
-                  <Route path="/real-estate/*" element={<RealEstate />} />
-                  <Route path="/property/:id" element={<PropertyDetail />} />
-                  <Route path="/property-owner/*" element={<PropertyOwnerApp />} />
-                  <Route path="/vendor/*" element={<VendorApp />} />
-                  <Route path="/vendor-dashboard" element={<VendorDashboard />} />
-                  <Route path="/admin/*" element={<AdminApp />} />
-                  <Route path="/driver/*" element={<DriverApp />} />
-                  <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
-                  <Route path="/medical" element={<MedicalPage />} />
-                  <Route path="/insurance" element={<Insurance />} />
-                  <Route path="/food" element={<FoodDelivery />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/jobs" element={<Jobs />} />
-                  <Route path="/jobs/:id" element={<JobDetail />} />
-                  <Route path="/city/:cityName" element={<CityLandingPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Router>
-            </TooltipProvider>
+            <Router>
+              <Toaster />
+              <SoundEffects />
+              <PerformanceMonitor />
+              <AdvancedSitemapGenerator />
+              <PerformanceOptimizer />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product-search" element={<AdvancedProductSearch />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/shop/*" element={<Shop />} />
+                <Route path="/rides/*" element={<Rides />} />
+                <Route path="/services/*" element={<Services />} />
+                <Route path="/service-provider-hub" element={<ServiceProviderHub />} />
+                <Route path="/service-hub" element={<ServiceHubUnified />} />
+                <Route path="/chat-forums" element={<ChatForums />} />
+                <Route path="/services-app/*" element={<ServicesApp />} />
+                <Route path="/real-estate/*" element={<RealEstate />} />
+                <Route path="/property/:id" element={<PropertyDetail />} />
+                <Route path="/property-owner/*" element={<PropertyOwnerApp />} />
+                <Route path="/vendor/*" element={<VendorApp />} />
+                <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+                <Route path="/admin/*" element={<AdminApp />} />
+                <Route path="/driver/*" element={<DriverApp />} />
+                <Route path="/service-provider-registration" element={<ServiceProviderRegistrationPage />} />
+                <Route path="/medical" element={<MedicalPage />} />
+                <Route path="/insurance" element={<Insurance />} />
+                <Route path="/food" element={<FoodDelivery />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/city/:cityName" element={<CityLandingPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
