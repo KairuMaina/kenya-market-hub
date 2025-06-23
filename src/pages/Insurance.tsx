@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { useInsurancePlans } from '@/modules/insurance/hooks/useInsurance';
 import { useInsuranceOperations } from '@/modules/insurance/hooks/useInsuranceOperations';
 import InsuranceCard from '@/modules/insurance/components/InsuranceCard';
 import { InsuranceFilters } from '@/modules/insurance/types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
 
 const Insurance: React.FC = () => {
