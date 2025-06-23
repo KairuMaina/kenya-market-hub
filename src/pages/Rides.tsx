@@ -2,21 +2,15 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEnhancedRides } from '@/hooks/useEnhancedRides';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import RidesHeader from '@/components/rides/RidesHeader';
-import RidesSearchSection from '@/components/rides/RidesSearchSection';
-import RideBookingTab from '@/components/rides/RideBookingTab';
+import UberLikeRideBooking from '@/components/rides/UberLikeRideBooking';
 import RideHistoryTab from '@/components/rides/RideHistoryTab';
 
 const Rides = () => {
   const { user, loading } = useAuth();
-  const { data: rides, isLoading } = useEnhancedRides();
-  const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [searchFilters, setSearchFilters] = useState({});
 
   if (loading) {
     return (
@@ -35,25 +29,10 @@ const Rides = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleAdvancedFiltersChange = (filters: any) => {
-    setSearchFilters(filters);
-    console.log('Applied ride filters:', filters);
-  };
-
-  const handleRideBooked = (rideId: string) => {
-    setSelectedRideId(rideId);
-  };
-
   return (
     <MainLayout>
       <div className="space-y-6 animate-fade-in">
         <RidesHeader />
-
-        <RidesSearchSection
-          showAdvancedSearch={showAdvancedSearch}
-          onToggleAdvancedSearch={() => setShowAdvancedSearch(!showAdvancedSearch)}
-          onFiltersChange={handleAdvancedFiltersChange}
-        />
 
         <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-0">
@@ -69,8 +48,13 @@ const Rides = () => {
                 </TabsList>
               </div>
 
-              <RideBookingTab onRideBooked={handleRideBooked} />
-              <RideHistoryTab />
+              <TabsContent value="book" className="p-6 pt-0">
+                <UberLikeRideBooking />
+              </TabsContent>
+
+              <TabsContent value="history" className="p-6 pt-0">
+                <RideHistoryTab />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
