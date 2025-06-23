@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -15,7 +14,6 @@ import AdvancedProductSearch from '@/pages/AdvancedProductSearch';
 import Cart from '@/pages/Cart';
 import Wishlist from '@/pages/Wishlist';
 import Checkout from '@/pages/Checkout';
-import Search from '@/pages/Search';
 import Shop from '@/pages/Shop';
 import Rides from '@/pages/Rides';
 import Services from '@/pages/Services';
@@ -115,7 +113,6 @@ function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/search" element={<Search />} />
                   <Route path="/shop/*" element={<Shop />} />
                   <Route path="/rides/*" element={<Rides />} />
                   <Route path="/services/*" element={<Services />} />
