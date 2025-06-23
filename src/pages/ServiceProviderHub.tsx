@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +22,23 @@ import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
 import { useMyVendorProfile } from '@/hooks/useVendors';
 import { useNavigate } from 'react-router-dom';
 import VendorApplicationModal from '@/components/VendorApplicationModal';
+
+console.log('🔄 ServiceProviderHub importing medical hooks...');
+
+try {
+  const { useMedicalApplicationStatus, useMyMedicalProviderProfile } = require('@/hooks/useMedical');
+  console.log('✅ Medical hooks imported successfully:', { useMedicalApplicationStatus, useMyMedicalProviderProfile });
+} catch (error) {
+  console.error('❌ Error importing medical hooks:', error);
+}
+
 import { useMedicalApplicationStatus, useMyMedicalProviderProfile } from '@/hooks/useMedical';
 
+console.log('✅ ServiceProviderHub imports complete');
+
 const ServiceProviderHub = () => {
+  console.log('🏠 ServiceProviderHub component rendering...');
+  
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
@@ -35,6 +50,15 @@ const ServiceProviderHub = () => {
   const { data: serviceProviderProfile } = useServiceProviderProfile('service_provider');
   const { data: medicalProviderProfile } = useMyMedicalProviderProfile();
   const { data: medicalApplication } = useMedicalApplicationStatus();
+
+  console.log('📊 ServiceProviderHub data:', {
+    vendorProfile,
+    driverProfile,
+    propertyOwnerProfile,
+    serviceProviderProfile,
+    medicalProviderProfile,
+    medicalApplication
+  });
 
   const medicalProfile = medicalProviderProfile
     ? { verification_status: 'approved' }

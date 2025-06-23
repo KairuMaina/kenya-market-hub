@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+console.log('🔄 useMedical.ts module loading...');
+
 export interface MedicalProvider {
   id: string;
   user_id?: string;
@@ -36,6 +38,7 @@ export interface MedicalApplication {
 }
 
 export const useMedicalProviders = () => {
+  console.log('🏥 useMedicalProviders hook called');
   return useQuery({
     queryKey: ['medical-providers'],
     queryFn: async () => {
@@ -52,6 +55,7 @@ export const useMedicalProviders = () => {
 };
 
 export const useMedicalApplications = () => {
+  console.log('📋 useMedicalApplications hook called');
   return useQuery({
     queryKey: ['medical-applications'],
     queryFn: async () => {
@@ -68,6 +72,7 @@ export const useMedicalApplications = () => {
 };
 
 export const useMedicalApplicationStatus = () => {
+  console.log('✅ useMedicalApplicationStatus hook called');
   return useQuery({
     queryKey: ['my-medical-application'],
     queryFn: async () => {
@@ -89,6 +94,7 @@ export const useMedicalApplicationStatus = () => {
 };
 
 export const useMyMedicalProviderProfile = () => {
+  console.log('👨‍⚕️ useMyMedicalProviderProfile hook called');
   return useQuery({
     queryKey: ['my-medical-profile'],
     queryFn: async () => {
@@ -108,6 +114,7 @@ export const useMyMedicalProviderProfile = () => {
 };
 
 export const useMedicalApplicationMutation = () => {
+  console.log('💾 useMedicalApplicationMutation hook called');
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -142,3 +149,5 @@ export const useMedicalApplicationMutation = () => {
     }
   });
 };
+
+console.log('✅ useMedical.ts module loaded successfully');
