@@ -8,74 +8,36 @@ import { AlertCircle, UserCheck, Clock, Users, Stethoscope } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import MedicalApplicationsList from '@/components/admin/MedicalApplicationsList';
 import VerifiedProvidersList from '@/components/admin/VerifiedProvidersList';
-
-// Import medical hooks with proper ES6 imports
-let useMedicalApplications: any = () => ({ data: [], isLoading: false });
-let useMedicalProviders: any = () => ({ data: [], isLoading: false });
-let useApproveMedicalApplication: any = () => ({ mutate: () => {}, isLoading: false });
-let useRejectMedicalApplication: any = () => ({ mutate: () => {}, isLoading: false });
-
-try {
-  // Use dynamic imports for better compatibility
-  import('@/hooks/useMedical').then((medicalHooks) => {
-    useMedicalApplications = medicalHooks.useMedicalApplications;
-    useMedicalProviders = medicalHooks.useMedicalProviders;
-    useApproveMedicalApplication = medicalHooks.useApproveMedicalApplication;
-    useRejectMedicalApplication = medicalHooks.useRejectMedicalApplication;
-  }).catch(() => {
-    console.log('Medical hooks not available');
-  });
-} catch (error) {
-  console.log('Medical hooks import failed:', error);
-}
+import { 
+  useMedicalApplications, 
+  useMedicalProviders, 
+  useApproveMedicalApplication, 
+  useRejectMedicalApplication,
+  type MedicalApplication 
+} from '@/hooks/useMedical';
 
 const AdminMedical = () => {
   const { toast } = useToast();
   
-  // Get medical data using hooks with fallbacks
+  // Get medical data using hooks
   const { data: applications = [], isLoading: applicationsLoading } = useMedicalApplications();
   const { data: providers = [], isLoading: providersLoading } = useMedicalProviders();
-  const { mutate: approveApplication, isLoading: isApproving } = useApproveMedicalApplication();
-  const { mutate: rejectApplication, isLoading: isRejecting } = useRejectMedicalApplication();
+  const { mutate: approveApplication, isPending: isApproving } = useApproveMedicalApplication();
+  const { mutate: rejectApplication, isPending: isRejecting } = useRejectMedicalApplication();
 
   // Filter applications and providers
   const pendingApplications = applications.filter((app: any) => app.status === 'pending');
   const verifiedProviders = providers.filter((provider: any) => provider.is_verified && provider.is_active);
 
-  const handleApprove = (applicationId: string) => {
-    approveApplication(applicationId, {
-      onSuccess: () => {
-        toast({
-          title: "Application Approved",
-          description: "Medical provider has been approved successfully.",
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Approval Failed",
-          description: error.message || "Failed to approve application",
-          variant: "destructive"
-        });
-      }
-    });
+  const handleApprove = (application: MedicalApplication) => {
+    approveApplication(application.id);
   };
 
-  const handleReject = (applicationId: string, notes: string) => {
-    rejectApplication({ applicationId, notes }, {
-      onSuccess: () => {
-        toast({
-          title: "Application Rejected",
-          description: "Medical provider application has been rejected.",
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Rejection Failed",
-          description: error.message || "Failed to reject application",
-          variant: "destructive"
-        });
-      }
-    });
+  const handleReject = (application: MedicalApplication) => {
+    const notes = prompt('Please provide a reason for rejection:');
+    if (notes) {
+      rejectApplication({ applicationId: application.id, notes });
+    }
   };
 
   return (

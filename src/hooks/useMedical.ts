@@ -3,76 +3,122 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-console.log('🔄 useMedical.ts module loading...');
-
-export interface MedicalProvider {
-  id: string;
-  user_id?: string;
-  full_name: string;
-  provider_type: string;
-  specialization_id?: string;
-  facility_id?: string;
-  is_verified: boolean;
-  is_active: boolean;
-  rating: number;
-  created_at: string;
-  updated_at: string;
-  specialization?: string;
-}
-
 export interface MedicalApplication {
   id: string;
   user_id: string;
   full_name: string;
-  email: string;
-  phone: string;
-  provider_type: 'doctor' | 'nurse' | 'pharmacist' | 'lab_technician' | 'ambulance_driver' | 'dentist' | 'physiotherapist';
-  license_number: string;
-  specialization_id?: string;
-  documents?: any;
+  specialization: string;
+  medical_license_number: string;
+  years_of_experience: number;
+  hospital_clinic_name: string;
   status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
-  reviewed_at?: string;
-  reviewed_by?: string;
-  admin_notes?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
+export interface MedicalProvider {
+  id: string;
+  full_name: string;
+  provider_type: string;
+  is_verified: boolean;
+  is_active: boolean;
+  rating: number;
+}
+
+export const useMedicalApplications = () => {
+  return useQuery({
+    queryKey: ['medical-applications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('medical_applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as MedicalApplication[];
+    },
+  });
+};
+
 export const useMedicalProviders = () => {
-  console.log('🏥 useMedicalProviders hook called');
   return useQuery({
     queryKey: ['medical-providers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('medical_providers')
         .select('*')
-        .eq('is_active', true)
-        .order('full_name');
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as MedicalProvider[];
+    },
+  });
+};
+
+export const useApproveMedicalApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (applicationId: string) => {
+      const { error } = await supabase
+        .from('medical_applications')
+        .update({ status: 'approved' })
+        .eq('id', applicationId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medical-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-providers'] });
+      toast({
+        title: "Application Approved",
+        description: "Medical provider has been approved successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Approval Failed",
+        description: error.message || "Failed to approve application",
+        variant: "destructive"
+      });
     }
   });
 };
 
-export const useMedicalApplications = () => {
-  console.log('📋 useMedicalApplications hook called');
-  return useQuery({
-    queryKey: ['medical-applications'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('medical_provider_applications')
-        .select('*')
-        .eq('status', 'pending')
-        .order('submitted_at', { ascending: false });
-
+export const useRejectMedicalApplication = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes: string }) => {
+      const { error } = await supabase
+        .from('medical_applications')
+        .update({ status: 'rejected', notes })
+        .eq('id', applicationId);
+      
       if (error) throw error;
-      return data as MedicalApplication[];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medical-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-providers'] });
+      toast({
+        title: "Application Rejected",
+        description: "Medical provider application has been rejected.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Rejection Failed",
+        description: error.message || "Failed to reject application",
+        variant: "destructive"
+      });
     }
   });
 };
 
 export const useMedicalApplicationStatus = () => {
-  console.log('✅ useMedicalApplicationStatus hook called');
   return useQuery({
     queryKey: ['my-medical-application'],
     queryFn: async () => {
@@ -80,23 +126,20 @@ export const useMedicalApplicationStatus = () => {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from('medical_provider_applications')
+        .from('medical_applications')
         .select('*')
         .eq('user_id', user.id)
-        .order('submitted_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
+        .single();
+      
       if (error && error.code !== 'PGRST116') throw error;
-      return data as MedicalApplication | null;
-    }
+      return data;
+    },
   });
 };
 
 export const useMyMedicalProviderProfile = () => {
-  console.log('👨‍⚕️ useMyMedicalProviderProfile hook called');
   return useQuery({
-    queryKey: ['my-medical-profile'],
+    queryKey: ['my-medical-provider-profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
@@ -105,49 +148,10 @@ export const useMyMedicalProviderProfile = () => {
         .from('medical_providers')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
-
+        .single();
+      
       if (error && error.code !== 'PGRST116') throw error;
-      return data as MedicalProvider | null;
-    }
-  });
-};
-
-export const useMedicalApplicationMutation = () => {
-  console.log('💾 useMedicalApplicationMutation hook called');
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (applicationData: Omit<MedicalApplication, 'id' | 'user_id' | 'status' | 'submitted_at'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('medical_provider_applications')
-        .insert({
-          ...applicationData,
-          user_id: user.id,
-          status: 'pending' as const,
-          submitted_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['medical-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['my-medical-application'] });
-      toast({ title: 'Medical provider application submitted successfully!' });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error submitting application',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
   });
 };
-
-console.log('✅ useMedical.ts module loaded successfully');
