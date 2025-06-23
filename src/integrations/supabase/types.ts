@@ -33,6 +33,68 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message: string | null
+          last_message_at: string | null
+          participant1_id: string
+          participant2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          participant1_id: string
+          participant2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          participant1_id?: string
+          participant2_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -512,6 +574,77 @@ export type Database = {
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Relationships: []
+      }
+      forum_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          member_count: number | null
+          name: string
+          post_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name: string
+          post_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name?: string
+          post_count?: number | null
+        }
+        Relationships: []
+      }
+      forum_posts: {
+        Row: {
+          author_id: string
+          category_id: string
+          content: string
+          created_at: string
+          id: string
+          like_count: number | null
+          reply_count: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          category_id: string
+          content: string
+          created_at?: string
+          id?: string
+          like_count?: number | null
+          reply_count?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          category_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          like_count?: number | null
+          reply_count?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medical_facilities: {
         Row: {

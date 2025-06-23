@@ -57,13 +57,13 @@ export const useForumCategories = () => {
   return useQuery({
     queryKey: ['forum-categories'],
     queryFn: async () => {
-      // Mock data since forum tables don't exist yet
-      return [
-        { id: '1', name: 'General Discussion', description: 'Talk about anything', post_count: 45, member_count: 320, created_at: new Date().toISOString() },
-        { id: '2', name: 'Business & Services', description: 'Discuss local businesses', post_count: 89, member_count: 450, created_at: new Date().toISOString() },
-        { id: '3', name: 'Events & Activities', description: 'Share local events', post_count: 67, member_count: 280, created_at: new Date().toISOString() },
-        { id: '4', name: 'Buy & Sell', description: 'Marketplace discussions', post_count: 123, member_count: 560, created_at: new Date().toISOString() },
-      ] as ForumCategory[];
+      const { data, error } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as ForumCategory[];
     }
   });
 };
@@ -73,33 +73,23 @@ export const useForumPosts = (categoryId?: string) => {
   return useQuery({
     queryKey: ['forum-posts', categoryId],
     queryFn: async () => {
-      // Mock data since forum tables don't exist yet
-      return [
-        {
-          id: '1',
-          title: 'Best local restaurants in Nairobi?',
-          content: 'Looking for recommendations for good local food...',
-          author_id: '1',
-          category_id: '2',
-          reply_count: 12,
-          like_count: 8,
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          author: { full_name: 'Mary Kamau' },
-          category: { name: 'Business & Services' }
-        },
-        {
-          id: '2',
-          title: 'Community cleanup this weekend',
-          content: 'Join us for a community cleanup event...',
-          author_id: '2',
-          category_id: '3',
-          reply_count: 6,
-          like_count: 15,
-          created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          author: { full_name: 'Peter Mwangi' },
-          category: { name: 'Events & Activities' }
-        }
-      ] as ForumPost[];
+      let query = supabase
+        .from('forum_posts')
+        .select(`
+          *,
+          author:profiles!forum_posts_author_id_fkey(full_name),
+          category:forum_categories!forum_posts_category_id_fkey(name)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data as ForumPost[];
     }
   });
 };
@@ -108,22 +98,27 @@ export const useForumPosts = (categoryId?: string) => {
 export const useCreateForumPost = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (postData: { title: string; content: string; category_id: string }) => {
-      // Mock implementation since forum tables don't exist
-      const newPost = {
-        id: Date.now().toString(),
-        ...postData,
-        author_id: 'current-user',
-        reply_count: 0,
-        like_count: 0,
-        created_at: new Date().toISOString(),
-      };
-      return newPost;
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('forum_posts')
+        .insert({
+          ...postData,
+          author_id: user.id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['forum-categories'] });
       toast({ title: 'Post created successfully!' });
     },
     onError: (error: any) => {
@@ -145,29 +140,26 @@ export const useChatConversations = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Mock data since chat tables don't exist yet
-      return [
-        {
-          id: '1',
-          participant1_id: user.id,
-          participant2_id: '2',
-          last_message: 'Thanks for the help with the delivery!',
-          last_message_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-          unread_count: 2,
-          created_at: new Date().toISOString(),
-          other_participant: { full_name: 'John\'s Electronics Store' }
-        },
-        {
-          id: '2',
-          participant1_id: user.id,
-          participant2_id: '3',
-          last_message: 'See you at the pickup location',
-          last_message_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          unread_count: 0,
-          created_at: new Date().toISOString(),
-          other_participant: { full_name: 'Sarah Wilson (Driver)' }
-        }
-      ] as ChatConversation[];
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .select(`
+          *,
+          participant1:profiles!chat_conversations_participant1_id_fkey(full_name),
+          participant2:profiles!chat_conversations_participant2_id_fkey(full_name)
+        `)
+        .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
+        .order('last_message_at', { ascending: false, nullsFirst: false });
+      
+      if (error) throw error;
+      
+      // Transform data to include other_participant and unread_count
+      const transformedData = data?.map(conv => ({
+        ...conv,
+        other_participant: conv.participant1_id === user.id ? conv.participant2 : conv.participant1,
+        unread_count: 0 // TODO: Implement unread count logic
+      })) || [];
+      
+      return transformedData as ChatConversation[];
     },
     enabled: !!user
   });
@@ -180,33 +172,14 @@ export const useChatMessages = (conversationId: string | null) => {
     queryFn: async () => {
       if (!conversationId) return [];
       
-      // Mock data since chat tables don't exist yet
-      return [
-        {
-          id: '1',
-          conversation_id: conversationId,
-          sender_id: '2',
-          content: 'Hello! I saw your order for the smartphone. It\'s ready for pickup.',
-          created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          is_read: true
-        },
-        {
-          id: '2',
-          conversation_id: conversationId,
-          sender_id: 'current-user',
-          content: 'Great! What time would be best for pickup?',
-          created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-          is_read: true
-        },
-        {
-          id: '3',
-          conversation_id: conversationId,
-          sender_id: '2',
-          content: 'Anytime between 9 AM and 6 PM works for me.',
-          created_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-          is_read: true
-        }
-      ] as ChatMessage[];
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      return data as ChatMessage[];
     },
     enabled: !!conversationId
   });
@@ -222,16 +195,18 @@ export const useSendMessage = () => {
     mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
       if (!user) throw new Error('User not authenticated');
       
-      // Mock implementation since chat tables don't exist
-      const newMessage = {
-        id: Date.now().toString(),
-        conversation_id: conversationId,
-        sender_id: user.id,
-        content,
-        created_at: new Date().toISOString(),
-        is_read: false
-      };
-      return newMessage;
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['chat-messages', variables.conversationId] });
@@ -257,14 +232,43 @@ export const useStartBusinessConversation = () => {
     mutationFn: async ({ businessId, initialMessage }: { businessId: string; initialMessage: string }) => {
       if (!user) throw new Error('User not authenticated');
       
-      // Mock implementation since chat tables don't exist
-      const newConversation = {
-        id: Date.now().toString(),
-        participant1_id: user.id,
-        participant2_id: businessId,
-        created_at: new Date().toISOString()
-      };
-      return newConversation;
+      // First, check if conversation already exists
+      const { data: existingConv } = await supabase
+        .from('chat_conversations')
+        .select('id')
+        .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${businessId}),and(participant1_id.eq.${businessId},participant2_id.eq.${user.id})`)
+        .maybeSingle();
+      
+      let conversationId = existingConv?.id;
+      
+      if (!conversationId) {
+        // Create new conversation
+        const { data: newConv, error: convError } = await supabase
+          .from('chat_conversations')
+          .insert({
+            participant1_id: user.id,
+            participant2_id: businessId
+          })
+          .select()
+          .single();
+        
+        if (convError) throw convError;
+        conversationId = newConv.id;
+      }
+      
+      // Send initial message
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: initialMessage
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });

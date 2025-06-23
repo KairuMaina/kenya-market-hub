@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Send, Search } from 'lucide-react';
 import { useChatConversations, useChatMessages, useSendMessage } from '@/hooks/useChatForums';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 
 const ChatInterface = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const { user } = useAuth();
 
   const { data: conversations, isLoading: conversationsLoading } = useChatConversations();
   const { data: messages, isLoading: messagesLoading } = useChatMessages(selectedConversation);
@@ -29,6 +31,13 @@ const ChatInterface = () => {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
       {/* Conversations List */}
@@ -44,23 +53,23 @@ const ChatInterface = () => {
           <CardContent className="p-0">
             <div className="max-h-96 overflow-y-auto">
               {conversationsLoading ? (
-                <div className="p-4 text-center">Loading...</div>
+                <div className="p-4 text-center">Loading conversations...</div>
               ) : conversations?.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
-                  No conversations yet
+                  No conversations yet. Start chatting with businesses!
                 </div>
               ) : (
                 conversations?.map((conversation) => (
                   <div
                     key={conversation.id}
                     onClick={() => setSelectedConversation(conversation.id)}
-                    className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
+                    className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
                       selectedConversation === conversation.id ? 'bg-orange-50 border-orange-200' : ''
                     }`}
                   >
                     <div className="flex justify-between items-start">
                       <h4 className="font-medium text-sm">
-                        {conversation.other_participant?.full_name}
+                        {conversation.other_participant?.full_name || 'Unknown User'}
                       </h4>
                       {conversation.unread_count > 0 && (
                         <Badge variant="destructive" className="text-xs">
@@ -68,8 +77,8 @@ const ChatInterface = () => {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 truncate">
-                      {conversation.last_message}
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                      {conversation.last_message || 'No messages yet'}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {conversation.last_message_at && 
@@ -91,7 +100,7 @@ const ChatInterface = () => {
             <>
               <CardHeader className="border-b">
                 <CardTitle className="text-lg">
-                  {conversations?.find(c => c.id === selectedConversation)?.other_participant?.full_name}
+                  {conversations?.find(c => c.id === selectedConversation)?.other_participant?.full_name || 'Chat'}
                 </CardTitle>
               </CardHeader>
               
@@ -99,24 +108,28 @@ const ChatInterface = () => {
                 <div className="space-y-4">
                   {messagesLoading ? (
                     <div className="text-center">Loading messages...</div>
+                  ) : messages?.length === 0 ? (
+                    <div className="text-center text-gray-500">
+                      No messages yet. Start the conversation!
+                    </div>
                   ) : (
                     messages?.map((message) => (
                       <div
                         key={message.id}
                         className={`flex ${
-                          message.sender_id === 'current-user' ? 'justify-end' : 'justify-start'
+                          message.sender_id === user?.id ? 'justify-end' : 'justify-start'
                         }`}
                       >
                         <div
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.sender_id === 'current-user'
+                            message.sender_id === user?.id
                               ? 'bg-orange-500 text-white'
                               : 'bg-gray-100 text-gray-900'
                           }`}
                         >
                           <p className="text-sm">{message.content}</p>
                           <p className={`text-xs mt-1 ${
-                            message.sender_id === 'current-user' ? 'text-orange-100' : 'text-gray-500'
+                            message.sender_id === user?.id ? 'text-orange-100' : 'text-gray-500'
                           }`}>
                             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                           </p>
@@ -133,14 +146,14 @@ const ChatInterface = () => {
                     placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onKeyPress={handleKeyPress}
                     className="flex-1"
                   />
                   <Button 
                     onClick={handleSendMessage} 
                     size="sm" 
                     className="bg-orange-500 hover:bg-orange-600"
-                    disabled={sendMessage.isPending}
+                    disabled={sendMessage.isPending || !newMessage.trim()}
                   >
                     <Send className="h-4 w-4" />
                   </Button>
@@ -150,7 +163,7 @@ const ChatInterface = () => {
           ) : (
             <CardContent className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <Send className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
                 <p className="text-gray-600">Choose a conversation from the left to start chatting</p>
               </div>

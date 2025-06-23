@@ -85,18 +85,13 @@ const ForumsList = ({ onCreatePost }: ForumsListProps) => {
                       <Badge variant="outline">{post.category?.name}</Badge>
                     </div>
                     
-                    <p className="text-gray-600 mb-4" style={{ 
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
+                    <p className="text-gray-600 mb-4 line-clamp-2">
                       {post.content}
                     </p>
                     
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <div className="flex items-center space-x-4">
-                        <span>By {post.author?.full_name}</span>
+                        <span>By {post.author?.full_name || 'Anonymous'}</span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
