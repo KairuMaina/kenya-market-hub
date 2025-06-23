@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Send, Search } from 'lucide-react';
+import { Send, Search, MessageCircle } from 'lucide-react';
 import { useChatConversations, useChatMessages, useSendMessage } from '@/hooks/useChatForums';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
