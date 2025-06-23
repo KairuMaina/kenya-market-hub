@@ -226,7 +226,7 @@ const Index = () => {
   return (
     <FrontendLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-        {/* New Modern Hero Section with Slideshow */}
+        {/* Hero Section with Slideshow */}
         <div className="relative h-[80vh] min-h-[600px] overflow-hidden">
           {/* Background Image with Overlay */}
           <div 
@@ -264,36 +264,36 @@ const Index = () => {
           <div className="relative z-10 flex items-center justify-center h-full px-4">
             <div className="text-center text-white max-w-4xl mx-auto">
               {/* Brand Name */}
-              <h1 className="text-5xl md:text-7xl font-bold mb-4 animate-fade-in">
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
                 Soko Smart
               </h1>
 
               {/* Slide Content */}
               <div className="animate-fade-in" key={currentSlide}>
-                <p className="text-orange-200 text-lg font-medium mb-2">
+                <p className="text-orange-200 text-base font-medium mb-2">
                   {currentSlideData.subtitle}
                 </p>
-                <h2 className="text-3xl md:text-5xl font-bold mb-4">
+                <h2 className="text-2xl md:text-4xl font-bold mb-4">
                   {currentSlideData.title}
                 </h2>
-                <p className="text-xl md:text-2xl text-orange-100 mb-8 max-w-3xl mx-auto">
+                <p className="text-lg md:text-xl text-orange-100 mb-8 max-w-3xl mx-auto">
                   {currentSlideData.description}
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <Button
                     size="lg"
                     onClick={currentSlideData.ctaAction}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 text-lg shadow-lg"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 text-base shadow-lg"
                   >
                     {currentSlideData.cta}
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
                     onClick={() => navigate('/service-hub')}
-                    className="border-white text-white hover:bg-white hover:text-orange-600 px-8 py-4 text-lg"
+                    className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-6 py-3 text-base backdrop-blur-sm bg-white/10"
                   >
                     Become a Partner
                   </Button>
@@ -318,57 +318,57 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="max-w-6xl mx-auto px-4 py-12">
           {/* Mini Apps Grid */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
               All Services in One Platform
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               From shopping to services, we've got everything you need to live, work, and thrive in Kenya
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {miniApps.map((app) => (
               <Card 
                 key={app.id} 
-                className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-orange-200 cursor-pointer"
+                className="group hover:shadow-lg transition-all duration-300 border hover:border-orange-200 cursor-pointer"
                 onClick={() => navigate(app.route)}
               >
                 <div className="relative overflow-hidden">
                   <div 
-                    className="h-32 bg-cover bg-center"
+                    className="h-28 bg-cover bg-center"
                     style={{ 
                       backgroundImage: `url(https://images.unsplash.com/${app.image})`,
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-white/90 text-gray-800">
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-white/90 text-gray-800 text-xs">
                       {app.stats}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-3 left-3">
+                  <div className="absolute bottom-2 left-2">
                     <div className={`p-2 rounded-lg bg-gradient-to-r ${app.color} text-white`}>
-                      <app.icon className="h-6 w-6" />
+                      <app.icon className="h-5 w-5" />
                     </div>
                   </div>
                 </div>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg group-hover:text-orange-600 transition-colors">
+                  <CardTitle className="text-base group-hover:text-orange-600 transition-colors">
                     {app.title}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-sm">
                     {app.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white`}
+                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white text-sm`}
                   >
                     Explore
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-3 w-3" />
                   </Button>
                 </CardContent>
               </Card>
