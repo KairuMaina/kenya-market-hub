@@ -1,259 +1,298 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Save, ShoppingBag, Car, Building, Wrench, ArrowRight } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { User, Mail, Phone, MapPin, Calendar, Star, Package, Heart } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from 'react-router-dom';
-import { useMyVendorProfile } from '@/hooks/useVendors';
-import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
-
-const profileSchema = z.object({
-  full_name: z.string().min(2, "Full name must be at least 2 characters.").optional().or(z.literal('')),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-});
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { Navigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import HeroSection from '@/components/shared/HeroSection';
 
 const Profile = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useProfile();
-  const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile();
-  
-  const { data: vendorProfile } = useMyVendorProfile();
-  const { data: driverProfile } = useServiceProviderProfile('driver');
-  const { data: propertyOwnerProfile } = useServiceProviderProfile('property_owner');
-  const { data: genericServiceProviderProfile } = useServiceProviderProfile('service_provider');
-
-  const form = useForm<z.infer<typeof profileSchema>>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      full_name: '',
-      phone: '',
-      address: '',
-      city: '',
-      country: 'Kenya',
-    },
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { data: profile, isLoading, updateProfile } = useProfile();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    city: ''
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (profile) {
-      form.reset({
+      setFormData({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
         address: profile.address || '',
-        city: profile.city || '',
-        country: profile.country || 'Kenya',
+        city: profile.city || ''
       });
     }
-  }, [profile, form]);
+  }, [profile]);
 
-  const onSubmit = (values: z.infer<typeof profileSchema>) => {
-    const validValues = Object.fromEntries(
-        Object.entries(values).filter(([_, v]) => v !== null && v !== undefined)
-    );
-    updateProfile(validValues);
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  const handleSave = async () => {
+    try {
+      await updateProfile.mutateAsync(formData);
+      setIsEditing(false);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  if (authLoading || profileLoading) {
+  if (isLoading) {
     return (
       <MainLayout>
-        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <Skeleton className="h-8 w-1/4 mb-2" />
-          <Skeleton className="h-4 w-1/2 mb-8" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-6">
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <Skeleton className="h-48 w-full rounded-lg" />
-            </div>
-            <div className="lg:col-span-2">
-              <Skeleton className="h-96 w-full rounded-lg" />
-            </div>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading profile...</p>
           </div>
         </div>
       </MainLayout>
     );
-  }
-
-  if (!user) {
-    return (
-      <MainLayout>
-        <div className="text-center p-8">
-          <p>Please sign in to view your profile.</p>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-
-  const roles = [];
-  if (vendorProfile?.verification_status === 'approved') {
-      roles.push({ name: 'Vendor', path: '/vendor', icon: ShoppingBag });
-  }
-  if (driverProfile?.verification_status === 'approved') {
-      roles.push({ name: 'Driver', path: '/driver-app', icon: Car });
-  }
-  if (propertyOwnerProfile?.verification_status === 'approved') {
-      roles.push({ name: 'Property Owner', path: '/property-owner', icon: Building });
-  }
-  if (genericServiceProviderProfile?.verification_status === 'approved') {
-      roles.push({ name: 'Service Provider', path: '/services-app', icon: Wrench });
   }
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50/50">
-        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-            <p className="text-gray-600">Manage your personal information and account settings.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-6">
-              <Card className="shadow-lg">
-                <CardContent className="pt-6 flex flex-col items-center text-center">
-                  <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-white/50">
-                    <span className="text-white font-bold text-4xl">
-                      {displayName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-semibold">{displayName}</h2>
-                  <p className="text-sm text-gray-500">{user.email}</p>
-                </CardContent>
-              </Card>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+        {/* Hero Section with Image Backdrop */}
+        <HeroSection
+          title="My Profile"
+          subtitle="Account Settings"
+          description="Manage your account information, preferences, and activity."
+          imageUrl="photo-1472099645785-5658abf4ff4e"
+          className="mb-0"
+        />
 
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Account Roles & Portals</CardTitle>
-                  <CardDescription>Your access levels in Soko Smart.</CardDescription>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Profile Info Card */}
+            <div className="lg:col-span-1">
+              <Card className="border-orange-200">
+                <CardHeader className="text-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
+                  <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white">
+                    <AvatarImage src={profile?.avatar_url} />
+                    <AvatarFallback className="bg-white text-orange-600 text-2xl">
+                      {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <CardTitle className="text-xl">{profile?.full_name || 'User'}</CardTitle>
+                  <CardDescription className="text-orange-100">{user?.email}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {roles.length > 0 ? (
-                    <ul className="space-y-3">
-                      {roles.map(role => (
-                        <li key={role.name}>
-                          <Link to={role.path} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <role.icon className="h-5 w-5 text-gray-600" />
-                              <span className="font-medium">{role.name}</span>
-                            </div>
-                            <ArrowRight className="h-5 w-5 text-gray-400"/>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500">You are currently registered as a customer.</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-4">Want to offer services? <Link to="/service-provider-hub" className="text-blue-600 hover:underline">Visit the Service Provider Hub</Link>.</p>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <Mail className="h-4 w-4 text-orange-500" />
+                      <span>{user?.email}</span>
+                    </div>
+                    {profile?.phone && (
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <Phone className="h-4 w-4 text-orange-500" />
+                        <span>{profile.phone}</span>
+                      </div>
+                    )}
+                    {profile?.address && (
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <MapPin className="h-4 w-4 text-orange-500" />
+                        <span>{profile.address}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <Calendar className="h-4 w-4 text-orange-500" />
+                      <span>Joined {new Date(profile?.created_at || '').toLocaleDateString()}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Main Content */}
             <div className="lg:col-span-2">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>Update your personal details here.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <FormField
-                        control={form.control}
-                        name="full_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your full name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+              <Tabs defaultValue="personal" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-4 bg-orange-100">
+                  <TabsTrigger 
+                    value="personal"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                  >
+                    Personal Info
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="orders"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                  >
+                    Orders
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="reviews"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                  >
+                    Reviews
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="wishlist"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                  >
+                    Wishlist
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="personal">
+                  <Card className="border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <User className="h-5 w-5 text-orange-500" />
+                        Personal Information
+                      </CardTitle>
+                      <CardDescription>
+                        Update your personal details and contact information.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="full_name">Full Name</Label>
+                          <Input
+                            id="full_name"
+                            value={formData.full_name}
+                            onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                            disabled={!isEditing}
+                            className="border-orange-200 focus:border-orange-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <Input
+                            id="phone"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            disabled={!isEditing}
+                            className="border-orange-200 focus:border-orange-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="city">City</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => setFormData({...formData, city: e.target.value})}
+                            disabled={!isEditing}
+                            className="border-orange-200 focus:border-orange-500"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="address">Address</Label>
+                          <Textarea
+                            id="address"
+                            value={formData.address}
+                            onChange={(e) => setFormData({...formData, address: e.target.value})}
+                            disabled={!isEditing}
+                            className="border-orange-200 focus:border-orange-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        {!isEditing ? (
+                          <Button 
+                            onClick={() => setIsEditing(true)}
+                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                          >
+                            Edit Profile
+                          </Button>
+                        ) : (
+                          <>
+                            <Button 
+                              onClick={handleSave}
+                              disabled={updateProfile.isPending}
+                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                            >
+                              {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setIsEditing(false)}
+                              className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                            >
+                              Cancel
+                            </Button>
+                          </>
                         )}
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Phone Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. +254 712 345678" {...field} value={field.value ?? ''} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <Input value={user.email || ''} disabled />
-                          <p className="text-xs text-muted-foreground pt-1">Email address cannot be changed.</p>
-                        </FormItem>
                       </div>
-                       <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. 123 Main St" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>City</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Nairobi" {...field} value={field.value ?? ''} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="country"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <FormControl>
-                                <Input {...field} value={field.value ?? ''} disabled />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="orders">
+                  <Card className="border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5 text-orange-500" />
+                        Order History
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600">No orders found</p>
                       </div>
-                      <div className="flex justify-end">
-                        <Button type="submit" disabled={isUpdating}>
-                          {isUpdating ? 'Saving...' : 'Save Changes'}
-                          <Save className="ml-2 h-4 w-4" />
-                        </Button>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="reviews">
+                  <Card className="border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="h-5 w-5 text-orange-500" />
+                        My Reviews
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600">No reviews yet</p>
                       </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="wishlist">
+                  <Card className="border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Heart className="h-5 w-5 text-orange-500" />
+                        My Wishlist
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600">No items in wishlist</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>

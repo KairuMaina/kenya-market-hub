@@ -6,6 +6,7 @@ import { WifiOff } from 'lucide-react';
 import AppSidebar from '@/components/AppSidebar';
 import UserNav from '@/components/UserNav';
 import GlobalSearch from '@/components/GlobalSearch';
+import Footer from '@/components/Footer';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 interface FrontendLayoutProps {
@@ -19,7 +20,7 @@ const FrontendLayout = ({ children }: FrontendLayoutProps) => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
-        <main className="flex-1">
+        <main className="flex-1 flex flex-col">
           <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 py-3 shadow-sm">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger className="hover:bg-orange-50 hover:text-orange-600 rounded-lg" />
@@ -54,9 +55,12 @@ const FrontendLayout = ({ children }: FrontendLayoutProps) => {
             </Alert>
           )}
           
-          <div className="p-2 sm:p-4 md:p-6">
+          <div className="flex-1">
             {children}
           </div>
+          
+          {/* Footer only in Layout */}
+          <Footer />
         </main>
       </div>
     </SidebarProvider>
