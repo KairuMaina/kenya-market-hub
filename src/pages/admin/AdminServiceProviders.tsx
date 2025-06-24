@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,12 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Briefcase, Users, CheckCircle, Clock, Eye, UserCheck, Check, X, MapPin, Star, Building, FileText, Mail, Phone } from 'lucide-react';
+import { Briefcase, Users, CheckCircle, Clock, Eye, UserCheck, Check, X, MapPin, Star, Building, FileText, Mail, Phone, AlertCircle } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useServiceProviderApproval } from '@/hooks/useApprovalActions/useServiceProviderApproval';
 import { useToast } from '@/hooks/use-toast';
-import PendingApplicationsTable from "@/components/admin/PendingApplicationsTable";
+import ServiceApplicationsTable from '@/components/admin/ServiceApplicationsTable';
 import ProvidersTable from "@/components/admin/ProvidersTable";
 
 const AdminServiceProviders = () => {
@@ -87,7 +86,7 @@ const AdminServiceProviders = () => {
     return profile ? (profile.full_name || profile.email || 'Unknown') : 'Unknown';
   };
 
-  // ----- Approval and rejection for pending applications -----
+  // ----- Approval and rejection for pending applications (SERVICE HUB APPLICATIONS) -----
   const [applicationModalOpen, setApplicationModalOpen] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [applicationRejectionNotes, setApplicationRejectionNotes] = useState('');
@@ -141,7 +140,11 @@ const AdminServiceProviders = () => {
         .eq('id', application.id);
       if (applicationError) throw applicationError;
 
-      toast({ title: 'Application Approved', description: 'Service provider profile created/updated and application marked approved.' });
+      toast({ 
+        title: 'Service Application Approved', 
+        description: `${application.business_name} has been approved as a service provider.`,
+        duration: 5000
+      });
       setApplicationModalOpen('');
       setSelectedApplication(null);
       queryClient.invalidateQueries({ queryKey: ['admin-service-provider-applications'] });
@@ -164,7 +167,11 @@ const AdminServiceProviders = () => {
         })
         .eq('id', application.id);
       if (error) throw error;
-      toast({ title: 'Application Rejected', description: 'Application was marked as rejected.' });
+      toast({ 
+        title: 'Service Application Rejected', 
+        description: `${application.business_name} application has been rejected.`,
+        duration: 5000
+      });
       setApplicationModalOpen('');
       setSelectedApplication(null);
       setApplicationRejectionNotes('');
@@ -219,7 +226,7 @@ const AdminServiceProviders = () => {
     (app: any) => app.status === 'pending'
   ) ?? [];
 
-  // Table and modal handlers for the new PendingApplicationsTable
+  // Table and modal handlers for the new ServiceApplicationsTable
   const handlePendingApprove = (application: any) => {
     setSelectedApplication(application);
     setApplicationModalOpen("approve");
@@ -251,20 +258,25 @@ const AdminServiceProviders = () => {
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
             <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
               <Briefcase className="h-6 w-6 sm:h-8 sm:w-8" />
-              Service Provider Management
+              Service Hub Management
             </h1>
-            <p className="text-indigo-100 mt-2 text-sm sm:text-base">Manage service providers, applications, and their approvals</p>
+            <p className="text-indigo-100 mt-2 text-sm sm:text-base">Manage service providers, applications, and their approvals from the Service Hub</p>
+            <div className="mt-3 flex items-center gap-2 text-indigo-100">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">This is where Service Hub applications are reviewed and approved</span>
+            </div>
           </div>
 
           {/* Service Provider Statistics */}
           <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Applications</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">New Applications</CardTitle>
                 <Building className="h-4 w-4 text-indigo-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-lg sm:text-2xl font-bold">{totalApplications}</div>
+                <p className="text-xs text-muted-foreground">Service Hub submissions</p>
               </CardContent>
             </Card>
             <Card>
@@ -305,15 +317,22 @@ const AdminServiceProviders = () => {
             </Card>
           </div>
 
-          {/* Pending Applications Table */}
-          <Card className="shadow-lg">
+          {/* Service Hub Applications Table */}
+          <Card className="shadow-lg border-l-4 border-l-indigo-500">
             <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">Pending Service Provider Applications</CardTitle>
-              <CardDescription className="text-sm">Review, approve, or reject service provider applications</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                <Building className="h-6 w-6 text-indigo-600" />
+                Service Hub Applications
+              </CardTitle>
+              <CardDescription className="text-sm">
+                Review and approve service provider applications submitted through the Service Hub.
+                <br />
+                <span className="text-indigo-600 font-medium">These applications come from users who want to offer services on the platform.</span>
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <PendingApplicationsTable
-                pendingApplications={pendingApplications}
+              <ServiceApplicationsTable
+                applications={pendingApplications}
                 profiles={profiles}
                 getStatusBadgeVariant={getStatusBadgeVariant}
                 getProviderOwner={getProviderOwner}
@@ -331,25 +350,25 @@ const AdminServiceProviders = () => {
               <DialogHeader>
                 {applicationModalOpen === 'approve' && (
                   <>
-                    <DialogTitle>Approve Service Provider Application</DialogTitle>
+                    <DialogTitle className="text-green-600">Approve Service Hub Application</DialogTitle>
                     <DialogDescription>
-                      Are you sure you want to approve {selectedApplication?.business_name || ''}? This will create a new provider profile and approve this application.
+                      Are you sure you want to approve {selectedApplication?.business_name || ''}? This will create a new provider profile and approve this Service Hub application.
                     </DialogDescription>
                   </>
                 )}
                 {applicationModalOpen === 'reject' && (
                   <>
-                    <DialogTitle>Reject Application</DialogTitle>
+                    <DialogTitle className="text-red-600">Reject Service Hub Application</DialogTitle>
                     <DialogDescription>
-                      Provide a reason for rejecting {selectedApplication?.business_name || ''}.
+                      Provide a reason for rejecting {selectedApplication?.business_name || ''} from the Service Hub.
                     </DialogDescription>
                   </>
                 )}
                 {applicationModalOpen === 'view' && (
                   <>
-                    <DialogTitle>Application Details</DialogTitle>
+                    <DialogTitle>Service Hub Application Details</DialogTitle>
                     <DialogDescription>
-                      Review the application for {selectedApplication?.business_name || ''}.
+                      Review the Service Hub application for {selectedApplication?.business_name || ''}.
                     </DialogDescription>
                   </>
                 )}
