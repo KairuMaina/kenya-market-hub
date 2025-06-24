@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Phone, Mail, MessageSquare, Search, Building } from 'lucide-react';
-import { useServiceProviders } from '@/hooks/useServiceProviders';
 
 interface BusinessDirectoryProps {
   onStartChat: (conversationId: string) => void;
@@ -39,10 +38,21 @@ const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ onStartChat }) =>
       email: 'hello@greengardens.ke',
       avatar_url: null,
       isOnline: false
+    },
+    {
+      id: '3',
+      name: 'Digital Marketing Pro',
+      category: 'Marketing',
+      description: 'Complete digital marketing solutions',
+      location: 'Kisumu, Kenya',
+      phone: '+254 700 345 678',
+      email: 'contact@digitalmarketingpro.ke',
+      avatar_url: null,
+      isOnline: true
     }
   ];
 
-  const categories = ['all', 'Technology', 'Landscaping', 'Construction', 'Healthcare', 'Education'];
+  const categories = ['all', 'Technology', 'Landscaping', 'Marketing', 'Construction', 'Healthcare', 'Education'];
 
   const filteredBusinesses = mockBusinesses.filter(business => {
     const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

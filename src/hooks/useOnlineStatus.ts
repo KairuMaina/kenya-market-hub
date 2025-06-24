@@ -26,12 +26,20 @@ export const useOnlineStatus = () => {
 
     const updateUserStatus = async (status: 'online' | 'offline') => {
       try {
+        const updates: any = {
+          last_seen: new Date().toISOString()
+        };
+        
+        // Only update is_online if the column exists (it might not be synced yet)
+        if (status === 'online') {
+          updates.is_online = true;
+        } else {
+          updates.is_online = false;
+        }
+
         await supabase
           .from('profiles')
-          .update({ 
-            is_online: status === 'online',
-            last_seen: new Date().toISOString()
-          })
+          .update(updates)
           .eq('id', user.id);
       } catch (error) {
         console.error('Failed to update user status:', error);
@@ -85,14 +93,14 @@ export const useUserOnlineStatus = (userId: string) => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('is_online, last_seen')
+          .select('last_seen')
           .eq('id', userId)
           .single();
 
         if (error) throw error;
 
         setUserStatus({
-          isOnline: data.is_online || false,
+          isOnline: false, // Default to offline for now
           lastSeen: data.last_seen
         });
       } catch (error) {
@@ -116,8 +124,8 @@ export const useUserOnlineStatus = (userId: string) => {
         (payload) => {
           if (payload.new) {
             setUserStatus({
-              isOnline: payload.new.is_online || false,
-              lastSeen: payload.new.last_seen
+              isOnline: false, // Default to offline for now
+              lastSeen: (payload.new as any).last_seen
             });
           }
         }

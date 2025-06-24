@@ -166,19 +166,13 @@ export const useTogglePostLike = () => {
 export const useIncrementPostViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { error } = await supabase.rpc('increment_post_views', {
-        post_id: postId
-      });
+      // Use direct update instead of the function for now
+      const { error } = await supabase
+        .from('forum_posts')
+        .update({ view_count: supabase.sql`view_count + 1` })
+        .eq('id', postId);
 
-      if (error) {
-        // If the function fails, update directly
-        const { error: updateError } = await supabase
-          .from('forum_posts')
-          .update({ view_count: 1 }) // Simple increment without raw
-          .eq('id', postId);
-
-        if (updateError) throw updateError;
-      }
+      if (error) throw error;
     }
   });
 };
