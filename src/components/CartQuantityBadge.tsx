@@ -9,9 +9,9 @@ const CartQuantityBadge = () => {
   if (totalItems === 0) return null;
 
   return (
-    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
+    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
       {totalItems > 99 ? '99+' : totalItems}
-    </span>
+    </div>
   );
 };
 
