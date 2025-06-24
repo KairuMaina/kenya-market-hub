@@ -108,8 +108,19 @@ export const useDeleteUser = () => {
       await supabase
         .from('user_roles')
         .delete()
-        .eq('user_i
-          {
+        .eq('user_id', userId);
+
+      // Then delete profile
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
         title: 'User Deleted',
         description: 'User has been deleted successfully.'
       });
