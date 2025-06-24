@@ -1841,12 +1841,17 @@ export type Database = {
         Row: {
           booking_address: string | null
           booking_date: string
+          booking_time: string | null
           created_at: string | null
           customer_id: string | null
           description: string | null
           id: string
+          notes: string | null
+          payment_status: string | null
           provider_id: string | null
           service_category_id: string | null
+          service_description: string | null
+          service_type: string | null
           status: Database["public"]["Enums"]["service_booking_status"] | null
           total_amount: number | null
           updated_at: string | null
@@ -1854,12 +1859,17 @@ export type Database = {
         Insert: {
           booking_address?: string | null
           booking_date: string
+          booking_time?: string | null
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
           id?: string
+          notes?: string | null
+          payment_status?: string | null
           provider_id?: string | null
           service_category_id?: string | null
+          service_description?: string | null
+          service_type?: string | null
           status?: Database["public"]["Enums"]["service_booking_status"] | null
           total_amount?: number | null
           updated_at?: string | null
@@ -1867,12 +1877,17 @@ export type Database = {
         Update: {
           booking_address?: string | null
           booking_date?: string
+          booking_time?: string | null
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
           id?: string
+          notes?: string | null
+          payment_status?: string | null
           provider_id?: string | null
           service_category_id?: string | null
+          service_description?: string | null
+          service_type?: string | null
           status?: Database["public"]["Enums"]["service_booking_status"] | null
           total_amount?: number | null
           updated_at?: string | null
@@ -2512,6 +2527,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "rejected"
+        | "confirmed"
       user_role:
         | "admin"
         | "customer"
@@ -2519,6 +2535,7 @@ export type Database = {
         | "driver"
         | "property_owner"
         | "rider"
+        | "service_provider"
       vehicle_type: "taxi" | "motorbike"
     }
     CompositeTypes: {
@@ -2683,6 +2700,7 @@ export const Constants = {
         "completed",
         "cancelled",
         "rejected",
+        "confirmed",
       ],
       user_role: [
         "admin",
@@ -2691,6 +2709,7 @@ export const Constants = {
         "driver",
         "property_owner",
         "rider",
+        "service_provider",
       ],
       vehicle_type: ["taxi", "motorbike"],
     },

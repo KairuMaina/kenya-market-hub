@@ -1,20 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, User, Briefcase, Eye, Edit, CheckCircle, Loader2 } from 'lucide-react';
+import { Calendar, User, Briefcase, CheckCircle, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
-import { useAdminServiceBookings } from '@/hooks/useAdminServiceBookings';
+import { useAdminServiceBookings, AdminServiceBooking } from '@/hooks/useAdminServiceBookings';
+import { ViewButton, EditButton } from '@/components/ui/action-buttons';
+import BookingDetailsModal from '@/components/admin/BookingDetailsModal';
 
 const AdminServiceBookings = () => {
   const { data: bookings, isLoading } = useAdminServiceBookings();
+  const [selectedBooking, setSelectedBooking] = useState<AdminServiceBooking | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'scheduled':
+      case 'confirmed':
         return 'default';
       case 'in_progress':
         return 'secondary';
@@ -27,8 +31,13 @@ const AdminServiceBookings = () => {
     }
   };
 
+  const handleViewDetails = (booking: AdminServiceBooking) => {
+    setSelectedBooking(booking);
+    setIsDetailsModalOpen(true);
+  };
+
   const totalBookings = bookings?.length || 0;
-  const scheduledBookings = bookings?.filter(booking => booking.status === 'scheduled').length || 0;
+  const confirmedBookings = bookings?.filter(booking => booking.status === 'confirmed').length || 0;
   const completedBookings = bookings?.filter(booking => booking.status === 'completed').length || 0;
 
   return (
@@ -55,11 +64,11 @@ const AdminServiceBookings = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+                <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
                 <Briefcase className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{scheduledBookings}</div>
+                <div className="text-2xl font-bold">{confirmedBookings}</div>
               </CardContent>
             </Card>
             <Card>
@@ -94,7 +103,6 @@ const AdminServiceBookings = () => {
                         <TableHead>Service Type</TableHead>
                         <TableHead>Date & Time</TableHead>
                         <TableHead>Amount</TableHead>
-                        <TableHead>Description</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -121,34 +129,27 @@ const AdminServiceBookings = () => {
                                   {new Date(booking.booking_date).toLocaleDateString()}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {new Date(booking.booking_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {booking.booking_time}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">
                               {booking.total_amount ? `KSH ${Number(booking.total_amount).toLocaleString()}` : 'N/A'}
                             </TableCell>
-                            <TableCell className="max-w-xs truncate">
-                              {booking.description}
-                            </TableCell>
                             <TableCell>
-                              <Badge variant={getStatusBadgeVariant(booking.status)} className="capitalize">
+                              <Badge variant={getStatusBadgeVariant(booking.status) as any} className="capitalize">
                                 {booking.status}
                               </Badge>
                             </TableCell>
                             <TableCell className="space-x-2">
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="secondary" size="sm">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              <ViewButton onClick={() => handleViewDetails(booking)} />
+                              <EditButton onClick={() => console.log('Edit booking:', booking.id)} />
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={8} className="h-24 text-center">
+                          <TableCell colSpan={7} className="h-24 text-center">
                             No service bookings found.
                           </TableCell>
                         </TableRow>
@@ -160,6 +161,15 @@ const AdminServiceBookings = () => {
             </CardContent>
           </Card>
         </div>
+
+        <BookingDetailsModal
+          booking={selectedBooking}
+          isOpen={isDetailsModalOpen}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedBooking(null);
+          }}
+        />
       </AdminLayout>
     </ProtectedAdminRoute>
   );

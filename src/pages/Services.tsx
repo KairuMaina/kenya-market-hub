@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,7 @@ import {
   Search, 
   MapPin, 
   Star, 
-  Clock, 
-  Phone, 
-  Mail,
+  Phone,
   Wrench,
   Hammer,
   Sparkles,
@@ -21,6 +20,7 @@ import MainLayout from '@/components/MainLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import ServiceBookingModal from '@/components/services/ServiceBookingModal';
+import { BookServiceButton, ContactProviderButton } from '@/components/ui/client-buttons';
 
 interface ServiceProvider {
   id: string;
@@ -120,6 +120,14 @@ const Services = () => {
   const handleBookService = (provider: ServiceProvider) => {
     setSelectedProvider(provider);
     setIsBookingModalOpen(true);
+  };
+
+  const handleContactProvider = (provider: ServiceProvider) => {
+    if (provider.phone_number) {
+      window.open(`tel:${provider.phone_number}`, '_blank');
+    } else if (provider.email) {
+      window.open(`mailto:${provider.email}`, '_blank');
+    }
   };
 
   return (
@@ -252,13 +260,14 @@ const Services = () => {
                       <span className="text-sm text-gray-500">(24 reviews)</span>
                     </div>
                     
-                    <Button
-                      onClick={() => handleBookService(provider)}
-                      className="bg-orange-600 hover:bg-orange-700 text-white"
-                    >
-                      <Clock className="h-4 w-4 mr-2" />
-                      Book Service
-                    </Button>
+                    <div className="flex gap-2">
+                      <ContactProviderButton
+                        onClick={() => handleContactProvider(provider)}
+                      />
+                      <BookServiceButton
+                        onClick={() => handleBookService(provider)}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, RotateCcw, Eye, Store } from 'lucide-react';
+import { Store } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
 import { useVendorApplications, useApproveVendorApplication, useRejectVendorApplication, useReapproveVendorApplication } from '@/hooks/useVendorApplications';
+import { ApproveButton, RejectButton, ReapproveButton, ViewButton } from '@/components/ui/action-buttons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -157,24 +157,13 @@ const AdminVendorApplications = () => {
                           <TableCell className="space-x-2">
                             {application.status === 'pending' && (
                               <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-green-500 text-white hover:bg-green-600"
+                                <ApproveButton
                                   onClick={() => handleApprove(application.id)}
-                                  disabled={approveApplication.isPending}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
+                                  loading={approveApplication.isPending}
+                                />
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="bg-red-500 text-white hover:bg-red-600"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
+                                    <RejectButton />
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -202,19 +191,12 @@ const AdminVendorApplications = () => {
                               </>
                             )}
                             {(application.status === 'rejected' || application.status === 'suspended') && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="bg-blue-500 text-white hover:bg-blue-600"
+                              <ReapproveButton
                                 onClick={() => handleReapprove(application.id)}
-                                disabled={reapproveApplication.isPending}
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
+                                loading={reapproveApplication.isPending}
+                              />
                             )}
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <ViewButton onClick={() => console.log('View application:', application.id)} />
                           </TableCell>
                         </TableRow>
                       ))}
