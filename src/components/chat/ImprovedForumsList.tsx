@@ -113,7 +113,7 @@ const ImprovedForumsList: React.FC = () => {
 
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700">
               <Plus className="w-4 h-4 mr-2" />
               Create Post
             </Button>
@@ -203,7 +203,7 @@ const ImprovedForumsList: React.FC = () => {
           filteredPosts.map((post) => (
             <Card 
               key={post.id} 
-              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-blue-200"
+              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-orange-200"
               onClick={() => handlePostClick(post.id)}
             >
               <CardHeader className="pb-3">
@@ -216,7 +216,7 @@ const ImprovedForumsList: React.FC = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-lg text-blue-900 hover:text-blue-700">
+                      <CardTitle className="text-lg text-orange-900 hover:text-orange-700">
                         {post.title}
                       </CardTitle>
                       <div className="flex items-center gap-2 text-sm text-gray-600">

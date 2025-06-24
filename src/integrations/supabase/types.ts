@@ -2463,6 +2463,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_post_views: {
+        Args: { post_id: string }
+        Returns: undefined
+      }
       reject_medical_provider_application: {
         Args: { p_application_id: string; p_admin_notes: string }
         Returns: undefined

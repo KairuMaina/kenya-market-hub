@@ -15,6 +15,7 @@ export interface ForumPost {
   view_count: number;
   created_at: string;
   updated_at: string;
+  has_liked?: boolean;
   author_profile?: {
     full_name: string;
     avatar_url?: string;
@@ -26,8 +27,10 @@ export interface ForumPost {
 }
 
 export const useForumPosts = (categoryId?: string) => {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['forum-posts', categoryId],
+    queryKey: ['forum-posts', categoryId, user?.id],
     queryFn: async () => {
       let query = supabase
         .from('forum_posts')
@@ -49,15 +52,35 @@ export const useForumPosts = (categoryId?: string) => {
         throw error;
       }
 
-      return (data || []).map(post => ({
-        ...post,
-        author_profile: Array.isArray(post.author_profile) 
-          ? post.author_profile[0] 
-          : post.author_profile || { full_name: 'Unknown User' },
-        category: Array.isArray(post.category) 
-          ? post.category[0] 
-          : post.category || { name: 'General' }
-      })) as ForumPost[];
+      // Transform data and check if user has liked each post
+      const transformedData = await Promise.all((data || []).map(async (post) => {
+        let has_liked = false;
+        
+        if (user) {
+          const { data: likeData } = await supabase
+            .from('forum_post_reactions')
+            .select('id')
+            .eq('post_id', post.id)
+            .eq('user_id', user.id)
+            .eq('reaction_type', 'like')
+            .single();
+          
+          has_liked = !!likeData;
+        }
+
+        return {
+          ...post,
+          has_liked,
+          author_profile: Array.isArray(post.author_profile) 
+            ? post.author_profile[0] 
+            : post.author_profile || { full_name: 'Unknown User' },
+          category: Array.isArray(post.category) 
+            ? post.category[0] 
+            : post.category || { name: 'General' }
+        };
+      }));
+
+      return transformedData as ForumPost[];
     }
   });
 };
@@ -111,10 +134,64 @@ export const useCreateForumPost = () => {
   });
 };
 
+export const useTogglePostLike = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      if (!user) throw new Error('User not authenticated');
+
+      // Check if user already liked the post
+      const { data: existingLike } = await supabase
+        .from('forum_post_reactions')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .eq('reaction_type', 'like')
+        .single();
+
+      if (existingLike) {
+        // Unlike the post
+        const { error } = await supabase
+          .from('forum_post_reactions')
+          .delete()
+          .eq('id', existingLike.id);
+        
+        if (error) throw error;
+        return { action: 'unliked' };
+      } else {
+        // Like the post
+        const { error } = await supabase
+          .from('forum_post_reactions')
+          .insert({
+            post_id: postId,
+            user_id: user.id,
+            reaction_type: 'like'
+          });
+        
+        if (error) throw error;
+        return { action: 'liked' };
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
+    },
+    onError: (error: any) => {
+      console.error('Error toggling like:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update like. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
 export const useIncrementPostViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {
-      // Call the database function
       const { error } = await supabase.rpc('increment_post_views', {
         post_id: postId
       });
