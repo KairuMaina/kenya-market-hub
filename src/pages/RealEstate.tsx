@@ -1,241 +1,228 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Phone } from 'lucide-react';
-import MainLayout from '@/components/MainLayout';
-import { useProperties, useFeaturedProperties, PropertyFilters as FiltersType } from '@/hooks/useProperties';
-import { Property } from '@/types/property';
-import PropertyCard from '@/components/PropertyCard';
-import PropertyFilters from '@/components/PropertyFilters';
-import PropertyInquiryModal from '@/components/PropertyInquiryModal';
-import PropertyMapView from '@/components/PropertyMapView';
-import { useNavigate } from 'react-router-dom';
-import SEOLayout from '@/components/layouts/SEOLayout';
-import LocalBusinessSchema from '@/components/seo/LocalBusinessSchema';
-import FAQSchema from '@/components/seo/FAQSchema';
-import SocialMediaMeta from '@/components/seo/SocialMediaMeta';
 
-// Import new components
-import RealEstateHero from '@/components/real-estate/RealEstateHero';
-import PropertySearchBar from '@/components/real-estate/PropertySearchBar';
-import PropertyTypeCards from '@/components/real-estate/PropertyTypeCards';
-import PopularAreas from '@/components/real-estate/PopularAreas';
-import RealEstateAdvancedSearch from '@/components/real-estate/RealEstateAdvancedSearch';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Search, 
+  MapPin, 
+  Bed, 
+  Bath, 
+  Square, 
+  Building, 
+  Home, 
+  Filter
+} from 'lucide-react';
+import MainLayout from '@/components/MainLayout';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import HeroSection from '@/components/shared/HeroSection';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  property_type: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  square_feet?: number;
+  images?: string[];
+  status: string;
+}
 
 const RealEstate = () => {
-  const navigate = useNavigate();
-  const [filters, setFilters] = useState<FiltersType>({});
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    propertyType: '',
+    priceRange: '',
+    location: ''
+  });
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
-  const { data: properties = [], isLoading } = useProperties(filters);
-  const { data: featuredProperties = [] } = useFeaturedProperties();
-
-  const realEstateFAQs = [
-    {
-      question: "How do I find property for rent in Kenya?",
-      answer: "Use our search filters to find properties by location, price range, and property type. Contact property owners directly through our platform."
-    },
-    {
-      question: "Are the property listings verified?",
-      answer: "Yes, we verify property owners and listings. However, we recommend viewing properties in person before making any commitments."
-    },
-    {
-      question: "What documents do I need to rent a property?",
-      answer: "Typically you'll need a copy of your ID, proof of income, and references. Specific requirements may vary by property owner."
-    },
-    {
-      question: "Can I list my property for free?",
-      answer: "Yes, property owners can list their properties for free on Soko Smart. Premium listing options are also available for better visibility."
+  const { data: properties, isLoading } = useQuery({
+    queryKey: ['properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'available')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     }
-  ];
+  });
 
-  const handlePropertyInquiry = (property: Property) => {
-    setSelectedProperty(property);
-    setShowInquiryModal(true);
-  };
+  const filteredProperties = properties?.filter(property => {
+    const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.location?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = !filters.propertyType || property.property_type === filters.propertyType;
+    const matchesLocation = !filters.location || property.location?.toLowerCase().includes(filters.location.toLowerCase());
+    
+    return matchesSearch && matchesType && matchesLocation;
+  }) || [];
 
-  const handleViewDetails = (property: Property) => {
-    navigate(`/property/${property.id}`);
-  };
-
-  const handleAreaSelect = (area: string) => {
-    setFilters({ ...filters, city: area });
-  };
-
-  const filteredProperties = properties.filter(property =>
-    !searchQuery || 
-    property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    property.location_address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAdvancedFiltersChange = (advancedFilters: any) => {
-    setFilters({ ...filters, ...advancedFilters });
-    console.log('Applied advanced filters:', advancedFilters);
-  };
+  const propertyTypes = ['Apartment', 'House', 'Commercial', 'Land'];
 
   return (
-    <SEOLayout
-      title="Property for Sale & Rent in Kenya | Houses, Apartments, Land - Soko Smart"
-      description="Find property for sale and rent in Kenya. Houses, apartments, land and commercial properties in Nairobi, Mombasa, Kisumu and other cities. Browse listings with photos and contact owners directly."
-      keywords="property for sale Kenya, houses for rent Nairobi, apartments Kenya, land for sale Kenya, real estate Kenya, property rental Kenya"
-      type="website"
-    >
-      <LocalBusinessSchema
-        businessType="RealEstateAgent"
-        name="Soko Smart Real Estate"
-        description="Find property for sale and rent in Kenya"
-      />
-      <FAQSchema faqs={realEstateFAQs} pageType="real-estate" />
-      <SocialMediaMeta
-        title="Find Property in Kenya - Soko Smart Real Estate"
-        description="Discover houses, apartments, land and commercial properties for sale and rent across Kenya. Direct contact with property owners."
-        image="/lovable-uploads/563ee6fb-f94f-43f3-a4f3-a61873a1b491.png"
-      />
+    <MainLayout>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+        <HeroSection
+          title="Real Estate"
+          subtitle="Find Your Dream Property"
+          description="Discover amazing properties across Kenya's prime locations."
+          imageUrl="photo-1483058712412-4245e9b90334"
+          className="mb-0 rounded-b-2xl h-64"
+        />
 
-      <MainLayout>
-        <div className="space-y-12">
-          {/* Hero Section */}
-          <RealEstateHero />
-
-          {/* Advanced Search Section */}
-          <section className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Property Search</h2>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-              >
-                {showAdvancedSearch ? 'Hide Advanced Search' : 'Advanced Search'}
-              </Button>
-            </div>
-            
-            {showAdvancedSearch && (
-              <RealEstateAdvancedSearch 
-                onFiltersChange={handleAdvancedFiltersChange}
-                className="animate-fade-in"
-              />
-            )}
-
-            <PropertySearchBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              showFilters={showFilters}
-              onToggleFilters={() => setShowFilters(!showFilters)}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
-
-            {showFilters && (
-              <PropertyFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                onClearFilters={() => setFilters({})}
-              />
-            )}
-          </section>
-
-          {/* Featured Properties */}
-          {featuredProperties.length > 0 && viewMode === 'grid' && (
-            <section>
-              <h2 className="text-3xl font-bold text-center mb-8">Featured Properties</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProperties.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    onViewDetails={handleViewDetails}
-                    onInquire={handlePropertyInquiry}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* All Properties */}
-          <section>
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold">
-                All Properties {filteredProperties.length > 0 && `(${filteredProperties.length})`}
-              </h2>
-            </div>
-
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="text-lg text-gray-600">Loading properties...</div>
-              </div>
-            ) : filteredProperties.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-lg text-gray-600 mb-4">No properties found matching your criteria</div>
-                <Button onClick={() => { setFilters({}); setSearchQuery(''); }}>
-                  Clear Filters
-                </Button>
-              </div>
-            ) : viewMode === 'map' ? (
-              <div className="h-[600px] rounded-lg overflow-hidden border">
-                <PropertyMapView
-                  properties={filteredProperties}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="mb-4">
+            <div className="flex gap-2 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search properties by title or location..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 py-2 text-sm border-orange-200 focus:border-orange-500 rounded-lg"
                 />
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProperties.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    onViewDetails={handleViewDetails}
-                    onInquire={handlePropertyInquiry}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+              
+              <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-orange-200 text-orange-600 hover:bg-orange-50 px-4 py-2 text-sm rounded-lg"
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Filter Properties</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Property Type</label>
+                      <Select value={filters.propertyType} onValueChange={(value) => setFilters({...filters, propertyType: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select property type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Types</SelectItem>
+                          {propertyTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Location</label>
+                      <Input
+                        placeholder="Enter location"
+                        value={filters.location}
+                        onChange={(e) => setFilters({...filters, location: e.target.value})}
+                        className="border-orange-200 focus:border-orange-500"
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => setIsFilterModalOpen(false)}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm"
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
 
-          {/* Property Types - Only show in grid mode */}
-          {viewMode === 'grid' && <PropertyTypeCards />}
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-600">Loading properties...</p>
+            </div>
+          ) : filteredProperties.length === 0 ? (
+            <div className="text-center py-8">
+              <Building className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-base font-semibold text-gray-900 mb-1">No properties found</h3>
+              <p className="text-sm text-gray-600">Try adjusting your search or filters</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProperties.map((property) => (
+                <Card key={property.id} className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-2 hover:border-orange-200 bg-white rounded-xl overflow-hidden">
+                  <div className="aspect-video bg-gray-200 relative">
+                    {property.images && property.images.length > 0 ? (
+                      <img 
+                        src={property.images[0]} 
+                        alt={property.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Home className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
+                    <Badge className="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
+                      {property.property_type}
+                    </Badge>
+                  </div>
+                  
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-gray-900 line-clamp-1">{property.title}</CardTitle>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <MapPin className="h-3 w-3 text-orange-500" />
+                      <span className="truncate">{property.location}</span>
+                    </div>
+                  </CardHeader>
 
-          {/* Popular Areas - Only show in grid mode */}
-          {viewMode === 'grid' && <PopularAreas onAreaSelect={handleAreaSelect} />}
-
-          {/* FAQ Section */}
-          <section className="bg-gray-50 p-8 rounded-xl">
-            <h2 className="text-2xl font-bold mb-6 text-center">Real Estate FAQ</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {realEstateFAQs.map((faq, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="font-semibold mb-2">{faq.question}</h3>
-                  <p className="text-gray-600 text-sm">{faq.answer}</p>
-                </div>
+                  <CardContent className="space-y-2 pt-0">
+                    <p className="text-xs text-gray-700 line-clamp-2">{property.description}</p>
+                    
+                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                      {property.bedrooms && (
+                        <div className="flex items-center gap-1">
+                          <Bed className="h-3 w-3" />
+                          <span>{property.bedrooms}</span>
+                        </div>
+                      )}
+                      {property.bathrooms && (
+                        <div className="flex items-center gap-1">
+                          <Bath className="h-3 w-3" />
+                          <span>{property.bathrooms}</span>
+                        </div>
+                      )}
+                      {property.square_feet && (
+                        <div className="flex items-center gap-1">
+                          <Square className="h-3 w-3" />
+                          <span>{property.square_feet} sqft</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-base font-bold text-orange-600">
+                        KSH {property.price.toLocaleString()}
+                      </span>
+                      <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-xs px-3 py-1">
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </section>
-
-          {/* Coming Soon Notice - Only show in grid mode */}
-          {viewMode === 'grid' && (
-            <section className="text-center bg-gradient-to-r from-purple-500 to-pink-600 text-white p-12 rounded-2xl">
-              <h2 className="text-3xl font-bold mb-4">Full Platform Coming Soon!</h2>
-              <p className="text-lg mb-6 opacity-90">
-                We're building the most comprehensive real estate platform in Kenya. Get early access!
-              </p>
-              <Button variant="secondary" size="lg" className="px-8 py-3">
-                <Phone className="mr-2 h-5 w-5" />
-                Get Early Access
-              </Button>
-            </section>
           )}
-
-          {/* Property Inquiry Modal */}
-          <PropertyInquiryModal
-            isOpen={showInquiryModal}
-            onClose={() => setShowInquiryModal(false)}
-            property={selectedProperty}
-          />
         </div>
-      </MainLayout>
-    </SEOLayout>
+      </div>
+    </MainLayout>
   );
 };
 

@@ -10,6 +10,8 @@ import InsuranceCard from '@/modules/insurance/components/InsuranceCard';
 import { InsuranceFilters } from '@/modules/insurance/types';
 import { useAuth } from '@/contexts/AuthContext';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
+import HeroSection from '@/components/shared/HeroSection';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const Insurance: React.FC = () => {
   const { user } = useAuth();
@@ -20,11 +22,11 @@ const Insurance: React.FC = () => {
     premiumRange: { min: 0, max: 100000 },
     coverageTypes: []
   });
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const { data: plans = [], isLoading } = useInsurancePlans(filters);
   const { createPolicy } = useInsuranceOperations();
 
-  // Filter plans based on search
   const filteredPlans = plans.filter(plan => 
     plan.name.toLowerCase().includes(search.toLowerCase()) ||
     plan.providerName.toLowerCase().includes(search.toLowerCase()) ||
@@ -33,16 +35,13 @@ const Insurance: React.FC = () => {
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
-      // Redirect to login or show login modal
       console.log('User must be logged in to purchase insurance');
       return;
     }
 
-    // Find the selected plan
     const selectedPlan = plans.find(plan => plan.id === planId);
     if (!selectedPlan) return;
 
-    // Create complete policy data
     const policyData = {
       userId: user.id,
       providerId: selectedPlan.providerId,
@@ -54,7 +53,7 @@ const Insurance: React.FC = () => {
       premium: selectedPlan.premium,
       coverageAmount: selectedPlan.coverageAmount,
       startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+      endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       status: 'Active' as const,
       documents: [],
       claims: [],
@@ -66,127 +65,141 @@ const Insurance: React.FC = () => {
   };
 
   const handleComparePlan = (planId: string) => {
-    // Compare functionality would go here
     console.log('Compare plan:', planId);
   };
 
   return (
     <FrontendLayout>
-      <div className="min-h-screen bg-orange-50">
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-orange-500 text-white py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center">
-              <Shield className="h-16 w-16 mx-auto mb-4" />
-              <h1 className="text-4xl font-bold mb-4">Insurance Hub</h1>
-              <p className="text-xl text-purple-100 max-w-2xl mx-auto">
-                Protect what matters most with comprehensive insurance coverage tailored to your needs.
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+        <HeroSection
+          title="Insurance Hub"
+          subtitle="Protect What Matters Most"
+          description="Comprehensive insurance coverage tailored to your needs."
+          imageUrl="photo-1524230572899-a752b3835840"
+          className="mb-0 rounded-b-2xl h-64"
+        />
 
-        <div className="container mx-auto px-4 py-8">
-          {/* Search and Filters */}
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="mb-4">
+            <div className="flex gap-2 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search insurance plans..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 py-2 text-sm border-orange-200 focus:border-orange-500 rounded-lg"
                 />
               </div>
-              <Button variant="outline" className="flex items-center gap-2 border-orange-200 hover:bg-orange-50">
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
-            </div>
-
-            {/* Category Filter Chips */}
-            <div className="flex flex-wrap gap-2">
-              {['Medical', 'Motor', 'Life/Accident', 'Business/Property'].map(category => (
-                <Button
-                  key={category}
-                  variant={filters.categories.includes(category) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setFilters(prev => ({
-                      ...prev,
-                      categories: prev.categories.includes(category)
-                        ? prev.categories.filter(c => c !== category)
-                        : [...prev.categories, category]
-                    }));
-                  }}
-                  className={filters.categories.includes(category) 
-                    ? 'bg-purple-600 hover:bg-purple-700' 
-                    : 'border-orange-200 hover:bg-orange-50'
-                  }
-                >
-                  {category}
-                </Button>
-              ))}
+              
+              <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-orange-200 text-orange-600 hover:bg-orange-50 px-4 py-2 text-sm rounded-lg"
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Filter Insurance Plans</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Categories</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Medical', 'Motor', 'Life/Accident', 'Business/Property'].map(category => (
+                          <Button
+                            key={category}
+                            variant={filters.categories.includes(category) ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              setFilters(prev => ({
+                                ...prev,
+                                categories: prev.categories.includes(category)
+                                  ? prev.categories.filter(c => c !== category)
+                                  : [...prev.categories, category]
+                              }));
+                            }}
+                            className={filters.categories.includes(category) 
+                              ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-xs' 
+                              : 'border-orange-200 hover:bg-orange-50 text-xs'
+                            }
+                          >
+                            {category}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => setIsFilterModalOpen(false)}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm"
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <Card className="border-orange-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Plans</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-gray-600">Total Plans</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{plans.length}</div>
+                <div className="text-lg font-bold text-orange-600">{plans.length}</div>
               </CardContent>
             </Card>
             <Card className="border-orange-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Starting From</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-gray-600">Starting From</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-lg font-bold text-orange-600">
                   KSh {plans.length > 0 ? Math.min(...plans.map(p => p.premium)).toLocaleString() : '0'}
                 </div>
               </CardContent>
             </Card>
             <Card className="border-orange-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Providers</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-gray-600">Providers</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-lg font-bold text-orange-600">
                   {new Set(plans.map(p => p.providerName)).size}
                 </div>
               </CardContent>
             </Card>
             <Card className="border-orange-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Max Coverage</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-gray-600">Max Coverage</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-lg font-bold text-orange-600">
                   KSh {plans.length > 0 ? Math.max(...plans.map(p => p.coverageAmount)).toLocaleString() : '0'}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Insurance Plans Grid */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <span className="ml-2">Loading insurance plans...</span>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600 mx-auto"></div>
+              <span className="ml-2 text-sm">Loading insurance plans...</span>
             </div>
           ) : filteredPlans.length === 0 ? (
-            <div className="text-center py-12">
-              <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No plans found</h3>
-              <p className="text-gray-600">Try adjusting your search or filters to find more plans.</p>
+            <div className="text-center py-8">
+              <Shield className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-base font-semibold mb-1">No plans found</h3>
+              <p className="text-sm text-gray-600">Try adjusting your search or filters to find more plans.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPlans.map((plan) => (
                 <InsuranceCard
                   key={plan.id}

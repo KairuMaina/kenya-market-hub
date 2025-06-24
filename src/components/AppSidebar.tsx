@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import {
@@ -108,7 +109,7 @@ const AppSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton>
               <span className="text-sm text-gray-600">
-                © 2024 Soko Smart. Made with ❤️ in Kenya
+                © 2025 Sokko Smart by Milleast.tech. All rights reserved.
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

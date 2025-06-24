@@ -14,7 +14,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import HeroSection from '@/components/shared/HeroSection';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -76,21 +75,17 @@ const Profile = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-        {/* Hero Section with Image Backdrop */}
-        <HeroSection
-          title="My Profile"
-          subtitle="Account Settings"
-          description="Manage your account information and preferences."
-          imageUrl="photo-1472099645785-5658abf4ff4e"
-          className="mb-0 rounded-b-3xl"
-        />
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">My Profile</h1>
+            <p className="text-gray-600">Manage your account information and preferences.</p>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Info Card */}
             <div className="lg:col-span-1">
-              <Card className="border-orange-200 rounded-2xl">
-                <CardHeader className="text-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-2xl">
+              <Card className="border-orange-200 rounded-xl">
+                <CardHeader className="text-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-xl">
                   <Avatar className="w-16 h-16 mx-auto mb-3 border-4 border-white">
                     <AvatarImage src={profile?.avatar_url} />
                     <AvatarFallback className="bg-white text-orange-600 text-lg">
@@ -158,7 +153,7 @@ const Profile = () => {
                 </TabsList>
 
                 <TabsContent value="personal">
-                  <Card className="border-orange-200 rounded-2xl">
+                  <Card className="border-orange-200 rounded-xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
                         <User className="h-4 w-4 text-orange-500" />
@@ -177,7 +172,7 @@ const Profile = () => {
                             value={formData.full_name}
                             onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-lg"
                           />
                         </div>
                         <div className="space-y-1">
@@ -187,7 +182,7 @@ const Profile = () => {
                             value={formData.phone}
                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-lg"
                           />
                         </div>
                         <div className="space-y-1">
@@ -197,7 +192,7 @@ const Profile = () => {
                             value={formData.city}
                             onChange={(e) => setFormData({...formData, city: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-lg"
                           />
                         </div>
                         <div className="space-y-1 md:col-span-2">
@@ -207,7 +202,7 @@ const Profile = () => {
                             value={formData.address}
                             onChange={(e) => setFormData({...formData, address: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-lg"
                           />
                         </div>
                       </div>
@@ -216,7 +211,7 @@ const Profile = () => {
                           <Button 
                             onClick={() => setIsEditing(true)}
                             size="sm"
-                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-xl"
+                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-lg"
                           >
                             Edit Profile
                           </Button>
@@ -226,7 +221,7 @@ const Profile = () => {
                               onClick={handleSave}
                               disabled={updateProfile.isPending}
                               size="sm"
-                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-xl"
+                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-lg"
                             >
                               {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
                             </Button>
@@ -234,7 +229,7 @@ const Profile = () => {
                               variant="outline" 
                               onClick={() => setIsEditing(false)}
                               size="sm"
-                              className="border-orange-200 text-orange-600 hover:bg-orange-50 text-sm px-4 py-2 rounded-xl"
+                              className="border-orange-200 text-orange-600 hover:bg-orange-50 text-sm px-4 py-2 rounded-lg"
                             >
                               Cancel
                             </Button>
@@ -246,7 +241,7 @@ const Profile = () => {
                 </TabsContent>
 
                 <TabsContent value="orders">
-                  <Card className="border-orange-200 rounded-2xl">
+                  <Card className="border-orange-200 rounded-xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
                         <Package className="h-4 w-4 text-orange-500" />
@@ -255,7 +250,7 @@ const Profile = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-center py-8">
-                        <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <Package className="h-10 w-10 text-gray-300 mx-auto mb-3" />
                         <p className="text-sm text-gray-600">No orders found</p>
                       </div>
                     </CardContent>
@@ -263,7 +258,7 @@ const Profile = () => {
                 </TabsContent>
 
                 <TabsContent value="reviews">
-                  <Card className="border-orange-200 rounded-2xl">
+                  <Card className="border-orange-200 rounded-xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
                         <Star className="h-4 w-4 text-orange-500" />
@@ -272,7 +267,7 @@ const Profile = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-center py-8">
-                        <Star className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <Star className="h-10 w-10 text-gray-300 mx-auto mb-3" />
                         <p className="text-sm text-gray-600">No reviews yet</p>
                       </div>
                     </CardContent>
@@ -280,7 +275,7 @@ const Profile = () => {
                 </TabsContent>
 
                 <TabsContent value="wishlist">
-                  <Card className="border-orange-200 rounded-2xl">
+                  <Card className="border-orange-200 rounded-xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
                         <Heart className="h-4 w-4 text-orange-500" />
@@ -289,7 +284,7 @@ const Profile = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-center py-8">
-                        <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <Heart className="h-10 w-10 text-gray-300 mx-auto mb-3" />
                         <p className="text-sm text-gray-600">No items in wishlist</p>
                       </div>
                     </CardContent>
