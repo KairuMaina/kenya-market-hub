@@ -9,13 +9,11 @@ export interface ChatMessage {
   conversation_id: string;
   sender_id: string;
   content: string;
-  message_type: 'text' | 'image' | 'video';
-  media_url?: string;
+  message_type?: string;
   created_at: string;
-  sender_profile?: {
-    full_name: string;
-    avatar_url?: string;
-  };
+  edited_at?: string;
+  is_read: boolean;
+  reply_to_message_id?: string;
 }
 
 export const useChatMessages = (conversationId: string) => {
@@ -26,27 +24,12 @@ export const useChatMessages = (conversationId: string) => {
 
       const { data, error } = await supabase
         .from('chat_messages')
-        .select(`
-          *,
-          sender_profile:profiles!sender_id(full_name, avatar_url)
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching chat messages:', error);
-        throw error;
-      }
-
-      // Transform data to match our interface
-      const transformedData = (data || []).map(msg => ({
-        ...msg,
-        sender_profile: Array.isArray(msg.sender_profile) 
-          ? msg.sender_profile[0] 
-          : msg.sender_profile || { full_name: 'Unknown User' }
-      }));
-
-      return transformedData as ChatMessage[];
+      if (error) throw error;
+      return data as ChatMessage[];
     },
     enabled: !!conversationId
   });
@@ -60,36 +43,29 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: async ({ 
       conversationId, 
-      content, 
-      messageType = 'text', 
-      mediaUrl 
+      content 
     }: {
       conversationId: string;
       content: string;
-      messageType?: 'text' | 'image' | 'video';
-      mediaUrl?: string;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
-      const messageData = {
-        conversation_id: conversationId,
-        sender_id: user.id,
-        content,
-        message_type: messageType,
-        media_url: mediaUrl
-      };
-
       const { data, error } = await supabase
         .from('chat_messages')
-        .insert([messageData])
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content,
+          message_type: 'text'
+        })
         .select()
         .single();
 
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-messages', data.conversation_id] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', variables.conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (error: any) => {

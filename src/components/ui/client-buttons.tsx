@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShoppingCart, Eye, Heart, Phone, Calendar, MapPin, Search, Filter } from 'lucide-react';
+import { Loader2, ShoppingCart, Eye, Heart, Phone, Calendar, Search, Filter } from 'lucide-react';
 
 interface ClientButtonProps {
   onClick?: () => void;
@@ -15,7 +15,7 @@ export const BookServiceButton: React.FC<ClientButtonProps> = ({ onClick, loadin
   <Button
     onClick={onClick}
     disabled={disabled || loading}
-    className={`bg-orange-600 hover:bg-orange-700 text-white ${className}`}
+    className={`bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Calendar className="h-4 w-4 mr-2" />}
     {children || 'Book Service'}
@@ -39,7 +39,7 @@ export const ViewDetailsButton: React.FC<ClientButtonProps> = ({ onClick, loadin
     variant="outline"
     onClick={onClick}
     disabled={disabled || loading}
-    className={`${className}`}
+    className={`border-orange-200 text-orange-600 hover:bg-orange-50 ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
     View Details
@@ -50,7 +50,7 @@ export const AddToCartButton: React.FC<ClientButtonProps> = ({ onClick, loading,
   <Button
     onClick={onClick}
     disabled={disabled || loading}
-    className={`bg-green-600 hover:bg-green-700 text-white ${className}`}
+    className={`bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
     {children || 'Add to Cart'}
@@ -61,7 +61,7 @@ export const BuyNowButton: React.FC<ClientButtonProps> = ({ onClick, loading, di
   <Button
     onClick={onClick}
     disabled={disabled || loading}
-    className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`}
+    className={`bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
     {children || 'Buy Now'}
@@ -74,7 +74,7 @@ export const WishlistButton: React.FC<ClientButtonProps> = ({ onClick, loading, 
     size="sm"
     onClick={onClick}
     disabled={disabled || loading}
-    className={`${className}`}
+    className={`border-orange-200 text-orange-600 hover:bg-orange-50 ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
   </Button>
@@ -85,7 +85,7 @@ export const GetStartedButton: React.FC<ClientButtonProps> = ({ onClick, loading
     size="lg"
     onClick={onClick}
     disabled={disabled || loading}
-    className={`bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-lg px-8 py-3 ${className}`}
+    className={`bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-8 py-3 shadow-lg ${className}`}
   >
     {loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : null}
     {children || 'Get Started'}
@@ -98,7 +98,7 @@ export const BrowseCategoriesButton: React.FC<ClientButtonProps> = ({ onClick, l
     size="lg"
     onClick={onClick}
     disabled={disabled || loading}
-    className={`text-lg px-8 py-3 border-2 ${className}`}
+    className={`text-lg px-8 py-3 border-2 border-orange-200 text-orange-600 hover:bg-orange-50 ${className}`}
   >
     {loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Search className="h-5 w-5 mr-2" />}
     {children || 'Browse Categories'}
@@ -110,7 +110,7 @@ export const FilterButton: React.FC<ClientButtonProps> = ({ onClick, loading, di
     variant="outline"
     onClick={onClick}
     disabled={disabled || loading}
-    className={`${className}`}
+    className={`border-orange-200 text-orange-600 hover:bg-orange-50 ${className}`}
   >
     {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Filter className="h-4 w-4 mr-2" />}
     {children || 'Filter'}

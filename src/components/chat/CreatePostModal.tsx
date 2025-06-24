@@ -26,7 +26,7 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
       createPost.mutate({
         title,
         content,
-        category_id: categoryId
+        categoryId
       }, {
         onSuccess: () => {
           setTitle('');
@@ -90,6 +90,7 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
             <Button 
               onClick={handleSubmit}
               disabled={!title.trim() || !content.trim() || !categoryId || createPost.isPending}
+              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white"
             >
               {createPost.isPending ? 'Creating...' : 'Create Post'}
             </Button>

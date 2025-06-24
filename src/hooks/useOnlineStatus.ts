@@ -99,10 +99,12 @@ export const useUserOnlineStatus = (userId: string) => {
 
         if (error) throw error;
 
-        setUserStatus({
-          isOnline: data.is_online || false,
-          lastSeen: data.last_seen
-        });
+        if (data) {
+          setUserStatus({
+            isOnline: data.is_online || false,
+            lastSeen: data.last_seen
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch user status:', error);
       }

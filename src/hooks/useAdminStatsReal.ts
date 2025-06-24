@@ -63,7 +63,7 @@ export const useAdminStats = () => {
           // Total counts
           supabase.from('profiles').select('id', { count: 'exact' }),
           supabase.from('vendors').select('id', { count: 'exact' }),
-          supabase.from('orders').select('id, total_amount'),
+          supabase.from('orders').select('id, total_amount, status'),
           supabase.from('products').select('id', { count: 'exact' }),
           supabase.from('drivers').select('id', { count: 'exact' }),
           supabase.from('properties').select('id', { count: 'exact' }),
@@ -125,7 +125,7 @@ export const useAdminStats = () => {
         const totalRevenue = ordersResult.data?.reduce((sum, order) => 
           sum + (parseFloat(order.total_amount?.toString() || '0')), 0) || 0;
 
-        // Calculate order status counts
+        // Calculate order status counts - using the correct data structure
         const pendingOrders = ordersResult.data?.filter(o => o.status === 'pending').length || 0;
         const completedOrders = ordersResult.data?.filter(o => o.status === 'completed').length || 0;
 

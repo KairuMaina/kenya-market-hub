@@ -3,11 +3,9 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, Activity, Clock, TrendingUp, Users, Eye, Package, DollarSign, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAdminStats } from '@/hooks/useAdminStats';
+import { useAdminStats } from '@/hooks/useAdminStatsReal';
 import { useCoupons } from '@/hooks/useCoupons';
 import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
 import { Coupon } from '@/types/coupon';
@@ -68,7 +66,7 @@ const NewAdminDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -76,17 +74,17 @@ const NewAdminDashboard = () => {
                   <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
                   <div className="flex items-center space-x-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs font-medium text-green-600">+12%</span>
+                    <span className="text-xs font-medium text-green-600">+{stats?.userGrowthPercentage || 0}%</span>
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 shadow-lg">
                   <Users className="h-6 w-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -94,7 +92,7 @@ const NewAdminDashboard = () => {
                   <p className="text-2xl font-bold">{stats?.totalOrders || 0}</p>
                   <div className="flex items-center space-x-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs font-medium text-green-600">+8%</span>
+                    <span className="text-xs font-medium text-green-600">+{stats?.orderGrowthPercentage || 0}%</span>
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-lg">
@@ -104,7 +102,7 @@ const NewAdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -112,7 +110,7 @@ const NewAdminDashboard = () => {
                   <p className="text-2xl font-bold">KSh {(stats?.totalRevenue || 0).toLocaleString()}</p>
                   <div className="flex items-center space-x-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs font-medium text-green-600">+15%</span>
+                    <span className="text-xs font-medium text-green-600">+{stats?.revenueGrowthPercentage || 0}%</span>
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
@@ -122,7 +120,7 @@ const NewAdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -133,7 +131,7 @@ const NewAdminDashboard = () => {
                     <span className="text-xs font-medium text-green-600">+5%</span>
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 shadow-lg">
                   <Package className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -144,17 +142,17 @@ const NewAdminDashboard = () => {
         {/* Recent Activity and Quick Actions */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Recent Activity */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-blue-600" />
+                    <Activity className="h-5 w-5 text-orange-600" />
                     Recent Activity
                   </CardTitle>
                   <CardDescription>Latest platform activities</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-orange-200 text-orange-600 hover:bg-orange-50">
                   <Eye className="h-4 w-4 mr-1" />
                   View All
                 </Button>
@@ -164,7 +162,7 @@ const NewAdminDashboard = () => {
               <div className="space-y-4">
                 {stats?.recentActivity?.slice(0, 5).map((activity, index) => (
                   <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/60 transition-colors">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{activity.message}</p>
                       <p className="text-xs text-gray-500 mt-1">
@@ -184,7 +182,7 @@ const NewAdminDashboard = () => {
           </Card>
 
           {/* Quick Actions */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/50">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/30">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Users className="h-5 w-5 text-orange-600" />
@@ -197,7 +195,7 @@ const NewAdminDashboard = () => {
                 <Link to="/admin/users">
                   <Button 
                     variant="outline" 
-                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <Users className="h-6 w-6 text-orange-600" />
                     <span className="text-sm font-medium">Manage Users</span>
@@ -207,7 +205,7 @@ const NewAdminDashboard = () => {
                 <Link to="/admin/products">
                   <Button 
                     variant="outline" 
-                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <Package className="h-6 w-6 text-orange-600" />
                     <span className="text-sm font-medium">Products</span>
@@ -217,7 +215,7 @@ const NewAdminDashboard = () => {
                 <Link to="/admin/orders">
                   <Button 
                     variant="outline" 
-                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <ShoppingCart className="h-6 w-6 text-orange-600" />
                     <span className="text-sm font-medium">View Orders</span>
@@ -227,7 +225,7 @@ const NewAdminDashboard = () => {
                 <Link to="/admin/analytics">
                   <Button 
                     variant="outline" 
-                    className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+                    className="w-full h-auto p-4 flex flex-col items-center gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <TrendingUp className="h-6 w-6 text-orange-600" />
                     <span className="text-sm font-medium">Analytics</span>

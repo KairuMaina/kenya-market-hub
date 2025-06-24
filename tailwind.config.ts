@@ -30,20 +30,20 @@ export default {
 					foreground: '#ffffff'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: '#fed7aa', // orange-200
+					foreground: '#9a3412' // orange-800
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					DEFAULT: '#dc2626', // red-600
+					foreground: '#ffffff'
 				},
 				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#fff7ed', // orange-50
+					foreground: '#9a3412' // orange-800
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: '#ffedd5', // orange-100
+					foreground: '#ea580c' // orange-600
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// New Soko Smart color palette
+				// Unified Soko Smart orange-red color palette
 				'soko-orange': {
 					50: '#fff7ed',
 					100: '#ffedd5',
@@ -76,9 +76,21 @@ export default {
 					800: '#9a3412',
 					900: '#7c2d12',
 				},
+				'soko-red': {
+					50: '#fef2f2',
+					100: '#fee2e2',
+					200: '#fecaca',
+					300: '#fca5a5',
+					400: '#f87171',
+					500: '#ef4444',
+					600: '#dc2626', // Primary red
+					700: '#b91c1c',
+					800: '#991b1b',
+					900: '#7f1d1d',
+				},
 				'soko-gray': {
 					50: '#f9fafb',
-					100: '#f3f4f6', // Light grey
+					100: '#f3f4f6',
 					200: '#e5e7eb',
 					300: '#d1d5db',
 					400: '#9ca3af',
@@ -86,7 +98,7 @@ export default {
 					600: '#4b5563',
 					700: '#374151',
 					800: '#1f2937',
-					900: '#111827', // Dark accent
+					900: '#111827',
 				}
 			},
 			borderRadius: {
