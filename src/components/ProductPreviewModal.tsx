@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import WishlistButton from './WishlistButton';
 import { useProductImages } from '@/hooks/useProductImages';
 import LazyImage from '@/components/LazyImage';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface ProductPreviewModalProps {
   open: boolean;
@@ -47,14 +48,6 @@ const ProductPreviewModal = ({ open, onOpenChange, product }: ProductPreviewModa
     });
   };
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
@@ -69,47 +62,33 @@ const ProductPreviewModal = ({ open, onOpenChange, product }: ProductPreviewModa
           </Button>
           
           <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Image Section */}
-            <div className="relative bg-gray-50">
-              <div className="aspect-square relative overflow-hidden">
-                <LazyImage 
-                  src={images[currentImageIndex]} 
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                
+            {/* Image Carousel Section */}
+            <div className="relative bg-gray-50 p-4">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {images.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <div className="aspect-square relative overflow-hidden rounded-lg">
+                        <LazyImage 
+                          src={image} 
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
                 {images.length > 1 && (
                   <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                    
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                      {images.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
-                    </div>
+                    <CarouselPrevious className="left-4" />
+                    <CarouselNext className="right-4" />
                   </>
                 )}
-              </div>
+              </Carousel>
               
+              {/* Thumbnail strip */}
               {images.length > 1 && (
-                <div className="flex space-x-2 p-4 overflow-x-auto">
+                <div className="flex space-x-2 mt-4 overflow-x-auto">
                   {images.map((image, index) => (
                     <button
                       key={index}

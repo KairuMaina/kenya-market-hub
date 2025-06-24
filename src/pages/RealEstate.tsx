@@ -26,11 +26,11 @@ interface Property {
   title: string;
   description: string;
   price: number;
-  location: string;
+  location_address: string;
   property_type: string;
   bedrooms?: number;
   bathrooms?: number;
-  square_feet?: number;
+  area_sqm?: number;
   images?: string[];
   status: string;
 }
@@ -60,9 +60,9 @@ const RealEstate = () => {
 
   const filteredProperties = properties?.filter(property => {
     const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.location?.toLowerCase().includes(searchTerm.toLowerCase());
+                         property.location_address?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = !filters.propertyType || property.property_type === filters.propertyType;
-    const matchesLocation = !filters.location || property.location?.toLowerCase().includes(filters.location.toLowerCase());
+    const matchesLocation = !filters.location || property.location_address?.toLowerCase().includes(filters.location.toLowerCase());
     
     return matchesSearch && matchesType && matchesLocation;
   }) || [];
@@ -77,7 +77,7 @@ const RealEstate = () => {
           subtitle="Find Your Dream Property"
           description="Discover amazing properties across Kenya's prime locations."
           imageUrl="photo-1483058712412-4245e9b90334"
-          className="mb-0 rounded-b-2xl h-64"
+          className="mb-0 rounded-b-2xl h-64 px-6 py-8"
         />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -166,8 +166,13 @@ const RealEstate = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Home className="h-12 w-12 text-gray-400" />
+                      <div 
+                        className="w-full h-full bg-cover bg-center"
+                        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop)` }}
+                      >
+                        <div className="w-full h-full bg-black bg-opacity-20 flex items-center justify-center">
+                          <Home className="h-12 w-12 text-white" />
+                        </div>
                       </div>
                     )}
                     <Badge className="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
@@ -179,7 +184,7 @@ const RealEstate = () => {
                     <CardTitle className="text-sm text-gray-900 line-clamp-1">{property.title}</CardTitle>
                     <div className="flex items-center gap-1 text-xs text-gray-600">
                       <MapPin className="h-3 w-3 text-orange-500" />
-                      <span className="truncate">{property.location}</span>
+                      <span className="truncate">{property.location_address}</span>
                     </div>
                   </CardHeader>
 
@@ -199,10 +204,10 @@ const RealEstate = () => {
                           <span>{property.bathrooms}</span>
                         </div>
                       )}
-                      {property.square_feet && (
+                      {property.area_sqm && (
                         <div className="flex items-center gap-1">
                           <Square className="h-3 w-3" />
-                          <span>{property.square_feet} sqft</span>
+                          <span>{property.area_sqm} sqm</span>
                         </div>
                       )}
                     </div>
