@@ -12,13 +12,15 @@ interface UnifiedButtonProps {
   children?: React.ReactNode;
   size?: 'sm' | 'default' | 'lg';
   fullWidth?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 // Primary Action Buttons
 export const PrimaryButton: React.FC<UnifiedButtonProps> = ({ 
-  onClick, loading, disabled, className, children, size = 'default', fullWidth 
+  onClick, loading, disabled, className, children, size = 'default', fullWidth, type = 'button'
 }) => (
   <Button
+    type={type}
     onClick={onClick}
     disabled={disabled || loading}
     size={size}
@@ -35,9 +37,10 @@ export const PrimaryButton: React.FC<UnifiedButtonProps> = ({
 );
 
 export const SecondaryButton: React.FC<UnifiedButtonProps> = ({ 
-  onClick, loading, disabled, className, children, size = 'default', fullWidth 
+  onClick, loading, disabled, className, children, size = 'default', fullWidth, type = 'button'
 }) => (
   <Button
+    type={type}
     variant="outline"
     onClick={onClick}
     disabled={disabled || loading}
@@ -70,6 +73,7 @@ export const EditButton: React.FC<UnifiedButtonProps> = (props) => (
 
 export const DeleteButton: React.FC<UnifiedButtonProps> = (props) => (
   <Button
+    type={props.type || 'button'}
     variant="destructive"
     onClick={props.onClick}
     disabled={props.disabled || props.loading}

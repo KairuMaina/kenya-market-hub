@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -78,9 +77,8 @@ export const useForumCategories = () => {
   });
 };
 
-export const useChatForums = () => {
-  return useForumCategories();
-};
+// Export useChatForums as an alias for useForumCategories
+export const useChatForums = useForumCategories;
 
 export const useForumPosts = (categoryId?: string) => {
   return useQuery({
