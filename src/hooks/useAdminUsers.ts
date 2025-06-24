@@ -6,62 +6,58 @@ import { useToast } from '@/hooks/use-toast';
 export interface AdminUser {
   id: string;
   email: string;
-  full_name: string | null;
-  phone: string | null;
+  full_name?: string;
+  phone?: string;
   created_at: string;
   roles: string[];
-  is_active: boolean;
 }
 
-export const useAdminUsers = (page = 1, limit = 10, search = '') => {
-  return useQuery({
-    queryKey: ['admin-users', page, limit, search],
-    queryFn: async () => {
-      console.log('🔍 Fetching admin users...', { page, limit, search });
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  total: number;
+  totalPages: number;
+}
 
+export const useAdminUsers = (page: number = 1, limit: number = 10, searchTerm?: string) => {
+  return useQuery({
+    queryKey: ['admin-users', page, limit, searchTerm],
+    queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          phone,
-          created_at,
-          user_roles!inner(role)
-        `)
+        .select('*', { count: 'exact' });
+
+      if (searchTerm) {
+        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      }
+
+      const { data: profiles, error, count } = await query
+        .range((page - 1) * limit, page * limit - 1)
         .order('created_at', { ascending: false });
 
-      if (search) {
-        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
-      }
+      if (error) throw error;
 
-      const { data, error, count } = await query
-        .range((page - 1) * limit, page * limit - 1)
-        .returns<any[]>();
+      // Get user roles
+      const userIds = profiles?.map(p => p.id) || [];
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
 
-      if (error) {
-        console.error('❌ Error fetching users:', error);
-        throw error;
-      }
-
-      const users: AdminUser[] = data?.map(user => ({
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        created_at: user.created_at,
-        roles: user.user_roles?.map((r: any) => r.role) || [],
-        is_active: true
-      })) || [];
-
-      console.log('✅ Users fetched successfully:', users.length);
+      const users: AdminUser[] = (profiles || []).map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        created_at: profile.created_at,
+        roles: userRoles?.filter(ur => ur.user_id === profile.id).map(ur => ur.role) || []
+      }));
 
       return {
         users,
         total: count || 0,
         totalPages: Math.ceil((count || 0) / limit)
-      };
-    },
+      } as AdminUsersResponse;
+    }
   });
 };
 
@@ -71,37 +67,30 @@ export const useUpdateUserRole = () => {
 
   return useMutation({
     mutationFn: async ({ userId, role, action }: { userId: string; role: string; action: 'add' | 'remove' }) => {
-      console.log('🔄 Updating user role:', { userId, role, action });
-
-      const validRoles = ['admin', 'customer', 'vendor', 'driver', 'property_owner', 'rider'];
-      if (!validRoles.includes(role)) {
-        throw new Error(`Invalid role: ${role}`);
-      }
-
       if (action === 'add') {
         const { error } = await supabase
           .from('user_roles')
-          .insert({ user_id: userId, role: role as any });
-        
+          .insert({ user_id: userId, role });
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', role as any);
-        
+          .eq('role', role);
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'User role updated successfully' });
+      toast({
+        title: 'Role Updated',
+        description: 'User role has been updated successfully.'
+      });
     },
     onError: (error: any) => {
-      console.error('❌ Error updating user role:', error);
       toast({
-        title: 'Error updating user role',
+        title: 'Update Failed',
         description: error.message,
         variant: 'destructive'
       });
@@ -115,27 +104,51 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log('🗑️ Deleting user:', userId);
-
-      // Delete user roles first
-      await supabase.from('user_roles').delete().eq('user_id', userId);
-      
-      // Delete profile
-      const { error } = await supabase
-        .from('profiles')
+      // First delete user roles
+      await supabase
+        .from('user_roles')
         .delete()
-        .eq('id', userId);
+        .eq('user_i
+          {
+        title: 'User Deleted',
+        description: 'User has been deleted successfully.'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Delete Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
 
-      if (error) throw error;
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ email, password, full_name, role }: { 
+      email: string; 
+      password: string; 
+      full_name?: string; 
+      role?: string;
+    }) => {
+      // This would typically be handled by an admin function
+      // For now, we'll show a message that this needs to be implemented
+      throw new Error('User creation functionality needs to be implemented with proper admin privileges');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'User deleted successfully' });
+      toast({
+        title: 'User Created',
+        description: 'New user has been created successfully.'
+      });
     },
     onError: (error: any) => {
-      console.error('❌ Error deleting user:', error);
       toast({
-        title: 'Error deleting user',
+        title: 'Creation Failed',
         description: error.message,
         variant: 'destructive'
       });

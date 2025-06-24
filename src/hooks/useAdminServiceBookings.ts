@@ -34,18 +34,18 @@ export const useAdminServiceBookings = () => {
       if (!bookings) return [];
 
       // Get customer and provider names
-      const customerIds = [...new Set(bookings.map(b => b.customer_id))];
-      const providerIds = [...new Set(bookings.map(b => b.provider_id))];
+      const customerIds = [...new Set(bookings.map(b => b.customer_id).filter(Boolean))];
+      const providerIds = [...new Set(bookings.map(b => b.provider_id).filter(Boolean))];
 
       const [customersRes, providersRes] = await Promise.all([
-        supabase
+        customerIds.length > 0 ? supabase
           .from('profiles')
           .select('id, full_name')
-          .in('id', customerIds),
-        supabase
+          .in('id', customerIds) : { data: [] },
+        providerIds.length > 0 ? supabase
           .from('profiles')
           .select('id, full_name')
-          .in('id', providerIds)
+          .in('id', providerIds) : { data: [] }
       ]);
 
       const customers = customersRes.data || [];
@@ -56,7 +56,7 @@ export const useAdminServiceBookings = () => {
         customer_id: booking.customer_id,
         provider_id: booking.provider_id,
         service_type: booking.service_type || 'General Service',
-        service_description: booking.service_description || booking.notes || 'No description',
+        service_description: booking.service_description || booking.description || 'No description',
         booking_date: booking.booking_date,
         booking_time: booking.booking_time || '09:00',
         booking_address: booking.booking_address || 'No address provided',

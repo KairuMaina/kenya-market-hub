@@ -14,7 +14,7 @@ export interface ServiceBooking {
   booking_time: string;
   booking_address: string;
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'scheduled' | 'rejected';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   notes?: string;
   created_at: string;
@@ -49,7 +49,18 @@ export const useMyBookings = () => {
       if (!bookings) return [];
 
       // Get provider profiles
-      const providerIds = bookings.map(b => b.provider_id);
+      const providerIds = bookings.map(b => b.provider_id).filter(Boolean);
+      if (providerIds.length === 0) return bookings.map(booking => ({
+        ...booking,
+        service_type: booking.service_type || 'General Service',
+        service_description: booking.service_description || booking.description || 'No description',
+        booking_time: booking.booking_time || '09:00',
+        booking_address: booking.booking_address || 'No address provided',
+        total_amount: booking.total_amount || 0,
+        payment_status: booking.payment_status || 'pending',
+        provider: { full_name: '', business_name: undefined }
+      }));
+
       const { data: providers } = await supabase
         .from('profiles')
         .select('id, full_name')
@@ -66,7 +77,7 @@ export const useMyBookings = () => {
         customer_id: booking.customer_id,
         provider_id: booking.provider_id,
         service_type: booking.service_type || 'General Service',
-        service_description: booking.service_description || booking.notes || 'No description',
+        service_description: booking.service_description || booking.description || 'No description',
         booking_date: booking.booking_date,
         booking_time: booking.booking_time || '09:00',
         booking_address: booking.booking_address || 'No address provided',
@@ -105,7 +116,18 @@ export const useProviderBookings = () => {
       if (!bookings) return [];
 
       // Get customer profiles
-      const customerIds = bookings.map(b => b.customer_id);
+      const customerIds = bookings.map(b => b.customer_id).filter(Boolean);
+      if (customerIds.length === 0) return bookings.map(booking => ({
+        ...booking,
+        service_type: booking.service_type || 'General Service',
+        service_description: booking.service_description || booking.description || 'No description',
+        booking_time: booking.booking_time || '09:00',
+        booking_address: booking.booking_address || 'No address provided',
+        total_amount: booking.total_amount || 0,
+        payment_status: booking.payment_status || 'pending',
+        customer: { full_name: '', email: '' }
+      }));
+
       const { data: customers } = await supabase
         .from('profiles')
         .select('id, full_name, email, phone')
@@ -116,7 +138,7 @@ export const useProviderBookings = () => {
         customer_id: booking.customer_id,
         provider_id: booking.provider_id,
         service_type: booking.service_type || 'General Service',
-        service_description: booking.service_description || booking.notes || 'No description',
+        service_description: booking.service_description || booking.description || 'No description',
         booking_date: booking.booking_date,
         booking_time: booking.booking_time || '09:00',
         booking_address: booking.booking_address || 'No address provided',

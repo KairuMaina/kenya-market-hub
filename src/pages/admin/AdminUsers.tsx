@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
   Search, 
-  Edit, 
+  Edit2, 
   Trash2, 
   UserPlus, 
   ChevronLeft, 
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Phone
 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
@@ -29,11 +31,28 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [newUserData, setNewUserData] = useState({
+    email: '',
+    password: '',
+    full_name: '',
+    role: 'customer'
+  });
 
   const { data: usersData, isLoading, error } = useAdminUsers(currentPage, 10, searchTerm);
   const updateUserRole = useUpdateUserRole();
@@ -47,22 +66,31 @@ const AdminUsers = () => {
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteUser.mutateAsync(userId);
-      setDeleteUserId(null);
     } catch (error) {
       console.error('Error deleting user:', error);
     }
   };
 
-  const handleRoleToggle = async (userId: string, role: string, hasRole: boolean) => {
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+  };
+
+  const handleCreateUser = async () => {
     try {
-      await updateUserRole.mutateAsync({
-        userId,
-        role,
-        action: hasRole ? 'remove' : 'add'
-      });
+      // This would need to be implemented with proper admin privileges
+      console.log('Create user:', newUserData);
+      setNewUserData({ email: '', password: '', full_name: '', role: 'customer' });
     } catch (error) {
-      console.error('Error updating role:', error);
+      console.error('Error creating user:', error);
     }
+  };
+
+  const handleSendEmail = (userEmail: string) => {
+    window.open(`mailto:${userEmail}`, '_blank');
+  };
+
+  const handleCallUser = (userPhone: string) => {
+    window.open(`tel:${userPhone}`, '_blank');
   };
 
   if (error) {
@@ -111,10 +139,79 @@ const AdminUsers = () => {
                       className="pl-10 w-64"
                     />
                   </div>
-                  <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Add User
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Add New User</DialogTitle>
+                        <DialogDescription>
+                          Create a new user account with the specified details.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="email" className="text-right">
+                            Email
+                          </Label>
+                          <Input
+                            id="email"
+                            value={newUserData.email}
+                            onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="password" className="text-right">
+                            Password
+                          </Label>
+                          <Input
+                            id="password"
+                            type="password"
+                            value={newUserData.password}
+                            onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="full_name" className="text-right">
+                            Full Name
+                          </Label>
+                          <Input
+                            id="full_name"
+                            value={newUserData.full_name}
+                            onChange={(e) => setNewUserData(prev => ({ ...prev, full_name: e.target.value }))}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="role" className="text-right">
+                            Role
+                          </Label>
+                          <Select
+                            value={newUserData.role}
+                            onValueChange={(value) => setNewUserData(prev => ({ ...prev, role: value }))}
+                          >
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="customer">Customer</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="vendor">Vendor</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleCreateUser}>Create User</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardHeader>
@@ -171,12 +268,33 @@ const AdminUsers = () => {
                             </TableCell>
                             <TableCell className="space-x-2">
                               <Button 
-                                variant="secondary" 
+                                variant="outline" 
                                 size="sm" 
-                                className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white"
+                                onClick={() => handleEditUser(user)}
+                                className="bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit2 className="h-4 w-4" />
                               </Button>
+                              {user.email && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleSendEmail(user.email)}
+                                  className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white"
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {user.phone && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleCallUser(user.phone)}
+                                  className="bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white"
+                                >
+                                  <Phone className="h-4 w-4" />
+                                </Button>
+                              )}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="destructive" size="sm">
