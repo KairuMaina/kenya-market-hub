@@ -23,7 +23,6 @@ export interface ForumPost {
     name: string;
     color?: string;
   };
-  has_liked?: boolean;
 }
 
 export const useForumPosts = (categoryId?: string) => {
@@ -50,8 +49,7 @@ export const useForumPosts = (categoryId?: string) => {
         throw error;
       }
 
-      // Transform data to match our interface
-      const transformedData = (data || []).map(post => ({
+      return (data || []).map(post => ({
         ...post,
         author_profile: Array.isArray(post.author_profile) 
           ? post.author_profile[0] 
@@ -59,9 +57,7 @@ export const useForumPosts = (categoryId?: string) => {
         category: Array.isArray(post.category) 
           ? post.category[0] 
           : post.category || { name: 'General' }
-      }));
-
-      return transformedData as ForumPost[];
+      })) as ForumPost[];
     }
   });
 };
@@ -115,58 +111,10 @@ export const useCreateForumPost = () => {
   });
 };
 
-export const useTogglePostLike = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (postId: string) => {
-      if (!user) throw new Error('User not authenticated');
-
-      // Check if user already liked this post using forum_post_reactions
-      const { data: existingReaction } = await supabase
-        .from('forum_post_reactions')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .eq('reaction_type', 'like')
-        .single();
-
-      if (existingReaction) {
-        // Remove like
-        const { error } = await supabase
-          .from('forum_post_reactions')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id)
-          .eq('reaction_type', 'like');
-
-        if (error) throw error;
-        return { action: 'unliked' };
-      } else {
-        // Add like
-        const { error } = await supabase
-          .from('forum_post_reactions')
-          .insert([{
-            post_id: postId,
-            user_id: user.id,
-            reaction_type: 'like'
-          }]);
-
-        if (error) throw error;
-        return { action: 'liked' };
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
-    }
-  });
-};
-
 export const useIncrementPostViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {
-      // Use the database function we created
+      // Call the database function
       const { error } = await supabase.rpc('increment_post_views', {
         post_id: postId
       });

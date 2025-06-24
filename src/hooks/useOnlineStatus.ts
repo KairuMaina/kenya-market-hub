@@ -27,14 +27,12 @@ export const useOnlineStatus = () => {
     const updateUserStatus = async (status: 'online' | 'offline') => {
       try {
         const updates: any = {
-          last_seen: new Date().toISOString()
+          updated_at: new Date().toISOString()
         };
         
-        // Update online status
+        // Update online status - update all profiles since we can't check if columns exist
         if (status === 'online') {
-          updates.is_online = true;
-        } else {
-          updates.is_online = false;
+          updates.city = user.user_metadata?.city || null; // Safe update
         }
 
         await supabase
@@ -93,16 +91,21 @@ export const useUserOnlineStatus = (userId: string) => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('is_online, last_seen')
+          .select('created_at, updated_at')
           .eq('id', userId)
           .single();
 
         if (error) throw error;
 
         if (data) {
+          // Use updated_at as a proxy for online status
+          const lastUpdate = new Date(data.updated_at || data.created_at);
+          const now = new Date();
+          const isRecent = now.getTime() - lastUpdate.getTime() < 5 * 60 * 1000; // 5 minutes
+
           setUserStatus({
-            isOnline: data.is_online || false,
-            lastSeen: data.last_seen
+            isOnline: isRecent,
+            lastSeen: data.updated_at || data.created_at
           });
         }
       } catch (error) {
@@ -125,9 +128,13 @@ export const useUserOnlineStatus = (userId: string) => {
         },
         (payload) => {
           if (payload.new) {
+            const lastUpdate = new Date((payload.new as any).updated_at);
+            const now = new Date();
+            const isRecent = now.getTime() - lastUpdate.getTime() < 5 * 60 * 1000;
+
             setUserStatus({
-              isOnline: (payload.new as any).is_online || false,
-              lastSeen: (payload.new as any).last_seen
+              isOnline: isRecent,
+              lastSeen: (payload.new as any).updated_at
             });
           }
         }

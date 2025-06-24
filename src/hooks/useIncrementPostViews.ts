@@ -5,11 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 export const useIncrementPostViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {
-      // Direct update since increment_post_views function exists
-      const { error } = await supabase
-        .from('forum_posts')
-        .update({ view_count: supabase.raw('view_count + 1') })
-        .eq('id', postId);
+      // Call the database function directly
+      const { error } = await supabase.rpc('increment_post_views', {
+        post_id: postId
+      });
 
       if (error) throw error;
     }
