@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -380,7 +379,7 @@ export const useTogglePostReaction = () => {
   });
 };
 
-// Create Forum Comment
+// Create Forum Comment - Fixed export
 export const useCreateForumComment = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
