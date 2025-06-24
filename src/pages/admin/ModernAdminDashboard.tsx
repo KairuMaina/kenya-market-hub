@@ -3,11 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Activity, Clock, TrendingUp, Users, Eye } from 'lucide-react';
+import { AlertCircle, Activity, Clock, TrendingUp, Users, Eye, DollarSign, Package, Car, Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAdminStats } from '@/hooks/useAdminStats';
+import { useAdminStats } from '@/hooks/useAdminStatsReal';
 import ModernAdminLayout from '@/components/admin/ModernAdminLayout';
-import ModernStatsGrid from '@/components/admin/ModernStatsGrid';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import BulkOperations from '@/components/admin/BulkOperations';
 import NotificationCenter from '@/components/admin/NotificationCenter';
@@ -63,6 +62,150 @@ const ModernAdminDashboard = () => {
           </div>
         </div>
 
+        {/* Stats Grid */}
+        {isLoading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="shadow-lg border-0">
+                <CardContent className="p-6">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Users</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalUsers.toLocaleString() || 0}</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      {stats?.userGrowthPercentage > 0 ? '+' : ''}{stats?.userGrowthPercentage.toFixed(1)}% from last month
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-500 rounded-full">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-green-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                    <p className="text-3xl font-bold text-gray-900">${stats?.totalRevenue.toLocaleString() || 0}</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      {stats?.revenueGrowthPercentage > 0 ? '+' : ''}{stats?.revenueGrowthPercentage.toFixed(1)}% from last month
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-500 rounded-full">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalOrders.toLocaleString() || 0}</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      {stats?.orderGrowthPercentage > 0 ? '+' : ''}{stats?.orderGrowthPercentage.toFixed(1)}% from last month
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-500 rounded-full">
+                    <Package className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-purple-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Products</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalProducts.toLocaleString() || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active listings</p>
+                  </div>
+                  <div className="p-3 bg-purple-500 rounded-full">
+                    <Package className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-indigo-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Vendors</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalVendors.toLocaleString() || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active vendors</p>
+                  </div>
+                  <div className="p-3 bg-indigo-500 rounded-full">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-yellow-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Drivers</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalDrivers.toLocaleString() || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Registered drivers</p>
+                  </div>
+                  <div className="p-3 bg-yellow-500 rounded-full">
+                    <Car className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-teal-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Properties</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.totalProperties.toLocaleString() || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Listed properties</p>
+                  </div>
+                  <div className="p-3 bg-teal-500 rounded-full">
+                    <Building className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-red-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pending Orders</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats?.pendingOrders.toLocaleString() || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Needs attention</p>
+                  </div>
+                  <div className="p-3 bg-red-500 rounded-full">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Main Dashboard Content */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-5">
@@ -74,9 +217,6 @@ const ModernAdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Stats Grid */}
-            <ModernStatsGrid stats={stats!} isLoading={isLoading} />
-
             {/* Recent Activity and Quick Actions */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Recent Activity */}
@@ -90,7 +230,7 @@ const ModernAdminDashboard = () => {
                       </CardTitle>
                       <CardDescription>Latest platform activities</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:border-blue-200">
                       <Eye className="h-4 w-4 mr-1" />
                       View All
                     </Button>
@@ -100,7 +240,11 @@ const ModernAdminDashboard = () => {
                   <div className="space-y-4">
                     {stats?.recentActivity?.slice(0, 5).map((activity, index) => (
                       <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/60 transition-colors">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                          activity.type === 'order' ? 'bg-green-500' :
+                          activity.type === 'user' ? 'bg-blue-500' :
+                          activity.type === 'vendor' ? 'bg-orange-500' : 'bg-gray-500'
+                        }`}></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900">{activity.message}</p>
                           <p className="text-xs text-gray-500 mt-1">
@@ -145,7 +289,7 @@ const ModernAdminDashboard = () => {
                         variant="outline" 
                         className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
                       >
-                        <Activity className="h-6 w-6 text-orange-600" />
+                        <Package className="h-6 w-6 text-orange-600" />
                         <span className="text-sm font-medium">Products</span>
                       </Button>
                     </Link>

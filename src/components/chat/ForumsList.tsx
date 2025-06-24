@@ -1,311 +1,131 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, ThumbsUp, Reply, Plus, MessageSquare, Pin, Lock, Eye, User } from 'lucide-react';
-import { useForumCategories, useForumPosts, useTogglePostReaction, useForumPostComments, useCreateForumComment } from '@/hooks/useChatForums';
-import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { MessageCircle, Users, TrendingUp, Plus } from 'lucide-react';
+import { useForumPosts } from '@/hooks/useForumPostsNew';
+import { useForumCategories } from '@/hooks/useChatForums';
 
-interface ForumsListProps {
-  onCreatePost: () => void;
-}
-
-const ForumsList = ({ onCreatePost }: ForumsListProps) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedPost, setSelectedPost] = useState<string | null>(null);
-  const [commentContent, setCommentContent] = useState('');
-  const [replyToComment, setReplyToComment] = useState<string | null>(null);
-
-  const { user } = useAuth();
+const ForumsList = () => {
   const { data: categories, isLoading: categoriesLoading } = useForumCategories();
-  const { data: posts, isLoading: postsLoading } = useForumPosts(selectedCategory);
-  const toggleReaction = useTogglePostReaction();
-  const { data: comments } = useForumPostComments(selectedPost || '');
-  const createComment = useCreateForumComment();
+  const { data: recentPosts, isLoading: postsLoading } = useForumPosts();
 
-  const handleReaction = async (postId: string, reactionType: string) => {
-    if (!user) return;
-    await toggleReaction.mutateAsync({ postId, reactionType });
-  };
-
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPost || !commentContent.trim()) return;
-
-    await createComment.mutateAsync({
-      postId: selectedPost,
-      content: commentContent,
-      parentCommentId: replyToComment
-    });
-
-    setCommentContent('');
-    setReplyToComment(null);
-  };
-
-  const CommentItem = ({ comment, depth = 0 }: { comment: any; depth?: number }) => (
-    <div className={`${depth > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : ''} space-y-3`}>
-      <div className="bg-gray-50 rounded-xl p-4 border">
-        <div className="flex items-start gap-3 mb-3">
-          <Avatar className="h-8 w-8 flex-shrink-0">
-            <AvatarImage src={comment.author?.avatar_url} />
-            <AvatarFallback>
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-sm truncate">
-                {comment.author?.full_name || 'Anonymous'}
-              </span>
-              <span className="text-xs text-gray-500 flex-shrink-0">
-                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-              </span>
-            </div>
-            <p className="text-gray-700 text-sm leading-relaxed break-words">{comment.content}</p>
-            <div className="flex items-center gap-4 mt-3">
-              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-orange-600 transition-colors">
-                <ThumbsUp className="h-3 w-3" />
-                {comment.like_count}
-              </button>
-              <button 
-                onClick={() => setReplyToComment(comment.id)}
-                className="text-xs text-gray-500 hover:text-orange-600 transition-colors"
-              >
-                Reply
-              </button>
-            </div>
-          </div>
+  if (categoriesLoading || postsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading forums...</p>
         </div>
       </div>
-      
-      {comment.replies?.map((reply: any) => (
-        <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
-      ))}
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Community Forums</h2>
-          <p className="text-gray-600 mt-1">Connect with your community</p>
+          <p className="text-gray-600 mt-1">Join discussions and connect with the community</p>
         </div>
-        <Button onClick={onCreatePost} className="bg-orange-500 hover:bg-orange-600 whitespace-nowrap">
+        <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md">
           <Plus className="h-4 w-4 mr-2" />
           Create Post
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Categories Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-4">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 max-h-96 overflow-y-auto">
-              <Button
-                variant={selectedCategory === '' ? 'default' : 'ghost'}
-                className="w-full justify-start text-left"
-                onClick={() => setSelectedCategory('')}
-              >
-                <div className="flex-1">
-                  <div className="font-medium">All Categories</div>
+      {/* Categories Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {categories?.map((category) => (
+          <Card key={category.id} className="hover:shadow-lg transition-shadow cursor-pointer border-0 shadow-md bg-gradient-to-br from-white to-orange-50/30">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg">
+                    <MessageCircle className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{category.name}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {category.description || 'Join the discussion'}
+                    </CardDescription>
+                  </div>
                 </div>
-              </Button>
-              {categoriesLoading ? (
-                <div className="text-center py-4 text-sm text-gray-500">Loading...</div>
-              ) : (
-                categories?.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.id ? 'default' : 'ghost'}
-                    className="w-full justify-start text-left"
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{category.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {category.post_count} posts
-                      </div>
-                    </div>
-                  </Button>
-                ))
-              )}
+              </div>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="h-4 w-4" />
+                    <span>{category.post_count} posts</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{category.member_count} members</span>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                  Active
+                </Badge>
+              </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Posts List */}
-        <div className="lg:col-span-3">
-          {postsLoading ? (
-            <Card>
-              <CardContent className="p-8">
-                <div className="text-center text-gray-500">Loading posts...</div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {posts?.map((post) => (
-                <Card key={post.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-transparent hover:border-l-orange-500">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage src={post.author?.avatar_url} />
-                        <AvatarFallback>
-                          <User className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          {post.is_pinned && (
-                            <Pin className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                          )}
-                          {post.is_locked && (
-                            <Lock className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                          )}
-                          <h3 
-                            className="text-lg font-semibold text-gray-900 hover:text-orange-600 cursor-pointer leading-tight"
-                            onClick={() => setSelectedPost(selectedPost === post.id ? null : post.id)}
-                          >
-                            {post.title}
-                          </h3>
-                          <Badge variant="outline" className="ml-auto flex-shrink-0">
-                            {post.category?.name}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center gap-3 text-sm text-gray-500 mb-3">
-                          <span className="truncate">By {post.author?.full_name || 'Anonymous'}</span>
-                          <span className="flex items-center gap-1 flex-shrink-0">
-                            <Clock className="h-3 w-3" />
-                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                        
-                        <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                          {post.content}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center gap-1 text-gray-500">
-                              <Eye className="h-3 w-3" />
-                              {post.view_count}
-                            </span>
-                            <button
-                              onClick={() => handleReaction(post.id, 'like')}
-                              className={`flex items-center gap-1 hover:text-orange-600 transition-colors ${
-                                post.user_reaction?.reaction_type === 'like' ? 'text-orange-600' : 'text-gray-500'
-                              }`}
-                            >
-                              <ThumbsUp className="h-3 w-3" />
-                              {post.like_count}
-                            </button>
-                            <span className="flex items-center gap-1 text-gray-500">
-                              <Reply className="h-3 w-3" />
-                              {post.reply_count} replies
-                            </span>
-                          </div>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedPost(selectedPost === post.id ? null : post.id)}
-                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                          >
-                            <MessageSquare className="h-4 w-4 mr-1" />
-                            {selectedPost === post.id ? 'Hide' : 'Show'} Comments
-                          </Button>
-                        </div>
-
-                        {/* Comments Section */}
-                        {selectedPost === post.id && (
-                          <div className="mt-6 pt-6 border-t">
-                            <h4 className="font-semibold mb-4 flex items-center gap-2">
-                              <MessageSquare className="h-4 w-4" />
-                              Comments
-                            </h4>
-                            
-                            {/* Add Comment Form */}
-                            <form onSubmit={handleSubmitComment} className="mb-6">
-                              <div className="space-y-3">
-                                {replyToComment && (
-                                  <div className="flex items-center justify-between text-sm text-gray-600 bg-orange-50 px-3 py-2 rounded-lg">
-                                    <span>Replying to comment...</span>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setReplyToComment(null)}
-                                      className="h-6 px-2 text-xs"
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                )}
-                                <Textarea
-                                  placeholder="Write a comment..."
-                                  value={commentContent}
-                                  onChange={(e) => setCommentContent(e.target.value)}
-                                  className="rounded-xl border-gray-200 focus:border-orange-300 focus:ring-orange-200"
-                                  rows={3}
-                                />
-                                <div className="flex justify-end">
-                                  <Button 
-                                    type="submit" 
-                                    disabled={!commentContent.trim() || createComment.isPending}
-                                    className="bg-orange-500 hover:bg-orange-600"
-                                    size="sm"
-                                  >
-                                    {createComment.isPending ? 'Posting...' : 'Post Comment'}
-                                  </Button>
-                                </div>
-                              </div>
-                            </form>
-
-                            {/* Comments List */}
-                            <div className="space-y-4">
-                              {comments?.map((comment) => (
-                                <CommentItem key={comment.id} comment={comment} />
-                              ))}
-                              
-                              {comments?.length === 0 && (
-                                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl">
-                                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                  <p>No comments yet. Be the first to comment!</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {posts?.length === 0 && (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Reply className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-                    <p className="text-gray-600 mb-4">Be the first to start a discussion!</p>
-                    <Button onClick={onCreatePost} className="bg-orange-500 hover:bg-orange-600">
-                      Create First Post
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
+
+      {/* Recent Posts */}
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+                Recent Posts
+              </CardTitle>
+              <CardDescription>Latest discussions from the community</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="hover:bg-orange-50 hover:border-orange-200">
+              View All
+            </Button>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="space-y-4">
+            {recentPosts?.slice(0, 5).map((post) => (
+              <div key={post.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/60 transition-colors cursor-pointer">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-medium text-sm">
+                    {post.author_profile?.full_name?.charAt(0) || 'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-900 line-clamp-1">{post.title}</h4>
+                  <p className="text-sm text-gray-600 line-clamp-2 mt-1">{post.content}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <span>By {post.author_profile?.full_name || 'Unknown'}</span>
+                    <span>{post.like_count} likes</span>
+                    <span>{post.reply_count} replies</span>
+                    <span>{post.view_count} views</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {(!recentPosts || recentPosts.length === 0) && (
+              <div className="text-center py-8">
+                <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No posts yet</p>
+                <p className="text-xs text-gray-400 mt-1">Be the first to start a discussion!</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

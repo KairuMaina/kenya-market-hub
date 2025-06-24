@@ -78,11 +78,16 @@ export const useChatConversations = () => {
         .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching conversations:', error);
+        return [];
+      }
 
       return (data || []).map(conv => ({
         ...conv,
-        other_participant: conv.participant1_id === user.id ? conv.participant2 : conv.participant1,
+        other_participant: conv.participant1_id === user.id ? 
+          (Array.isArray(conv.participant2) ? conv.participant2[0] : conv.participant2) : 
+          (Array.isArray(conv.participant1) ? conv.participant1[0] : conv.participant1),
         unread_count: 0 // TODO: implement unread count
       })) as ChatConversation[];
     },
@@ -152,94 +157,6 @@ export const useCreateConversation = () => {
         description: 'Failed to start conversation. Please try again.',
         variant: 'destructive'
       });
-    }
-  });
-};
-
-export const useCreateForumPost = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ 
-      title, 
-      content, 
-      category_id 
-    }: {
-      title: string;
-      content: string;
-      category_id: string;
-    }) => {
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .insert([{
-          title,
-          content,
-          category_id,
-          author_id: user.id
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
-      toast({
-        title: 'Post Created',
-        description: 'Your forum post has been created successfully.'
-      });
-    },
-    onError: (error: any) => {
-      console.error('Error creating post:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create post. Please try again.',
-        variant: 'destructive'
-      });
-    }
-  });
-};
-
-export const useTogglePostReaction = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ postId, reactionType }: { postId: string; reactionType: string }) => {
-      if (!user) throw new Error('User not authenticated');
-
-      const { data: existingReaction } = await supabase
-        .from('forum_post_reactions')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .eq('reaction_type', reactionType)
-        .single();
-
-      if (existingReaction) {
-        const { error } = await supabase
-          .from('forum_post_reactions')
-          .delete()
-          .eq('id', existingReaction.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('forum_post_reactions')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-            reaction_type: reactionType
-          });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
     }
   });
 };

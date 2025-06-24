@@ -30,7 +30,7 @@ export const useOnlineStatus = () => {
           last_seen: new Date().toISOString()
         };
         
-        // Only update is_online if the column exists (it might not be synced yet)
+        // Update online status
         if (status === 'online') {
           updates.is_online = true;
         } else {
@@ -93,14 +93,14 @@ export const useUserOnlineStatus = (userId: string) => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('last_seen')
+          .select('is_online, last_seen')
           .eq('id', userId)
           .single();
 
         if (error) throw error;
 
         setUserStatus({
-          isOnline: false, // Default to offline for now
+          isOnline: data.is_online || false,
           lastSeen: data.last_seen
         });
       } catch (error) {
@@ -124,7 +124,7 @@ export const useUserOnlineStatus = (userId: string) => {
         (payload) => {
           if (payload.new) {
             setUserStatus({
-              isOnline: false, // Default to offline for now
+              isOnline: (payload.new as any).is_online || false,
               lastSeen: (payload.new as any).last_seen
             });
           }

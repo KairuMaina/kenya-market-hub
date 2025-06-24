@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Send, Search, MessageCircle, Plus, User, Users } from 'lucide-react';
-import { useChatConversations, useChatMessages, useSendMessage, useUserSearch, useCreateConversation } from '@/hooks/useChatForums';
+import { useChatConversations, useUserSearch, useCreateConversation } from '@/hooks/useChatForums';
+import { useChatMessages, useSendMessage } from '@/hooks/useChatMessages';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -20,7 +21,7 @@ const ChatInterface = () => {
   
   const { user } = useAuth();
   const { data: conversations, isLoading: conversationsLoading } = useChatConversations();
-  const { data: messages, isLoading: messagesLoading } = useChatMessages(selectedConversation);
+  const { data: messages, isLoading: messagesLoading } = useChatMessages(selectedConversation || '');
   const { data: searchedUsers } = useUserSearch(userSearchTerm);
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
@@ -68,16 +69,16 @@ const ChatInterface = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[700px] max-w-7xl mx-auto">
       {/* Conversations List */}
       <div className="lg:col-span-1">
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col shadow-lg border-0 bg-gradient-to-br from-white to-orange-50/30">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5 text-orange-600" />
                 Messages
               </CardTitle>
               <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                  <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -101,7 +102,7 @@ const ChatInterface = () => {
                         <div
                           key={searchUser.id}
                           onClick={() => handleStartNewChat(searchUser.id)}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors"
                         >
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={searchUser.avatar_url} />
@@ -160,7 +161,7 @@ const ChatInterface = () => {
                   <div
                     key={conversation.id}
                     onClick={() => setSelectedConversation(conversation.id)}
-                    className={`flex items-center gap-3 p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`flex items-center gap-3 p-4 border-b cursor-pointer hover:bg-orange-50 transition-colors ${
                       selectedConversation === conversation.id ? 'bg-orange-50 border-orange-200' : ''
                     }`}
                   >
@@ -203,22 +204,22 @@ const ChatInterface = () => {
 
       {/* Chat Messages */}
       <div className="lg:col-span-2">
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
           {selectedConversation && selectedConversationData ? (
             <>
-              <CardHeader className="border-b pb-4">
+              <CardHeader className="border-b pb-4 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-t-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={selectedConversationData.other_participant?.avatar_url} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-white text-orange-600">
                       <User className="h-5 w-5" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-lg text-white">
                       {selectedConversationData.other_participant?.full_name || 'Chat'}
                     </CardTitle>
-                    <p className="text-sm text-gray-500">Online</p>
+                    <p className="text-sm text-orange-100">Online</p>
                   </div>
                 </div>
               </CardHeader>
@@ -242,9 +243,9 @@ const ChatInterface = () => {
                         }`}
                       >
                         <div
-                          className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                          className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md ${
                             message.sender_id === user?.id
-                              ? 'bg-orange-500 text-white'
+                              ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white'
                               : 'bg-gray-100 text-gray-900'
                           }`}
                         >
@@ -261,7 +262,7 @@ const ChatInterface = () => {
                 </div>
               </CardContent>
               
-              <div className="p-4 border-t">
+              <div className="p-4 border-t bg-gray-50 rounded-b-lg">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Type a message..."
@@ -273,7 +274,7 @@ const ChatInterface = () => {
                   <Button 
                     onClick={handleSendMessage} 
                     size="sm" 
-                    className="bg-orange-500 hover:bg-orange-600 px-4"
+                    className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 shadow-md"
                     disabled={sendMessage.isPending || !newMessage.trim()}
                   >
                     <Send className="h-4 w-4" />
@@ -289,7 +290,7 @@ const ChatInterface = () => {
                 <p className="text-gray-600 mb-4">Choose a conversation from the left to start chatting</p>
                 <Button 
                   onClick={() => setIsNewChatOpen(true)}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Start New Chat
