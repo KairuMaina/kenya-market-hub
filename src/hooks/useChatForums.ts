@@ -29,13 +29,13 @@ export interface ForumPost {
   author?: {
     full_name: string;
     avatar_url?: string;
-  };
+  } | null;
   category?: {
     name: string;
-  };
+  } | null;
   user_reaction?: {
     reaction_type: string;
-  };
+  } | null;
 }
 
 export interface ForumPostComment {
@@ -49,7 +49,7 @@ export interface ForumPostComment {
   author?: {
     full_name: string;
     avatar_url?: string;
-  };
+  } | null;
   replies?: ForumPostComment[];
 }
 
@@ -64,7 +64,7 @@ export interface ChatConversation {
   other_participant?: {
     full_name: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 export interface ChatMessage {
@@ -114,7 +114,7 @@ export const useForumCategories = () => {
   });
 };
 
-// Forum Posts with proper joins
+// Forum Posts with simplified joins
 export const useForumPosts = (categoryId?: string) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -124,11 +124,7 @@ export const useForumPosts = (categoryId?: string) => {
     queryFn: async () => {
       let query = supabase
         .from('forum_posts')
-        .select(`
-          *,
-          author:profiles!forum_posts_author_id_fkey(full_name, avatar_url),
-          category:forum_categories!forum_posts_category_id_fkey(name)
-        `)
+        .select('*')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
       
@@ -140,23 +136,42 @@ export const useForumPosts = (categoryId?: string) => {
       
       if (error) throw error;
 
-      // Get user reactions separately if user is logged in
-      if (user && posts && posts.length > 0) {
+      if (!posts) return [];
+
+      // Get author profiles separately
+      const authorIds = [...new Set(posts.map(post => post.author_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
+
+      // Get categories separately
+      const categoryIds = [...new Set(posts.map(post => post.category_id))];
+      const { data: categories } = await supabase
+        .from('forum_categories')
+        .select('id, name')
+        .in('id', categoryIds);
+
+      // Get user reactions if logged in
+      let reactions: any[] = [];
+      if (user && posts.length > 0) {
         const postIds = posts.map(post => post.id);
-        const { data: reactions } = await supabase
+        const { data: reactionData } = await supabase
           .from('forum_post_reactions')
           .select('post_id, reaction_type')
           .eq('user_id', user.id)
           .in('post_id', postIds);
-
-        // Merge reactions with posts
-        return posts.map(post => ({
-          ...post,
-          user_reaction: reactions?.find(r => r.post_id === post.id)
-        })) as ForumPost[];
+        
+        reactions = reactionData || [];
       }
-      
-      return posts as ForumPost[];
+
+      // Merge the data
+      return posts.map(post => ({
+        ...post,
+        author: profiles?.find(p => p.id === post.author_id) || null,
+        category: categories?.find(c => c.id === post.category_id) || null,
+        user_reaction: reactions.find(r => r.post_id === post.id) || null
+      })) as ForumPost[];
     }
   });
 
@@ -203,25 +218,30 @@ export const useForumPostComments = (postId: string) => {
   const query = useQuery({
     queryKey: ['forum-post-comments', postId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: comments, error } = await supabase
         .from('forum_post_comments')
-        .select(`
-          *,
-          author:profiles!forum_post_comments_author_id_fkey(full_name, avatar_url)
-        `)
+        .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
       
       if (error) throw error;
+      if (!comments) return [];
       
+      // Get author profiles separately
+      const authorIds = [...new Set(comments.map(comment => comment.author_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
+
       // Organize comments into threaded structure
-      const comments = data as any[];
       const commentMap = new Map();
       const rootComments: ForumPostComment[] = [];
       
-      // First pass: create comment objects
+      // First pass: create comment objects with author data
       comments.forEach(comment => {
-        commentMap.set(comment.id, { ...comment, replies: [] });
+        const author = profiles?.find(p => p.id === comment.author_id) || null;
+        commentMap.set(comment.id, { ...comment, author, replies: [] });
       });
       
       // Second pass: organize into tree structure
@@ -423,7 +443,7 @@ export const useUserSearch = (searchTerm: string) => {
   });
 };
 
-// Chat Conversations with proper joins
+// Chat Conversations with simplified joins
 export const useChatConversations = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -433,25 +453,31 @@ export const useChatConversations = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      const { data: conversations, error } = await supabase
         .from('chat_conversations')
-        .select(`
-          *,
-          participant1:profiles!chat_conversations_participant1_id_fkey(full_name, avatar_url),
-          participant2:profiles!chat_conversations_participant2_id_fkey(full_name, avatar_url)
-        `)
+        .select('*')
         .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });
       
       if (error) throw error;
+      if (!conversations) return [];
+
+      // Get participant profiles separately
+      const participantIds = conversations.flatMap(conv => [conv.participant1_id, conv.participant2_id]);
+      const uniqueParticipantIds = [...new Set(participantIds)];
       
-      const transformedData = data?.map(conv => ({
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', uniqueParticipantIds);
+
+      const transformedData = conversations.map(conv => ({
         ...conv,
-        other_participant: conv.participant1_id === user.id ? conv.participant2 : conv.participant1,
+        other_participant: profiles?.find(p => p.id === (conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id)) || null,
         unread_count: 0
-      })) || [];
+      }));
       
-      return transformedData as any;
+      return transformedData as ChatConversation[];
     },
     enabled: !!user
   });
@@ -672,26 +698,41 @@ export const useUserFollows = (userId?: string) => {
       const [followersRes, followingRes] = await Promise.all([
         supabase
           .from('user_follows')
-          .select(`
-            follower_id,
-            follower:profiles!user_follows_follower_id_fkey(full_name, avatar_url)
-          `)
+          .select('follower_id')
           .eq('following_id', userId),
         supabase
           .from('user_follows')
-          .select(`
-            following_id,
-            following:profiles!user_follows_following_id_fkey(full_name, avatar_url)
-          `)
+          .select('following_id')
           .eq('follower_id', userId)
       ]);
       
       if (followersRes.error) throw followersRes.error;
       if (followingRes.error) throw followingRes.error;
+
+      // Get profile data separately
+      const followerIds = followersRes.data?.map(f => f.follower_id) || [];
+      const followingIds = followingRes.data?.map(f => f.following_id) || [];
+
+      const [followersProfiles, followingProfiles] = await Promise.all([
+        followerIds.length > 0 ? supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', followerIds) : Promise.resolve({ data: [] }),
+        followingIds.length > 0 ? supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', followingIds) : Promise.resolve({ data: [] })
+      ]);
       
       return {
-        followers: followersRes.data || [],
-        following: followingRes.data || []
+        followers: followersProfiles.data?.map(profile => ({
+          follower_id: profile.id,
+          follower: profile
+        })) || [],
+        following: followingProfiles.data?.map(profile => ({
+          following_id: profile.id,
+          following: profile
+        })) || []
       };
     },
     enabled: !!userId
@@ -765,10 +806,10 @@ export const useStartBusinessConversation = () => {
       });
     },
     onSuccess: () => {
-      createConversation.onSuccess;
+      // Success will be handled by createConversation
     },
     onError: () => {
-      createConversation.onError;
+      // Error will be handled by createConversation
     }
   });
 };

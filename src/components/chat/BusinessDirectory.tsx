@@ -30,22 +30,32 @@ const BusinessDirectory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBusiness, setSelectedBusiness] = useState<{ id: string; name: string } | null>(null);
 
-  // Fetch approved service providers instead of vendors
+  // Fetch approved service providers with separate profile lookup
   const { data: serviceProviders, isLoading } = useQuery({
     queryKey: ['approved-service-providers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: providers, error } = await supabase
         .from('service_provider_profiles')
-        .select(`
-          *,
-          profiles(full_name, avatar_url)
-        `)
+        .select('*')
         .eq('verification_status', 'approved')
         .eq('is_active', true)
         .order('business_name');
       
       if (error) throw error;
-      return data as ServiceProvider[];
+      if (!providers) return [];
+
+      // Get profiles separately to avoid foreign key issues
+      const userIds = providers.map(p => p.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      // Merge the data
+      return providers.map(provider => ({
+        ...provider,
+        profiles: profiles?.find(p => p.id === provider.user_id) || null
+      })) as ServiceProvider[];
     }
   });
 
