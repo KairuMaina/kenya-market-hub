@@ -32,10 +32,7 @@ const AdminNotifications = () => {
     queryFn: async () => {
       let query = supabase
         .from('notifications')
-        .select(`
-          *,
-          profiles!notifications_user_id_fkey(full_name, email)
-        `);
+        .select('*');
 
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,message.ilike.%${searchTerm}%`);
@@ -73,6 +70,7 @@ const AdminNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-notification-count'] });
       setShowAddNotification(false);
       setNewNotification({
         title: '',
@@ -99,6 +97,7 @@ const AdminNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-notification-count'] });
       toast({ title: 'Notification marked as read' });
     }
   });
@@ -115,6 +114,7 @@ const AdminNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-notification-count'] });
       toast({ title: 'Notification deleted successfully' });
     }
   });
@@ -255,7 +255,7 @@ const AdminNotifications = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>User</TableHead>
+                  <TableHead>User ID</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
@@ -272,10 +272,7 @@ const AdminNotifications = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="text-sm">{notification.profiles?.full_name || 'Unknown User'}</p>
-                        <p className="text-xs text-gray-600">{notification.profiles?.email}</p>
-                      </div>
+                      <p className="text-sm">{notification.user_id.slice(-8)}</p>
                     </TableCell>
                     <TableCell>{getTypeBadge(notification.type)}</TableCell>
                     <TableCell>

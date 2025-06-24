@@ -48,19 +48,38 @@ const AdminVendors = () => {
   // Add vendor mutation
   const addVendor = useMutation({
     mutationFn: async (vendorData: typeof newVendor) => {
+      // Create a vendor application first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
-        .from('vendors')
+        .from('vendor_applications')
         .insert([{
           ...vendorData,
-          user_id: 'temp-user-id', // In real app, this would be the actual user creating the vendor
-          verification_status: 'pending',
-          is_active: false
+          user_id: user.id,
+          status: 'approved',
+          submitted_at: new Date().toISOString(),
+          reviewed_at: new Date().toISOString(),
+          service_type: 'products'
         }]);
       
       if (error) throw error;
+
+      // Then create the vendor record
+      const { error: vendorError } = await supabase
+        .from('vendors')
+        .insert([{
+          ...vendorData,
+          user_id: user.id,
+          verification_status: 'approved',
+          is_active: true
+        }]);
+
+      if (vendorError) throw vendorError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-vendor-count'] });
       setShowAddVendor(false);
       setNewVendor({
         business_name: '',
@@ -91,6 +110,7 @@ const AdminVendors = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-vendor-count'] });
       toast({ title: 'Vendor status updated successfully' });
     },
     onError: (error: any) => {
