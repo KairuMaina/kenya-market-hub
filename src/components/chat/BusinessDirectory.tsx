@@ -1,211 +1,162 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageCircle, Store, MapPin, Phone, Mail, User } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import BusinessContactModal from './BusinessContactModal';
+import { MapPin, Phone, Mail, MessageSquare, Search, Building } from 'lucide-react';
+import { useServiceProviders } from '@/hooks/useServiceProviders';
 
-interface ServiceProvider {
-  id: string;
-  business_name: string;
-  business_description: string;
-  provider_type: string;
-  location_address: string;
-  phone_number: string;
-  email: string;
-  user_id: string;
-  verification_status: string;
-  profiles?: {
-    full_name: string;
-    avatar_url?: string;
-  } | null;
+interface BusinessDirectoryProps {
+  onStartChat: (conversationId: string) => void;
 }
 
-const BusinessDirectory = () => {
+const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ onStartChat }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBusiness, setSelectedBusiness] = useState<{ id: string; name: string } | null>(null);
-
-  // Fetch approved service providers
-  const { data: serviceProviders, isLoading } = useQuery({
-    queryKey: ['approved-service-providers'],
-    queryFn: async () => {
-      const { data: providers, error } = await supabase
-        .from('service_provider_profiles')
-        .select('*')
-        .eq('verification_status', 'approved')
-        .eq('is_active', true)
-        .order('business_name');
-      
-      if (error) throw error;
-      if (!providers) return [];
-
-      // Get profiles separately
-      const userIds = providers.map(p => p.user_id);
-      if (userIds.length === 0) return [];
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', userIds);
-
-      return providers.map(provider => ({
-        ...provider,
-        profiles: profiles?.find(p => p.id === provider.user_id) || null
-      })) as ServiceProvider[];
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Mock data for now since we don't have a specific business directory
+  const mockBusinesses = [
+    {
+      id: '1',
+      name: 'Tech Solutions Ltd',
+      category: 'Technology',
+      description: 'Professional IT services and consulting',
+      location: 'Nairobi, Kenya',
+      phone: '+254 700 123 456',
+      email: 'info@techsolutions.ke',
+      avatar_url: null,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Green Gardens',
+      category: 'Landscaping',
+      description: 'Beautiful garden design and maintenance',
+      location: 'Mombasa, Kenya',
+      phone: '+254 700 789 012',
+      email: 'hello@greengardens.ke',
+      avatar_url: null,
+      isOnline: false
     }
+  ];
+
+  const categories = ['all', 'Technology', 'Landscaping', 'Construction', 'Healthcare', 'Education'];
+
+  const filteredBusinesses = mockBusinesses.filter(business => {
+    const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         business.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || business.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
-  const filteredBusinesses = serviceProviders?.filter(provider =>
-    provider.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.business_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.provider_type?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
-  if (isLoading) {
-    return (
-      <div className="h-full">
-        <Card className="h-full">
-          <CardContent className="p-8 flex items-center justify-center h-full">
-            <div className="text-center text-gray-500">Loading businesses...</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleStartChat = async (businessId: string) => {
+    // Create a conversation ID (in real implementation, this would create a conversation)
+    const conversationId = `conv_${businessId}_${Date.now()}`;
+    onStartChat(conversationId);
+  };
 
   return (
-    <div className="h-full flex flex-col">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <CardTitle className="flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            Business Directory
-          </CardTitle>
-          <p className="text-sm text-gray-600">Connect with verified local service providers</p>
-          
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search businesses, services, or providers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardHeader>
+    <div className="space-y-6">
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search businesses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         
-        <CardContent className="flex-1 overflow-hidden flex flex-col p-0">
-          <div className="flex-1 overflow-y-auto p-6">
-            {filteredBusinesses.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <Store className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="font-medium mb-2">
-                  {searchTerm ? 'No businesses found' : 'No verified businesses yet'}
-                </h3>
-                <p className="text-sm">
-                  {searchTerm 
-                    ? 'Try adjusting your search terms' 
-                    : 'Service providers will appear here once approved'
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredBusinesses.map((business) => (
-                  <div key={business.id} className="flex items-start gap-4 p-4 border rounded-xl hover:shadow-md transition-all duration-200 hover:border-orange-200">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                      <AvatarImage src={business.profiles?.avatar_url} />
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md bg-white"
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category === 'all' ? 'All Categories' : category}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Business List */}
+      <div className="grid gap-4">
+        {filteredBusinesses.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No businesses found</h3>
+              <p className="text-gray-600">
+                {searchTerm ? 'Try adjusting your search terms.' : 'No businesses available at the moment.'}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredBusinesses.map((business) => (
+            <Card key={business.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={business.avatar_url || undefined} />
                       <AvatarFallback>
-                        <User className="h-6 w-6" />
+                        {business.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-lg truncate">{business.business_name}</h4>
-                          <p className="text-sm text-gray-600 truncate">
-                            By {business.profiles?.full_name || 'Service Provider'}
-                          </p>
-                        </div>
-                        
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedBusiness({ 
-                            id: business.user_id, 
-                            name: business.business_name || 'Business' 
-                          })}
-                          className="ml-3 bg-orange-500 hover:bg-orange-600 flex-shrink-0"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Contact
-                        </Button>
-                      </div>
-                      
-                      {business.business_description && (
-                        <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
-                          {business.business_description}
-                        </p>
-                      )}
-                      
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge className="bg-green-100 text-green-800 text-xs">
-                          Verified
-                        </Badge>
-                        {business.provider_type && (
-                          <Badge variant="secondary" className="text-xs capitalize">
-                            {business.provider_type}
-                          </Badge>
-                        )}
-                        <Badge variant="outline" className="text-xs">
-                          Active
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-1 text-xs text-gray-600">
-                        {business.location_address && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{business.location_address}</span>
-                          </div>
-                        )}
-                        
-                        {business.phone_number && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3 flex-shrink-0" />
-                            <span>{business.phone_number}</span>
-                          </div>
-                        )}
-                        
-                        {business.email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{business.email}</span>
-                          </div>
-                        )}
+                    <div>
+                      <CardTitle className="text-xl">{business.name}</CardTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary">{business.category}</Badge>
+                        <div className={`w-2 h-2 rounded-full ${
+                          business.isOnline ? 'bg-green-500' : 'bg-gray-400'
+                        }`}></div>
+                        <span className="text-sm text-gray-600">
+                          {business.isOnline ? 'Online' : 'Offline'}
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {selectedBusiness && (
-        <BusinessContactModal
-          isOpen={!!selectedBusiness}
-          onClose={() => setSelectedBusiness(null)}
-          businessName={selectedBusiness.name}
-          businessId={selectedBusiness.id}
-        />
-      )}
+                  
+                  <Button
+                    onClick={() => handleStartChat(business.id)}
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Chat
+                  </Button>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <CardDescription className="mb-4">
+                  {business.description}
+                </CardDescription>
+                
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{business.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    <span>{business.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    <span>{business.email}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 };

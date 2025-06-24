@@ -21,7 +21,7 @@ export interface ForumPost {
   };
   category?: {
     name: string;
-    color: string;
+    color?: string;
   };
   has_liked?: boolean;
 }
@@ -35,7 +35,7 @@ export const useForumPosts = (categoryId?: string) => {
         .select(`
           *,
           author_profile:profiles!author_id(full_name, avatar_url),
-          category:forum_categories(name, color)
+          category:forum_categories(name)
         `)
         .order('created_at', { ascending: false });
 
@@ -50,7 +50,18 @@ export const useForumPosts = (categoryId?: string) => {
         throw error;
       }
 
-      return data as ForumPost[];
+      // Transform data to match our interface
+      const transformedData = (data || []).map(post => ({
+        ...post,
+        author_profile: Array.isArray(post.author_profile) 
+          ? post.author_profile[0] 
+          : post.author_profile || { full_name: 'Unknown User' },
+        category: Array.isArray(post.category) 
+          ? post.category[0] 
+          : post.category || { name: 'General' }
+      }));
+
+      return transformedData as ForumPost[];
     }
   });
 };
@@ -112,31 +123,34 @@ export const useTogglePostLike = () => {
     mutationFn: async (postId: string) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Check if user already liked this post
-      const { data: existingLike } = await supabase
-        .from('forum_post_likes')
+      // Check if user already liked this post using forum_post_reactions
+      const { data: existingReaction } = await supabase
+        .from('forum_post_reactions')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
+        .eq('reaction_type', 'like')
         .single();
 
-      if (existingLike) {
+      if (existingReaction) {
         // Remove like
         const { error } = await supabase
-          .from('forum_post_likes')
+          .from('forum_post_reactions')
           .delete()
           .eq('post_id', postId)
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .eq('reaction_type', 'like');
 
         if (error) throw error;
         return { action: 'unliked' };
       } else {
         // Add like
         const { error } = await supabase
-          .from('forum_post_likes')
+          .from('forum_post_reactions')
           .insert([{
             post_id: postId,
-            user_id: user.id
+            user_id: user.id,
+            reaction_type: 'like'
           }]);
 
         if (error) throw error;
@@ -157,10 +171,10 @@ export const useIncrementPostViews = () => {
       });
 
       if (error) {
-        // If the function doesn't exist, update directly
+        // If the function fails, update directly
         const { error: updateError } = await supabase
           .from('forum_posts')
-          .update({ view_count: supabase.raw('view_count + 1') })
+          .update({ view_count: 1 }) // Simple increment without raw
           .eq('id', postId);
 
         if (updateError) throw updateError;

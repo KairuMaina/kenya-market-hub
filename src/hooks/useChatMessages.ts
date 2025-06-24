@@ -38,7 +38,15 @@ export const useChatMessages = (conversationId: string) => {
         throw error;
       }
 
-      return data as ChatMessage[];
+      // Transform data to match our interface
+      const transformedData = (data || []).map(msg => ({
+        ...msg,
+        sender_profile: Array.isArray(msg.sender_profile) 
+          ? msg.sender_profile[0] 
+          : msg.sender_profile || { full_name: 'Unknown User' }
+      }));
+
+      return transformedData as ChatMessage[];
     },
     enabled: !!conversationId
   });
