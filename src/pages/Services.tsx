@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,10 +61,7 @@ const Services = () => {
         .order('name');
       
       if (error) throw error;
-      return (data || []).map(cat => ({
-        ...cat,
-        icon_name: cat.icon_name || 'wrench'
-      })) as ServiceCategory[];
+      return data || [];
     }
   });
 
@@ -97,15 +93,23 @@ const Services = () => {
     }
   });
 
-  const getIconForCategory = (iconName: string) => {
+  const getIconForCategory = (categoryName: string) => {
     const iconMap: Record<string, React.ComponentType<any>> = {
-      wrench: Wrench,
-      hammer: Hammer,
-      sparkles: Sparkles,
-      zap: Zap,
-      shield: Shield
+      'plumbing': Wrench,
+      'electrical': Zap,
+      'cleaning': Sparkles,
+      'construction': Hammer,
+      'security': Shield
     };
-    return iconMap[iconName] || Wrench;
+    
+    // Default to Wrench if no specific icon found
+    const lowerCaseName = categoryName.toLowerCase();
+    for (const [key, icon] of Object.entries(iconMap)) {
+      if (lowerCaseName.includes(key)) {
+        return icon;
+      }
+    }
+    return Wrench;
   };
 
   const filteredProviders = providers?.filter(provider => {
@@ -166,7 +170,7 @@ const Services = () => {
                 All Services
               </Button>
               {categories?.map((category) => {
-                const IconComponent = getIconForCategory(category.icon_name || 'wrench');
+                const IconComponent = getIconForCategory(category.name);
                 return (
                   <Button
                     key={category.id}
