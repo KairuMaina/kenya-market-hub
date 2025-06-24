@@ -15,46 +15,55 @@ const ChatForums: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-10">
+        <div className="space-y-10">
           {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <div className="text-center space-y-5">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
               Community Hub
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed">
               Connect with other users, share ideas, and build relationships in our vibrant community.
             </p>
-            <div className="flex items-center justify-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-sm text-gray-600">
+            <div className="flex items-center justify-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-base text-gray-700 font-medium">
                 {isOnline ? 'Online' : 'Offline'}
               </span>
             </div>
           </div>
 
           {/* Community Features */}
-          <Tabs defaultValue="forums" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="forums" className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
+          <Tabs defaultValue="forums" className="w-full rounded-lg border border-gray-200 shadow-sm bg-white">
+            <TabsList className="grid w-full grid-cols-3 border-b border-gray-200 rounded-t-lg bg-gray-50">
+              <TabsTrigger 
+                value="forums" 
+                className="flex items-center justify-center gap-2 py-3 text-gray-700 font-semibold hover:bg-orange-100 data-[state=active]:bg-orange-200 data-[state=active]:text-orange-700 rounded-t-lg transition-colors"
+              >
+                <MessageCircle className="h-5 w-5" />
                 <span className="hidden sm:inline">Forums</span>
               </TabsTrigger>
-              <TabsTrigger value="chat" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
+              <TabsTrigger 
+                value="chat" 
+                className="flex items-center justify-center gap-2 py-3 text-gray-700 font-semibold hover:bg-green-100 data-[state=active]:bg-green-200 data-[state=active]:text-green-700 rounded-t-lg transition-colors"
+              >
+                <Users className="h-5 w-5" />
                 <span className="hidden sm:inline">Direct Chat</span>
               </TabsTrigger>
-              <TabsTrigger value="directory" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
+              <TabsTrigger 
+                value="directory" 
+                className="flex items-center justify-center gap-2 py-3 text-gray-700 font-semibold hover:bg-purple-100 data-[state=active]:bg-purple-200 data-[state=active]:text-purple-700 rounded-t-lg transition-colors"
+              >
+                <Globe className="h-5 w-5" />
                 <span className="hidden sm:inline">Directory</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="forums" className="mt-6">
-              <Card>
+            <TabsContent value="forums" className="mt-8">
+              <Card className="shadow-md rounded-lg border border-gray-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-blue-500" />
+                  <CardTitle className="flex items-center gap-3 text-orange-600 font-bold text-lg">
+                    <MessageCircle className="h-6 w-6" />
                     Community Forums
                   </CardTitle>
                 </CardHeader>
@@ -64,11 +73,11 @@ const ChatForums: React.FC = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="chat" className="mt-6">
-              <Card>
+            <TabsContent value="chat" className="mt-8">
+              <Card className="shadow-md rounded-lg border border-gray-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-green-500" />
+                  <CardTitle className="flex items-center gap-3 text-green-600 font-bold text-lg">
+                    <Users className="h-6 w-6" />
                     Direct Messages
                   </CardTitle>
                 </CardHeader>
@@ -78,11 +87,11 @@ const ChatForums: React.FC = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="directory" className="mt-6">
-              <Card>
+            <TabsContent value="directory" className="mt-8">
+              <Card className="shadow-md rounded-lg border border-gray-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5 text-purple-500" />
+                  <CardTitle className="flex items-center gap-3 text-purple-600 font-bold text-lg">
+                    <Globe className="h-6 w-6" />
                     Business Directory
                   </CardTitle>
                 </CardHeader>

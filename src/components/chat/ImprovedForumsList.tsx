@@ -90,21 +90,21 @@ const ImprovedForumsList: React.FC = () => {
       <ResponsiveSection>
         {/* Header with filters and create button */}
         <div className="mobile-container">
-          <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between">
+          <div className="space-y-5 lg:space-y-0 lg:flex lg:items-center lg:justify-between">
             {/* Search and Filter Section */}
-            <div className="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center flex-1">
+            <div className="space-y-4 sm:space-y-0 sm:flex sm:gap-5 sm:items-center flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
                 <Input
                   placeholder="Search posts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full mobile-form-input"
+                  className="pl-12 w-full mobile-form-input"
                 />
               </div>
               
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-52">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,19 +122,19 @@ const ImprovedForumsList: React.FC = () => {
             <div className="w-full sm:w-auto">
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
-                  <PrimaryButton fullWidth className="sm:w-auto">
+                  <PrimaryButton fullWidth className="sm:w-auto shadow-md">
                     Create Post
                   </PrimaryButton>
                 </DialogTrigger>
-                <DialogContent className="mobile-modal max-w-md mx-auto">
+                <DialogContent className="mobile-modal max-w-md mx-auto rounded-lg shadow-lg">
                   <DialogHeader>
-                    <DialogTitle>Create New Post</DialogTitle>
+                    <DialogTitle className="text-lg font-semibold">Create New Post</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleCreatePost} className="space-y-4 mobile-form">
+                  <form onSubmit={handleCreatePost} className="space-y-5 mobile-form">
                     <div>
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="category" className="font-medium">Category</Label>
                       <Select value={newPost.categoryId} onValueChange={(value) => setNewPost(prev => ({ ...prev, categoryId: value }))}>
-                        <SelectTrigger>
+                        <SelectTrigger className="rounded-md border border-gray-300">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -148,26 +148,26 @@ const ImprovedForumsList: React.FC = () => {
                     </div>
                     
                     <div>
-                      <Label htmlFor="title">Title</Label>
+                      <Label htmlFor="title" className="font-medium">Title</Label>
                       <Input
                         id="title"
                         value={newPost.title}
                         onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
                         placeholder="Enter post title..."
-                        className="mobile-form-input"
+                        className="mobile-form-input rounded-md border border-gray-300"
                         required
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="content">Content</Label>
+                      <Label htmlFor="content" className="font-medium">Content</Label>
                       <Textarea
                         id="content"
                         value={newPost.content}
                         onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
                         placeholder="Write your post content..."
                         rows={4}
-                        className="mobile-form-input"
+                        className="mobile-form-input rounded-md border border-gray-300"
                         required
                       />
                     </div>
@@ -177,6 +177,7 @@ const ImprovedForumsList: React.FC = () => {
                         type="button"
                         onClick={() => setIsCreateModalOpen(false)}
                         fullWidth
+                        className="shadow-sm"
                       >
                         Cancel
                       </SecondaryButton>
@@ -184,6 +185,7 @@ const ImprovedForumsList: React.FC = () => {
                         type="submit"
                         loading={createPostMutation.isPending}
                         fullWidth
+                        className="shadow-md"
                       >
                         {createPostMutation.isPending ? 'Creating...' : 'Create Post'}
                       </PrimaryButton>
@@ -200,13 +202,13 @@ const ImprovedForumsList: React.FC = () => {
         {/* Posts list */}
         {filteredPosts.length === 0 ? (
           <ContentCard>
-            <div className="text-center py-12">
-              <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No posts found</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="text-center py-16">
+              <MessageCircle className="h-14 w-14 text-gray-400 mx-auto mb-5" />
+              <h3 className="text-xl font-semibold mb-3">No posts found</h3>
+              <p className="text-gray-700 mb-6">
                 {searchTerm ? 'Try adjusting your search terms.' : 'Be the first to start a discussion!'}
               </p>
-              <PrimaryButton onClick={() => setIsCreateModalOpen(true)}>
+              <PrimaryButton onClick={() => setIsCreateModalOpen(true)} className="shadow-md">
                 Create First Post
               </PrimaryButton>
             </div>
@@ -216,13 +218,13 @@ const ImprovedForumsList: React.FC = () => {
             {filteredPosts.map((post) => (
               <Card 
                 key={post.id} 
-                className="card-hover cursor-pointer border-2 hover:border-orange-200 smooth-transition"
+                className="card-hover cursor-pointer border border-gray-300 rounded-lg shadow-sm hover:shadow-md smooth-transition"
                 onClick={() => handlePostClick(post.id)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <Avatar className="w-10 h-10 flex-shrink-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between gap-5">
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
+                      <Avatar className="w-12 h-12 flex-shrink-0">
                         <AvatarImage src={post.author_profile?.avatar_url} />
                         <AvatarFallback>
                           {post.author_profile?.full_name?.charAt(0) || 'U'}
@@ -232,7 +234,7 @@ const ImprovedForumsList: React.FC = () => {
                         <CardTitle className="text-lg text-orange-900 hover:text-orange-700 truncate">
                           {post.title}
                         </CardTitle>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
                           <span className="truncate">{post.author_profile?.full_name || 'Anonymous'}</span>
                           <span>•</span>
                           <span className="whitespace-nowrap">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
@@ -251,27 +253,27 @@ const ImprovedForumsList: React.FC = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <CardDescription className="text-gray-700 mb-4 line-clamp-3">
+                  <CardDescription className="text-gray-700 mb-5 line-clamp-3">
                     {post.content}
                   </CardDescription>
                   
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                  <div className="flex items-center gap-8 text-sm text-gray-600">
                     <button
                       onClick={(e) => handleLike(post.id, e)}
-                      className="flex items-center gap-1 hover:text-red-500 smooth-transition mobile-touch-button"
+                      className="flex items-center gap-2 hover:text-red-500 smooth-transition mobile-touch-button"
                       disabled={toggleLikeMutation.isPending}
                     >
-                      <Heart className={`w-4 h-4 ${post.has_liked ? 'fill-red-500 text-red-500' : ''}`} />
+                      <Heart className={`w-5 h-5 ${post.has_liked ? 'fill-red-500 text-red-500' : ''}`} />
                       <span>{post.like_count}</span>
                     </button>
                     
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="w-4 h-4" />
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-5 h-5" />
                       <span>{post.reply_count}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-5 h-5" />
                       <span>{post.view_count}</span>
                     </div>
                   </div>
