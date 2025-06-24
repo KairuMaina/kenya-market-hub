@@ -153,10 +153,10 @@ export const useForumPosts = (categoryId?: string) => {
         return posts.map(post => ({
           ...post,
           user_reaction: reactions?.find(r => r.post_id === post.id)
-        }));
+        })) as ForumPost[];
       }
       
-      return posts;
+      return posts as ForumPost[];
     }
   });
 
@@ -764,7 +764,11 @@ export const useStartBusinessConversation = () => {
         initialMessage 
       });
     },
-    onSuccess: createConversation.onSuccess,
-    onError: createConversation.onError
+    onSuccess: () => {
+      createConversation.onSuccess;
+    },
+    onError: () => {
+      createConversation.onError;
+    }
   });
 };

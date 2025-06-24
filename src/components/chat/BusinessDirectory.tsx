@@ -23,7 +23,7 @@ interface ServiceProvider {
   profiles?: {
     full_name: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 const BusinessDirectory = () => {
@@ -38,7 +38,7 @@ const BusinessDirectory = () => {
         .from('service_provider_profiles')
         .select(`
           *,
-          profiles!service_provider_profiles_user_id_fkey(full_name, avatar_url)
+          profiles(full_name, avatar_url)
         `)
         .eq('verification_status', 'approved')
         .eq('is_active', true)
