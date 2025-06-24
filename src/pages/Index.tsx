@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -326,16 +325,16 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {miniApps.map((app) => (
               <Card 
                 key={app.id} 
                 className="group hover:shadow-xl transition-all duration-300 border hover:border-orange-200 cursor-pointer rounded-2xl overflow-hidden transform hover:scale-105"
                 onClick={() => navigate(app.route)}
               >
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden aspect-square">
                   <div 
-                    className="h-32 bg-cover bg-center"
+                    className="h-full bg-cover bg-center"
                     style={{ 
                       backgroundImage: `url(https://images.unsplash.com/${app.image})`,
                     }}

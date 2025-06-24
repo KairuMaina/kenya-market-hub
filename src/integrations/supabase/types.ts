@@ -60,29 +60,76 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
           conversation_id: string
           created_at: string
+          edited_at: string | null
           id: string
           is_read: boolean | null
+          message_type: string | null
+          reply_to_message_id: string | null
           sender_id: string
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
+          reply_to_message_id?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
+          reply_to_message_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -91,6 +138,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_reply_to_message_id_fkey"
+            columns: ["reply_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -602,6 +656,86 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_post_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          like_count: number | null
+          parent_comment_id: string | null
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          like_count?: number | null
+          parent_comment_id?: string | null
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          like_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_post_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forum_posts: {
         Row: {
           author_id: string
@@ -609,10 +743,13 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_locked: boolean | null
+          is_pinned: boolean | null
           like_count: number | null
           reply_count: number | null
           title: string
           updated_at: string
+          view_count: number | null
         }
         Insert: {
           author_id: string
@@ -620,10 +757,13 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
           like_count?: number | null
           reply_count?: number | null
           title: string
           updated_at?: string
+          view_count?: number | null
         }
         Update: {
           author_id?: string
@@ -631,10 +771,13 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
           like_count?: number | null
           reply_count?: number | null
           title?: string
           updated_at?: string
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -1902,6 +2045,58 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_mentions: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          mentioned_user_id: string
+          mentioning_user_id: string
+          message_id: string | null
+          post_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          mentioned_user_id: string
+          mentioning_user_id: string
+          message_id?: string | null
+          post_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          mentioned_user_id?: string
+          mentioning_user_id?: string
+          message_id?: string | null
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mentions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mentions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
             referencedColumns: ["id"]
           },
         ]

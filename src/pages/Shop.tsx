@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -19,11 +17,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import FrontendLayout from '@/components/layouts/FrontendLayout';
-import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import ViewProductModal from '@/components/ViewProductModal';
+import ListingGrid from '@/components/shared/ListingGrid';
+import ListingCard from '@/components/shared/ListingCard';
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -33,6 +32,9 @@ const Shop = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const categories = [
     'All Categories', 'Electronics', 'Fashion', 'Home & Garden', 
@@ -111,6 +113,12 @@ const Shop = () => {
   const filteredProducts = selectedCategory === 'All Categories' 
     ? featuredProducts 
     : featuredProducts.filter(product => product.category === selectedCategory);
+
+  // Pagination
+  const totalItems = filteredProducts.length;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handleQuantityChange = (productId, change) => {
     setQuantities(prev => ({
@@ -218,105 +226,67 @@ const Shop = () => {
             </div>
           </div>
 
-          {/* Products Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              {selectedCategory} ({filteredProducts.length} products)
-            </h2>
-          </div>
-
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="hover:shadow-xl transition-all duration-300 border hover:border-orange-200 rounded-2xl overflow-hidden transform hover:scale-105">
-                <div className="relative overflow-hidden">
-                  <div 
-                    className="h-48 bg-cover bg-center cursor-pointer"
-                    style={{ 
-                      backgroundImage: `url(https://images.unsplash.com/${product.image}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80)`,
-                    }}
-                    onClick={() => handleViewProduct(product)}
-                  />
-                  <Badge className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-lg">
-                    New
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="absolute top-3 left-3 h-8 w-8 p-0 bg-white/90 hover:bg-white rounded-lg"
-                    onClick={() => handleViewProduct(product)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <CardHeader className="pb-3 px-4 pt-4">
-                  <CardTitle 
-                    className="text-base line-clamp-2 cursor-pointer hover:text-orange-600 transition-colors"
-                    onClick={() => handleViewProduct(product)}
-                  >
-                    {product.name}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`h-3 w-3 ${
-                            i < Math.floor(product.rating) 
-                              ? 'fill-yellow-400 text-yellow-400' 
-                              : 'text-gray-300'
-                          }`} 
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-600">({product.reviews})</span>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="px-4 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-lg font-bold text-gray-900">
-                      KSH {product.price.toLocaleString()}
+          {/* Products Grid with Pagination */}
+          <ListingGrid
+            totalItems={totalItems}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            title={`${selectedCategory} (${totalItems} products)`}
+          >
+            {currentProducts.map((product) => (
+              <ListingCard
+                key={product.id}
+                id={product.id.toString()}
+                title={product.name}
+                price={product.price}
+                image={`https://images.unsplash.com/${product.image}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`}
+                category={product.category}
+                rating={product.rating}
+                reviews={product.reviews}
+                location={product.vendor}
+                badge="New"
+                onClick={() => handleViewProduct(product)}
+                onView={() => handleViewProduct(product)}
+              >
+                {/* Quantity Controls */}
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center border rounded-xl overflow-hidden">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
+                      onClick={() => handleQuantityChange(product.id, -1)}
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="px-3 text-sm font-medium min-w-[40px] text-center">
+                      {quantities[product.id] || 1}
                     </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
+                      onClick={() => handleQuantityChange(product.id, 1)}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
                   </div>
-                  
-                  {/* Quantity Controls */}
-                  <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="flex items-center border rounded-xl overflow-hidden">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
-                        onClick={() => handleQuantityChange(product.id, -1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="px-3 text-sm font-medium min-w-[40px] text-center">
-                        {quantities[product.id] || 1}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-gray-100 rounded-none"
-                        onClick={() => handleQuantityChange(product.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
+                </div>
 
-                  <Button 
-                    size="sm" 
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm h-10 rounded-xl"
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    Add to Cart
-                  </Button>
-                </CardContent>
-              </Card>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm h-10 rounded-xl"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  Add to Cart
+                </Button>
+              </ListingCard>
             ))}
-          </div>
+          </ListingGrid>
 
           {/* View All Products Button */}
           <div className="text-center mt-8">
