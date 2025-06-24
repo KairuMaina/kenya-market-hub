@@ -29,14 +29,24 @@ export const useServiceProviderApproval = () => {
 
       if (updateError) throw updateError;
 
-      // Create approval notification
-      const dashboardUrl = `/services-app`; // Generic service provider dashboard
-      await supabase.rpc('create_approval_notification', {
-        p_user_id: provider.user_id,
-        p_application_type: 'Service Provider',
-        p_status: 'approved',
-        p_dashboard_url: dashboardUrl
-      });
+      // Create approval notification manually
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: provider.user_id,
+          title: 'Service Provider Application Approved',
+          message: 'Congratulations! Your Service Provider application has been approved. You can now access your dashboard.',
+          type: 'success',
+          action_url: '/services-app',
+          metadata: {
+            application_type: 'Service Provider',
+            status: 'approved'
+          }
+        });
+
+      if (notifError) {
+        console.warn('Failed to create notification:', notifError);
+      }
 
       return provider;
     },
@@ -79,13 +89,24 @@ export const useServiceProviderApproval = () => {
 
       if (updateError) throw updateError;
 
-      // Create rejection notification
-      await supabase.rpc('create_approval_notification', {
-        p_user_id: provider.user_id,
-        p_application_type: 'Service Provider',
-        p_status: 'rejected',
-        p_dashboard_url: null
-      });
+      // Create rejection notification manually
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: provider.user_id,
+          title: 'Service Provider Application Rejected',
+          message: 'Unfortunately, your Service Provider application has been rejected. Please contact support for more information.',
+          type: 'error',
+          metadata: {
+            application_type: 'Service Provider',
+            status: 'rejected',
+            notes: notes
+          }
+        });
+
+      if (notifError) {
+        console.warn('Failed to create notification:', notifError);
+      }
 
       return provider;
     },

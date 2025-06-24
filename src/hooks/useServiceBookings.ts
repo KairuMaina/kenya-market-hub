@@ -62,7 +62,20 @@ export const useMyBookings = () => {
         .in('user_id', providerIds);
 
       return bookings.map(booking => ({
-        ...booking,
+        id: booking.id,
+        customer_id: booking.customer_id,
+        provider_id: booking.provider_id,
+        service_type: booking.service_type || 'General Service',
+        service_description: booking.service_description || booking.notes || 'No description',
+        booking_date: booking.booking_date,
+        booking_time: booking.booking_time || '09:00',
+        booking_address: booking.booking_address || 'No address provided',
+        total_amount: booking.total_amount || 0,
+        status: booking.status,
+        payment_status: booking.payment_status || 'pending',
+        notes: booking.notes,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at,
         provider: {
           full_name: providers?.find(p => p.id === booking.provider_id)?.full_name || '',
           business_name: serviceProviders?.find(sp => sp.user_id === booking.provider_id)?.business_name
@@ -99,7 +112,20 @@ export const useProviderBookings = () => {
         .in('id', customerIds);
 
       return bookings.map(booking => ({
-        ...booking,
+        id: booking.id,
+        customer_id: booking.customer_id,
+        provider_id: booking.provider_id,
+        service_type: booking.service_type || 'General Service',
+        service_description: booking.service_description || booking.notes || 'No description',
+        booking_date: booking.booking_date,
+        booking_time: booking.booking_time || '09:00',
+        booking_address: booking.booking_address || 'No address provided',
+        total_amount: booking.total_amount || 0,
+        status: booking.status,
+        payment_status: booking.payment_status || 'pending',
+        notes: booking.notes,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at,
         customer: customers?.find(c => c.id === booking.customer_id) || {
           full_name: '',
           email: ''

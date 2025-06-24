@@ -16,9 +16,6 @@ import {
   Hammer,
   Sparkles,
   Zap,
-  Saw,
-  PaintBucket,
-  Leaf,
   Shield
 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
@@ -65,7 +62,10 @@ const Services = () => {
         .order('name');
       
       if (error) throw error;
-      return data as ServiceCategory[];
+      return (data || []).map(cat => ({
+        ...cat,
+        icon_name: cat.icon_name || 'wrench'
+      })) as ServiceCategory[];
     }
   });
 
@@ -103,9 +103,6 @@ const Services = () => {
       hammer: Hammer,
       sparkles: Sparkles,
       zap: Zap,
-      saw: Saw,
-      paintbrush: PaintBucket,
-      leaf: Leaf,
       shield: Shield
     };
     return iconMap[iconName] || Wrench;
