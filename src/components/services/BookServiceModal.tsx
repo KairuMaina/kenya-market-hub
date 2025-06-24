@@ -43,20 +43,20 @@ const BookServiceModal: React.FC<BookServiceModalProps> = ({ isOpen, onClose, se
     try {
       const bookingData = {
         customer_id: user.id,
-        provider_id: service.user_id, // Use user_id instead of id to avoid foreign key constraint
+        provider_id: service.user_id,
         service_type: service.provider_type,
         booking_date: formData.booking_date,
         booking_time: formData.booking_time,
         booking_address: formData.booking_address,
         service_description: formData.service_description || `${service.provider_type} service from ${service.business_name}`,
         notes: formData.notes,
-        status: 'pending',
+        status: 'pending' as const,
         payment_status: 'pending'
       };
 
       const { error } = await supabase
         .from('service_bookings')
-        .insert([bookingData]);
+        .insert(bookingData);
 
       if (error) throw error;
 

@@ -4,35 +4,57 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export interface ServiceProviderProfile {
-  id: string;
-  user_id: string;
-  provider_type: 'vendor' | 'driver' | 'property_owner' | 'service_provider';
-  business_name?: string;
-  business_description?: string;
-  phone_number?: string;
-  email?: string;
-  location_address?: string;
-  location_coordinates?: { lat: number; lng: number };
-  documents?: any;
-  verification_status: 'pending' | 'approved' | 'rejected';
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export const useServiceProviderProfile = (providerType: string) => {
+export const useServiceProviderProfile = (providerType?: string) => {
   const { user } = useAuth();
-  
+
   return useQuery({
     queryKey: ['service-provider-profile', user?.id, providerType],
     queryFn: async () => {
       if (!user) return null;
 
-      // Mock implementation since service_provider_profiles table doesn't exist yet
-      return null as ServiceProviderProfile | null;
+      let query = supabase
+        .from('service_provider_profiles')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (providerType) {
+        query = query.eq('provider_type', providerType);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (error) {
+        console.error('Error fetching service provider profile:', error);
+        return null;
+      }
+
+      return data;
     },
-    enabled: !!user,
+    enabled: !!user
+  });
+};
+
+export const useAllServiceProviderProfiles = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['all-service-provider-profiles', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('service_provider_profiles')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching service provider profiles:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: !!user
   });
 };
 
@@ -41,58 +63,30 @@ export const useCreateServiceProviderProfile = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (profileData: Omit<ServiceProviderProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+    mutationFn: async (profileData: any) => {
+      const { data, error } = await supabase
+        .from('service_provider_profiles')
+        .insert([profileData])
+        .select()
+        .single();
 
-      // Mock implementation since table doesn't exist
-      return {
-        id: Date.now().toString(),
-        user_id: user.id,
-        ...profileData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as ServiceProviderProfile;
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-provider-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['all-service-provider-profiles'] });
       toast({
         title: 'Profile Created',
-        description: 'Service provider profile created successfully!',
+        description: 'Your service provider profile has been created successfully.'
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.message,
-        variant: 'destructive',
+        description: error.message || 'Failed to create profile',
+        variant: 'destructive'
       });
-    },
-  });
-};
-
-export const useUpdateServiceProviderProfile = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ServiceProviderProfile> }) => {
-      // Mock implementation since table doesn't exist
-      return { id, ...updates, updated_at: new Date().toISOString() };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-provider-profile'] });
-      toast({
-        title: 'Profile Updated',
-        description: 'Service provider profile updated successfully!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
+    }
   });
 };

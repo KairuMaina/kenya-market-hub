@@ -11,7 +11,7 @@ export interface NearbyDriver {
 export const useNearbyDrivers = (
   pickupLat: number,
   pickupLng: number,
-  vehicleType: string,
+  vehicleType: 'taxi' | 'motorbike',
   radiusKm: number = 10
 ) => {
   return useQuery({

@@ -16,14 +16,17 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useMyVendorProfile } from '@/hooks/useVendors';
-import { useServiceProviderProfile } from '@/hooks/useServiceProviders';
+import { useAllServiceProviderProfiles } from '@/hooks/useServiceProviders';
 import { Link } from 'react-router-dom';
 
 const ServiceProviderHub = () => {
   const { data: vendorProfile } = useMyVendorProfile();
-  const { data: driverProfile } = useServiceProviderProfile('driver');
-  const { data: propertyProfile } = useServiceProviderProfile('property_owner');
-  const { data: servicesProfile } = useServiceProviderProfile('service_provider');
+  const { data: allProfiles } = useAllServiceProviderProfiles();
+
+  // Helper function to get profile by provider type
+  const getProfileByType = (type: string) => {
+    return allProfiles?.find(profile => profile.provider_type === type);
+  };
 
   const serviceTypes = [
     {
@@ -41,7 +44,7 @@ const ServiceProviderHub = () => {
       title: 'Ride Driver',
       icon: Car,
       description: 'Provide taxi or motorbike rides',
-      profile: driverProfile,
+      profile: getProfileByType('driver'),
       color: 'blue',
       dashboardPath: '/driver-app',
       registrationPath: '/driver-registration'
@@ -51,7 +54,7 @@ const ServiceProviderHub = () => {
       title: 'Property Owner',
       icon: HomeIcon,
       description: 'List properties for sale or rent',
-      profile: propertyProfile,
+      profile: getProfileByType('property_owner'),
       color: 'purple',
       dashboardPath: '/property-owner',
       registrationPath: '/property-owner-registration'
@@ -61,7 +64,7 @@ const ServiceProviderHub = () => {
       title: 'Service Provider',
       icon: Wrench,
       description: 'Offer professional services',
-      profile: servicesProfile,
+      profile: getProfileByType('service_provider'),
       color: 'green',
       dashboardPath: '/services-app',
       registrationPath: '/service-provider-registration'

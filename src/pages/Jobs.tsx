@@ -1,279 +1,223 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import FrontendLayout from '@/components/layouts/FrontendLayout';
+import HeroSection from '@/components/shared/HeroSection';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { getPublicJobs, JobFilters as JobFiltersType } from '@/integrations/supabase/jobBoardApi';
-import MainLayout from '@/components/MainLayout';
-import JobCard from '@/components/job-board/JobCard';
-import JobFilters from '@/components/job-board/JobFilters';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
-
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  location?: string;
-  category?: string;
-  salary?: string;
-  job_type?: string;
-  remote_option?: string;
-  experience_level?: string;
-  company_name?: string;
-  created_at: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Search, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  Briefcase, 
+  Building,
+  Clock,
+  Users,
+  TrendingUp,
+  Filter
+} from 'lucide-react';
 
 const Jobs: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [search, setSearch] = useState<string>('');
-  const [filters, setFilters] = useState<JobFiltersType>({
-    jobTypes: [],
-    remoteOptions: [],
-    experienceLevels: [],
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
+
+  // Mock data for jobs - replace with real data from your backend
+  const jobs = [
+    {
+      id: 1,
+      title: 'Software Engineer',
+      company: 'Tech Solutions Ltd',
+      location: 'Nairobi',
+      type: 'Full-time',
+      salary: 'KSh 150,000 - 250,000',
+      category: 'Technology',
+      postedDate: '2 days ago',
+      description: 'We are looking for a skilled software engineer to join our dynamic team...',
+      requirements: ['Bachelor\'s degree in Computer Science', '3+ years experience', 'React, Node.js'],
+      logo: '/company-logos/tech-solutions.png'
+    },
+    // Add more mock jobs here
+  ];
+
+  const categories = [
+    'Technology',
+    'Healthcare', 
+    'Finance',
+    'Education',
+    'Marketing',
+    'Sales',
+    'Engineering',
+    'Administration'
+  ];
+
+  const locations = [
+    'Nairobi',
+    'Mombasa',
+    'Kisumu',
+    'Nakuru',
+    'Eldoret',
+    'Thika',
+    'Malindi'
+  ];
+
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         job.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
+    const matchesLocation = selectedLocation === 'all' || job.location === selectedLocation;
+    return matchesSearch && matchesCategory && matchesLocation;
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalJobs, setTotalJobs] = useState(0);
-  const { toast } = useToast();
-
-  const jobsPerPage = 12;
-
-  useEffect(() => {
-    fetchJobs();
-  }, [currentPage, filters, search]);
-
-  const fetchJobs = async () => {
-    setLoading(true);
-    try {
-      const searchFilters = {
-        ...filters,
-        search: search.trim() || undefined,
-      };
-      
-      const result = await getPublicJobs(currentPage, jobsPerPage, searchFilters);
-      setJobs(result.data);
-      setTotalPages(result.totalPages);
-      setTotalJobs(result.count);
-    } catch (error) {
-      toast({ 
-        title: 'Error', 
-        description: (error as Error).message, 
-        variant: 'destructive' 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFiltersChange = (newFilters: JobFiltersType) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setCurrentPage(1); // Reset to first page when search changes
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return (
-      <div className="flex items-center justify-center space-x-2 mt-8">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
-
-        {startPage > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-            >
-              1
-            </Button>
-            {startPage > 2 && <span className="px-2">...</span>}
-          </>
-        )}
-
-        {pages.map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
-            onClick={() => handlePageChange(page)}
-            className={currentPage === page ? "bg-gradient-to-r from-orange-500 to-red-600 text-white" : ""}
-          >
-            {page}
-          </Button>
-        ))}
-
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span className="px-2">...</span>}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(totalPages)}
-            >
-              {totalPages}
-            </Button>
-          </>
-        )}
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Next
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  };
 
   return (
-    <MainLayout>
-      <div className="space-y-6 sm:space-y-8 lg:space-y-12">
-        {/* Hero Section */}
-        <section className="relative bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 sm:p-8 lg:p-12 rounded-xl shadow-2xl animate-fade-in">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-              Find Your Dream{' '}
-              <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                Career
-              </span>
-            </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 opacity-90 max-w-2xl mx-auto">
-              Discover amazing job opportunities from top companies across Kenya
-            </p>
-            
-            <div className="max-w-md mx-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <FrontendLayout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <HeroSection
+          title="Find Your Dream Job"
+          subtitle="Thousands of opportunities await"
+          description="Connect with top employers across Kenya and advance your career"
+          imageUrl="photo-1521737604893-d14cc237f11d"
+          className="mb-8"
+        />
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          {/* Search and Filters */}
+          <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative md:col-span-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search jobs by title, location, or category..."
-                  value={search}
-                  onChange={handleSearchChange}
-                  className="pl-10 bg-white/90 border-0 text-gray-900 placeholder-gray-500"
+                  placeholder="Search jobs, companies..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {locations.map(location => (
+                    <SelectItem key={location} value={location}>{location}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        </section>
 
-        {/* Filters Section */}
-        <section className="animate-slide-in-up">
-          <JobFilters onFiltersChange={handleFiltersChange} />
-        </section>
+          {/* Job Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Briefcase className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900">1,234</div>
+                <div className="text-sm text-gray-600">Active Jobs</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Building className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900">567</div>
+                <div className="text-sm text-gray-600">Companies</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900">12,345</div>
+                <div className="text-sm text-gray-600">Job Seekers</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <TrendingUp className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900">89%</div>
+                <div className="text-sm text-gray-600">Success Rate</div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Results Summary */}
-        <section className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">
-              {loading ? 'Loading...' : `${totalJobs} Job${totalJobs !== 1 ? 's' : ''} Found`}
-            </h2>
-            {totalJobs > 0 && (
-              <p className="text-gray-600">
-                Showing {((currentPage - 1) * jobsPerPage) + 1} - {Math.min(currentPage * jobsPerPage, totalJobs)} of {totalJobs} results
-              </p>
+          {/* Jobs Grid */}
+          <div className="space-y-6">
+            {filteredJobs.length > 0 ? (
+              filteredJobs.map((job) => (
+                <Card key={job.id} className="hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Building className="h-6 w-6 text-gray-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
+                              <Badge variant="outline">{job.type}</Badge>
+                            </div>
+                            <p className="text-lg text-blue-600 font-medium mb-2">{job.company}</p>
+                            
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                <span>{job.location}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4" />
+                                <span>{job.salary}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{job.postedDate}</span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-gray-700 text-sm line-clamp-2">{job.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
+                        <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600">
+                          Apply Now
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Save Job
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No jobs found matching your criteria.</p>
+              </div>
             )}
           </div>
-        </section>
-
-        {/* Job Listings */}
-        <section className="animate-slide-in-right">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto">
-                <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                  <Search className="h-12 w-12 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search criteria or filters to find more opportunities.
-                </p>
-                <Button 
-                  onClick={() => {
-                    setSearch('');
-                    setFilters({ jobTypes: [], remoteOptions: [], experienceLevels: [] });
-                    setCurrentPage(1);
-                  }}
-                  variant="outline"
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {jobs.map((job, index) => (
-                  <JobCard 
-                    key={job.id} 
-                    job={job} 
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  />
-                ))}
-              </div>
-              
-              {renderPagination()}
-            </>
-          )}
-        </section>
-
-        {/* Call to Action */}
-        {!loading && jobs.length > 0 && (
-          <section className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 sm:p-8 rounded-xl text-center animate-bounce-in shadow-2xl">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Ready to Take the Next Step?</h2>
-            <p className="text-base sm:text-lg mb-4 sm:mb-6 opacity-90">
-              Join thousands of professionals who found their dream jobs through our platform!
-            </p>
-            <Button 
-              size="lg" 
-              variant="secondary" 
-              className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 sm:px-8 py-3"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            >
-              <Search className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Search More Jobs
-            </Button>
-          </section>
-        )}
+        </div>
       </div>
-    </MainLayout>
+    </FrontendLayout>
   );
 };
 
