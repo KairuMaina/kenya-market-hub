@@ -28,6 +28,7 @@ export interface ForumPost {
   created_at: string;
   author?: {
     full_name: string;
+    avatar_url?: string;
   };
   category?: {
     name: string;
@@ -47,6 +48,7 @@ export interface ForumPostComment {
   created_at: string;
   author?: {
     full_name: string;
+    avatar_url?: string;
   };
   replies?: ForumPostComment[];
 }
@@ -61,6 +63,7 @@ export interface ChatConversation {
   created_at: string;
   other_participant?: {
     full_name: string;
+    avatar_url?: string;
   };
 }
 
@@ -88,6 +91,13 @@ export interface ChatMessageAttachment {
   created_at: string;
 }
 
+export interface UserProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+}
+
 // Forum Categories
 export const useForumCategories = () => {
   return useQuery({
@@ -104,9 +114,10 @@ export const useForumCategories = () => {
   });
 };
 
-// Forum Posts with real-time updates
+// Forum Posts with proper joins
 export const useForumPosts = (categoryId?: string) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const query = useQuery({
     queryKey: ['forum-posts', categoryId],
@@ -115,9 +126,8 @@ export const useForumPosts = (categoryId?: string) => {
         .from('forum_posts')
         .select(`
           *,
-          author:profiles(full_name),
-          category:forum_categories(name),
-          user_reaction:forum_post_reactions(reaction_type)
+          author:profiles!forum_posts_author_id_fkey(full_name, avatar_url),
+          category:forum_categories!forum_posts_category_id_fkey(name)
         `)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
@@ -126,14 +136,31 @@ export const useForumPosts = (categoryId?: string) => {
         query = query.eq('category_id', categoryId);
       }
       
-      const { data, error } = await query;
+      const { data: posts, error } = await query;
       
       if (error) throw error;
-      return data as any;
+
+      // Get user reactions separately if user is logged in
+      if (user && posts && posts.length > 0) {
+        const postIds = posts.map(post => post.id);
+        const { data: reactions } = await supabase
+          .from('forum_post_reactions')
+          .select('post_id, reaction_type')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+
+        // Merge reactions with posts
+        return posts.map(post => ({
+          ...post,
+          user_reaction: reactions?.find(r => r.post_id === post.id)
+        }));
+      }
+      
+      return posts;
     }
   });
 
-  // Set up real-time subscription
+  // Real-time subscription
   useEffect(() => {
     const channel = supabase
       .channel('forum-posts-changes')
@@ -180,7 +207,7 @@ export const useForumPostComments = (postId: string) => {
         .from('forum_post_comments')
         .select(`
           *,
-          author:profiles(full_name)
+          author:profiles!forum_post_comments_author_id_fkey(full_name, avatar_url)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
@@ -279,7 +306,7 @@ export const useCreateForumPost = () => {
   });
 };
 
-// Add Forum Post Reaction
+// Toggle Post Reaction
 export const useTogglePostReaction = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -289,7 +316,6 @@ export const useTogglePostReaction = () => {
     mutationFn: async ({ postId, reactionType }: { postId: string; reactionType: string }) => {
       if (!user) throw new Error('User not authenticated');
       
-      // Check if reaction already exists
       const { data: existingReaction } = await supabase
         .from('forum_post_reactions')
         .select('id')
@@ -299,7 +325,6 @@ export const useTogglePostReaction = () => {
         .single();
       
       if (existingReaction) {
-        // Remove reaction
         const { error } = await supabase
           .from('forum_post_reactions')
           .delete()
@@ -308,7 +333,6 @@ export const useTogglePostReaction = () => {
         if (error) throw error;
         return { action: 'removed' };
       } else {
-        // Add reaction
         const { data, error } = await supabase
           .from('forum_post_reactions')
           .insert({
@@ -336,7 +360,7 @@ export const useTogglePostReaction = () => {
   });
 };
 
-// Add Forum Post Comment
+// Create Forum Comment
 export const useCreateForumComment = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -379,7 +403,27 @@ export const useCreateForumComment = () => {
   });
 };
 
-// Chat Conversations with real-time
+// User Search
+export const useUserSearch = (searchTerm: string) => {
+  return useQuery({
+    queryKey: ['user-search', searchTerm],
+    queryFn: async () => {
+      if (!searchTerm || searchTerm.length < 2) return [];
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+        .limit(10);
+      
+      if (error) throw error;
+      return data as UserProfile[];
+    },
+    enabled: !!searchTerm && searchTerm.length >= 2
+  });
+};
+
+// Chat Conversations with proper joins
 export const useChatConversations = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -393,19 +437,18 @@ export const useChatConversations = () => {
         .from('chat_conversations')
         .select(`
           *,
-          participant1:profiles!chat_conversations_participant1_id_fkey(full_name),
-          participant2:profiles!chat_conversations_participant2_id_fkey(full_name)
+          participant1:profiles!chat_conversations_participant1_id_fkey(full_name, avatar_url),
+          participant2:profiles!chat_conversations_participant2_id_fkey(full_name, avatar_url)
         `)
         .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });
       
       if (error) throw error;
       
-      // Transform data to include other_participant and unread_count
       const transformedData = data?.map(conv => ({
         ...conv,
         other_participant: conv.participant1_id === user.id ? conv.participant2 : conv.participant1,
-        unread_count: 0 // TODO: Implement unread count logic
+        unread_count: 0
       })) || [];
       
       return transformedData as any;
@@ -453,7 +496,7 @@ export const useChatConversations = () => {
   return query;
 };
 
-// Chat Messages with real-time
+// Chat Messages
 export const useChatMessages = (conversationId: string | null) => {
   const queryClient = useQueryClient();
   
@@ -555,32 +598,31 @@ export const useSendMessage = () => {
   });
 };
 
-// Start Conversation with Business
-export const useStartBusinessConversation = () => {
+// Create Conversation
+export const useCreateConversation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ businessId, initialMessage }: { businessId: string; initialMessage: string }) => {
+    mutationFn: async ({ participantId, initialMessage }: { participantId: string; initialMessage?: string }) => {
       if (!user) throw new Error('User not authenticated');
       
-      // First, check if conversation already exists
+      // Check if conversation already exists
       const { data: existingConv } = await supabase
         .from('chat_conversations')
         .select('id')
-        .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${businessId}),and(participant1_id.eq.${businessId},participant2_id.eq.${user.id})`)
+        .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${participantId}),and(participant1_id.eq.${participantId},participant2_id.eq.${user.id})`)
         .maybeSingle();
       
       let conversationId = existingConv?.id;
       
       if (!conversationId) {
-        // Create new conversation
         const { data: newConv, error: convError } = await supabase
           .from('chat_conversations')
           .insert({
             participant1_id: user.id,
-            participant2_id: businessId
+            participant2_id: participantId
           })
           .select()
           .single();
@@ -589,19 +631,22 @@ export const useStartBusinessConversation = () => {
         conversationId = newConv.id;
       }
       
-      // Send initial message
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: initialMessage
-        })
-        .select()
-        .single();
+      // Send initial message if provided
+      if (initialMessage) {
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: initialMessage
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+      }
       
-      if (error) throw error;
-      return data;
+      return { conversationId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
@@ -614,5 +659,112 @@ export const useStartBusinessConversation = () => {
         variant: 'destructive'
       });
     }
+  });
+};
+
+// User Following
+export const useUserFollows = (userId?: string) => {
+  return useQuery({
+    queryKey: ['user-follows', userId],
+    queryFn: async () => {
+      if (!userId) return { followers: [], following: [] };
+      
+      const [followersRes, followingRes] = await Promise.all([
+        supabase
+          .from('user_follows')
+          .select(`
+            follower_id,
+            follower:profiles!user_follows_follower_id_fkey(full_name, avatar_url)
+          `)
+          .eq('following_id', userId),
+        supabase
+          .from('user_follows')
+          .select(`
+            following_id,
+            following:profiles!user_follows_following_id_fkey(full_name, avatar_url)
+          `)
+          .eq('follower_id', userId)
+      ]);
+      
+      if (followersRes.error) throw followersRes.error;
+      if (followingRes.error) throw followingRes.error;
+      
+      return {
+        followers: followersRes.data || [],
+        following: followingRes.data || []
+      };
+    },
+    enabled: !!userId
+  });
+};
+
+// Toggle Follow User
+export const useToggleFollow = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (targetUserId: string) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: existingFollow } = await supabase
+        .from('user_follows')
+        .select('id')
+        .eq('follower_id', user.id)
+        .eq('following_id', targetUserId)
+        .single();
+      
+      if (existingFollow) {
+        const { error } = await supabase
+          .from('user_follows')
+          .delete()
+          .eq('id', existingFollow.id);
+        
+        if (error) throw error;
+        return { action: 'unfollowed' };
+      } else {
+        const { data, error } = await supabase
+          .from('user_follows')
+          .insert({
+            follower_id: user.id,
+            following_id: targetUserId
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return { action: 'followed', data };
+      }
+    },
+    onSuccess: (result, targetUserId) => {
+      queryClient.invalidateQueries({ queryKey: ['user-follows'] });
+      toast({ 
+        title: result.action === 'followed' ? 'User followed!' : 'User unfollowed!' 
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating follow status',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+};
+
+// Start Business Conversation (legacy support)
+export const useStartBusinessConversation = () => {
+  const createConversation = useCreateConversation();
+  
+  return useMutation({
+    mutationFn: async ({ businessId, initialMessage }: { businessId: string; initialMessage: string }) => {
+      return createConversation.mutateAsync({ 
+        participantId: businessId, 
+        initialMessage 
+      });
+    },
+    onSuccess: createConversation.onSuccess,
+    onError: createConversation.onError
   });
 };
