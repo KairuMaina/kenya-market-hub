@@ -9,23 +9,48 @@ export const useServiceProviderApproval = () => {
 
   const approveServiceProvider = useMutation({
     mutationFn: async ({ providerId }: { providerId: string }) => {
-      const { error } = await supabase
+      // Get the provider details first
+      const { data: provider, error: fetchError } = await supabase
+        .from('service_provider_profiles')
+        .select('user_id, provider_type, business_name')
+        .eq('id', providerId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update the provider status
+      const { error: updateError } = await supabase
         .from('service_provider_profiles')
         .update({ 
           verification_status: 'approved',
-          is_active: true 
+          updated_at: new Date().toISOString()
         })
         .eq('id', providerId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Create approval notification
+      const dashboardUrl = `/services-app`; // Generic service provider dashboard
+      await supabase.rpc('create_approval_notification', {
+        p_user_id: provider.user_id,
+        p_application_type: 'Service Provider',
+        p_status: 'approved',
+        p_dashboard_url: dashboardUrl
+      });
+
+      return provider;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-service-providers'] });
-      toast({ title: 'Service provider approved successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['service-provider-profile'] });
+      toast({
+        title: 'Provider Approved',
+        description: 'Service provider has been approved and notified.'
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error approving service provider',
+        title: 'Approval Failed',
         description: error.message,
         variant: 'destructive'
       });
@@ -33,25 +58,48 @@ export const useServiceProviderApproval = () => {
   });
 
   const rejectServiceProvider = useMutation({
-    mutationFn: async ({ providerId, notes }: { providerId: string, notes?: string }) => {
-      // Notes are captured from UI but not stored as service_provider_profiles has no admin_notes column.
-      const { error } = await supabase
+    mutationFn: async ({ providerId, notes }: { providerId: string; notes: string }) => {
+      // Get the provider details first
+      const { data: provider, error: fetchError } = await supabase
+        .from('service_provider_profiles')
+        .select('user_id, provider_type, business_name')
+        .eq('id', providerId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update the provider status
+      const { error: updateError } = await supabase
         .from('service_provider_profiles')
         .update({ 
           verification_status: 'rejected',
-          is_active: false 
+          updated_at: new Date().toISOString()
         })
         .eq('id', providerId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Create rejection notification
+      await supabase.rpc('create_approval_notification', {
+        p_user_id: provider.user_id,
+        p_application_type: 'Service Provider',
+        p_status: 'rejected',
+        p_dashboard_url: null
+      });
+
+      return provider;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-service-providers'] });
-      toast({ title: 'Service provider rejected' });
+      queryClient.invalidateQueries({ queryKey: ['service-provider-profile'] });
+      toast({
+        title: 'Provider Rejected',
+        description: 'Service provider has been rejected and notified.'
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error rejecting service provider',
+        title: 'Rejection Failed',
         description: error.message,
         variant: 'destructive'
       });

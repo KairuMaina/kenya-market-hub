@@ -30,7 +30,7 @@ const BusinessDirectory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBusiness, setSelectedBusiness] = useState<{ id: string; name: string } | null>(null);
 
-  // Fetch approved service providers with separate profile lookup
+  // Fetch approved service providers
   const { data: serviceProviders, isLoading } = useQuery({
     queryKey: ['approved-service-providers'],
     queryFn: async () => {
@@ -44,14 +44,15 @@ const BusinessDirectory = () => {
       if (error) throw error;
       if (!providers) return [];
 
-      // Get profiles separately to avoid foreign key issues
+      // Get profiles separately
       const userIds = providers.map(p => p.user_id);
+      if (userIds.length === 0) return [];
+
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
         .in('id', userIds);
 
-      // Merge the data
       return providers.map(provider => ({
         ...provider,
         profiles: profiles?.find(p => p.id === provider.user_id) || null
@@ -67,18 +68,20 @@ const BusinessDirectory = () => {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="text-center text-gray-500">Loading businesses...</div>
-        </CardContent>
-      </Card>
+      <div className="h-full">
+        <Card className="h-full">
+          <CardContent className="p-8 flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">Loading businesses...</div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <Store className="h-5 w-5" />
             Business Directory
@@ -96,98 +99,102 @@ const BusinessDirectory = () => {
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-          {filteredBusinesses.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <Store className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="font-medium mb-2">
-                {searchTerm ? 'No businesses found' : 'No verified businesses yet'}
-              </h3>
-              <p className="text-sm">
-                {searchTerm 
-                  ? 'Try adjusting your search terms' 
-                  : 'Service providers will appear here once approved'
-                }
-              </p>
-            </div>
-          ) : (
-            filteredBusinesses.map((business) => (
-              <div key={business.id} className="flex items-start gap-4 p-4 border rounded-xl hover:shadow-md transition-all duration-200 hover:border-orange-200">
-                <Avatar className="h-12 w-12 flex-shrink-0">
-                  <AvatarImage src={business.profiles?.avatar_url} />
-                  <AvatarFallback>
-                    <User className="h-6 w-6" />
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-lg truncate">{business.business_name}</h4>
-                      <p className="text-sm text-gray-600 truncate">
-                        By {business.profiles?.full_name || 'Service Provider'}
-                      </p>
-                    </div>
-                    
-                    <Button
-                      size="sm"
-                      onClick={() => setSelectedBusiness({ 
-                        id: business.user_id, 
-                        name: business.business_name || 'Business' 
-                      })}
-                      className="ml-3 bg-orange-500 hover:bg-orange-600 flex-shrink-0"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      Contact
-                    </Button>
-                  </div>
-                  
-                  {business.business_description && (
-                    <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
-                      {business.business_description}
-                    </p>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <Badge className="bg-green-100 text-green-800 text-xs">
-                      Verified
-                    </Badge>
-                    {business.provider_type && (
-                      <Badge variant="secondary" className="text-xs">
-                        {business.provider_type}
-                      </Badge>
-                    )}
-                    <Badge variant="outline" className="text-xs">
-                      Active
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-1 text-xs text-gray-600">
-                    {business.location_address && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{business.location_address}</span>
-                      </div>
-                    )}
-                    
-                    {business.phone_number && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3 flex-shrink-0" />
-                        <span>{business.phone_number}</span>
-                      </div>
-                    )}
-                    
-                    {business.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{business.email}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+        <CardContent className="flex-1 overflow-hidden flex flex-col p-0">
+          <div className="flex-1 overflow-y-auto p-6">
+            {filteredBusinesses.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <Store className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="font-medium mb-2">
+                  {searchTerm ? 'No businesses found' : 'No verified businesses yet'}
+                </h3>
+                <p className="text-sm">
+                  {searchTerm 
+                    ? 'Try adjusting your search terms' 
+                    : 'Service providers will appear here once approved'
+                  }
+                </p>
               </div>
-            ))
-          )}
+            ) : (
+              <div className="space-y-4">
+                {filteredBusinesses.map((business) => (
+                  <div key={business.id} className="flex items-start gap-4 p-4 border rounded-xl hover:shadow-md transition-all duration-200 hover:border-orange-200">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                      <AvatarImage src={business.profiles?.avatar_url} />
+                      <AvatarFallback>
+                        <User className="h-6 w-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-lg truncate">{business.business_name}</h4>
+                          <p className="text-sm text-gray-600 truncate">
+                            By {business.profiles?.full_name || 'Service Provider'}
+                          </p>
+                        </div>
+                        
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedBusiness({ 
+                            id: business.user_id, 
+                            name: business.business_name || 'Business' 
+                          })}
+                          className="ml-3 bg-orange-500 hover:bg-orange-600 flex-shrink-0"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Contact
+                        </Button>
+                      </div>
+                      
+                      {business.business_description && (
+                        <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
+                          {business.business_description}
+                        </p>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          Verified
+                        </Badge>
+                        {business.provider_type && (
+                          <Badge variant="secondary" className="text-xs capitalize">
+                            {business.provider_type}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs">
+                          Active
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-1 text-xs text-gray-600">
+                        {business.location_address && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{business.location_address}</span>
+                          </div>
+                        )}
+                        
+                        {business.phone_number && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3 flex-shrink-0" />
+                            <span>{business.phone_number}</span>
+                          </div>
+                        )}
+                        
+                        {business.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{business.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -199,7 +206,7 @@ const BusinessDirectory = () => {
           businessId={selectedBusiness.id}
         />
       )}
-    </>
+    </div>
   );
 };
 
