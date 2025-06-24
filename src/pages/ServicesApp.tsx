@@ -38,6 +38,8 @@ const ServicesApp = () => {
           <Route path="profile" element={<ServicesProfile />} />
           <Route path="analytics" element={<ServicesAnalytics />} />
           <Route path="settings" element={<ServicesSettings />} />
+          {/* Catch-all route for 404s within services app */}
+          <Route path="*" element={<Navigate to="/services-app" replace />} />
         </Routes>
       </ServicesLayout>
     </ProtectedServiceProviderRoute>

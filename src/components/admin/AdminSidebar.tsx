@@ -41,44 +41,44 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
 
   const isActive = (path: string) => {
-    return location.pathname === `/admin${path}`;
+    return location.pathname === path;
   };
 
   const handleNavigation = (path: string) => {
-    navigate(`/admin${path}`);
+    navigate(path);
   };
 
   const mainItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Users, label: 'Users', path: '/users' },
-    { icon: ShoppingBag, label: 'Products', path: '/products' },
-    { icon: ClipboardList, label: 'Orders', path: '/orders' }
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: Users, label: 'Users', path: '/admin/users' },
+    { icon: ShoppingBag, label: 'Products', path: '/admin/products' },
+    { icon: ClipboardList, label: 'Orders', path: '/admin/orders' }
   ];
 
   const businessItems = [
-    { icon: Store, label: 'Vendors', path: '/vendors' },
-    { icon: Car, label: 'Drivers', path: '/drivers' },
-    { icon: Wrench, label: 'Service Providers', path: '/service-providers' },
-    { icon: Building2, label: 'Employers', path: '/employers' },
-    { icon: UserCheck, label: 'Agents', path: '/agents' }
+    { icon: Store, label: 'Vendors', path: '/admin/vendors' },
+    { icon: Car, label: 'Drivers', path: '/admin/drivers' },
+    { icon: Wrench, label: 'Service Providers', path: '/admin/service-providers' },
+    { icon: Building2, label: 'Employers', path: '/admin/employers' },
+    { icon: UserCheck, label: 'Agents', path: '/admin/agents' }
   ];
 
   const servicesItems = [
-    { icon: Route, label: 'Rides', path: '/rides' },
-    { icon: Wrench, label: 'Service Bookings', path: '/service-bookings' },
-    { icon: Building, label: 'Properties', path: '/properties' },
-    { icon: Stethoscope, label: 'Medical', path: '/medical' },
-    { icon: Shield, label: 'Insurance', path: '/insurance' },
-    { icon: UtensilsCrossed, label: 'Food Delivery', path: '/food-delivery' },
-    { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: Briefcase, label: 'Job Board', path: '/jobs' }
+    { icon: Route, label: 'Rides', path: '/admin/rides' },
+    { icon: Wrench, label: 'Service Bookings', path: '/admin/service-bookings' },
+    { icon: Building, label: 'Properties', path: '/admin/properties' },
+    { icon: Stethoscope, label: 'Medical', path: '/admin/medical' },
+    { icon: Shield, label: 'Insurance', path: '/admin/insurance' },
+    { icon: UtensilsCrossed, label: 'Food Delivery', path: '/admin/food-delivery' },
+    { icon: Calendar, label: 'Events', path: '/admin/events' },
+    { icon: Briefcase, label: 'Job Board', path: '/admin/jobs' }
   ];
 
   const systemItems = [
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { icon: FileText, label: 'Reports', path: '/reports' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
-    { icon: Settings, label: 'Settings', path: '/settings' }
+    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
+    { icon: FileText, label: 'Reports', path: '/admin/reports' },
+    { icon: Bell, label: 'Notifications', path: '/admin/notifications' },
+    { icon: Settings, label: 'Settings', path: '/admin/settings' }
   ];
 
   const SidebarSection = ({ title, items }: { title: string; items: any[] }) => (

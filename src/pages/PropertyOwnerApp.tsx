@@ -50,6 +50,8 @@ const PropertyOwnerApp = () => {
           <Route path="revenue" element={<PropertyOwnerRevenue />} />
           <Route path="profile" element={<PropertyOwnerProfile />} />
           <Route path="settings" element={<PropertyOwnerSettings />} />
+          {/* Catch-all route for 404s within property owner app */}
+          <Route path="*" element={<Navigate to="/property-owner" replace />} />
         </Routes>
       </PropertyOwnerLayout>
     </ProtectedPropertyOwnerRoute>

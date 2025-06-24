@@ -6,11 +6,32 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProtectedVendorRoute from '@/components/ProtectedVendorRoute';
 import VendorMainDashboard from '@/components/VendorMainDashboard';
-// Removed: import VendorAnalytics from '@/components/vendor/VendorAnalytics';
 import VendorProducts from "@/pages/vendor/VendorProducts";
 import VendorStore from "@/pages/vendor/VendorStore";
 import VendorCustomers from "@/pages/vendor/VendorCustomers";
 import AddProductModal from '@/components/AddProductModal';
+
+// Create placeholder components for missing routes
+const VendorAnalytics = () => (
+  <div className="space-y-6">
+    <h1 className="text-2xl font-bold">Analytics</h1>
+    <p>Vendor analytics dashboard coming soon...</p>
+  </div>
+);
+
+const VendorProfile = () => (
+  <div className="space-y-6">
+    <h1 className="text-2xl font-bold">Profile</h1>
+    <p>Vendor profile management coming soon...</p>
+  </div>
+);
+
+const VendorSettings = () => (
+  <div className="space-y-6">
+    <h1 className="text-2xl font-bold">Settings</h1>
+    <p>Vendor settings coming soon...</p>
+  </div>
+);
 
 const VendorApp = () => {
   const { user, loading } = useAuth();
@@ -35,11 +56,15 @@ const VendorApp = () => {
       <VendorLayout>
         <Routes>
           <Route index element={<VendorMainDashboard />} />
-          {/* Removed analytics route */}
           <Route path="products" element={<VendorProducts />} />
           <Route path="products/add" element={<AddProductModal open onOpenChange={() => {}} onSuccess={() => {}} />} />
           <Route path="store" element={<VendorStore />} />
           <Route path="customers" element={<VendorCustomers />} />
+          <Route path="analytics" element={<VendorAnalytics />} />
+          <Route path="profile" element={<VendorProfile />} />
+          <Route path="settings" element={<VendorSettings />} />
+          {/* Catch-all route for 404s within vendor app */}
+          <Route path="*" element={<Navigate to="/vendor" replace />} />
         </Routes>
       </VendorLayout>
     </ProtectedVendorRoute>

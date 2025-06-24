@@ -46,6 +46,8 @@ const DriverApp = () => {
           <Route path="ratings" element={<DriverRatings />} />
           <Route path="profile" element={<DriverProfile />} />
           <Route path="settings" element={<DriverSettings />} />
+          {/* Catch-all route for 404s within driver app */}
+          <Route path="*" element={<Navigate to="/driver" replace />} />
         </Routes>
       </DriverLayout>
     </ProtectedDriverRoute>
