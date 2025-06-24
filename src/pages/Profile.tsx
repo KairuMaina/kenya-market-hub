@@ -63,10 +63,10 @@ const Profile = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center min-h-96">
+        <div className="flex items-center justify-center min-h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading profile...</p>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading profile...</p>
           </div>
         </div>
       </MainLayout>
@@ -80,46 +80,46 @@ const Profile = () => {
         <HeroSection
           title="My Profile"
           subtitle="Account Settings"
-          description="Manage your account information, preferences, and activity."
+          description="Manage your account information and preferences."
           imageUrl="photo-1472099645785-5658abf4ff4e"
-          className="mb-0"
+          className="mb-0 rounded-b-3xl"
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Info Card */}
             <div className="lg:col-span-1">
-              <Card className="border-orange-200">
-                <CardHeader className="text-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
-                  <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white">
+              <Card className="border-orange-200 rounded-2xl">
+                <CardHeader className="text-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-2xl">
+                  <Avatar className="w-16 h-16 mx-auto mb-3 border-4 border-white">
                     <AvatarImage src={profile?.avatar_url} />
-                    <AvatarFallback className="bg-white text-orange-600 text-2xl">
+                    <AvatarFallback className="bg-white text-orange-600 text-lg">
                       {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <CardTitle className="text-xl">{profile?.full_name || 'User'}</CardTitle>
-                  <CardDescription className="text-orange-100">{user?.email}</CardDescription>
+                  <CardTitle className="text-lg">{profile?.full_name || 'User'}</CardTitle>
+                  <CardDescription className="text-orange-100 text-sm">{user?.email}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <Mail className="h-4 w-4 text-orange-500" />
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <Mail className="h-3 w-3 text-orange-500" />
                       <span>{user?.email}</span>
                     </div>
                     {profile?.phone && (
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <Phone className="h-4 w-4 text-orange-500" />
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <Phone className="h-3 w-3 text-orange-500" />
                         <span>{profile.phone}</span>
                       </div>
                     )}
                     {profile?.address && (
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <MapPin className="h-4 w-4 text-orange-500" />
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <MapPin className="h-3 w-3 text-orange-500" />
                         <span>{profile.address}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 text-orange-500" />
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <Calendar className="h-3 w-3 text-orange-500" />
                       <span>Joined {new Date(profile?.created_at || '').toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -129,93 +129,94 @@ const Profile = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <Tabs defaultValue="personal" className="space-y-6">
+              <Tabs defaultValue="personal" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-4 bg-orange-100">
                   <TabsTrigger 
                     value="personal"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white text-xs"
                   >
                     Personal Info
                   </TabsTrigger>
                   <TabsTrigger 
                     value="orders"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white text-xs"
                   >
                     Orders
                   </TabsTrigger>
                   <TabsTrigger 
                     value="reviews"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white text-xs"
                   >
                     Reviews
                   </TabsTrigger>
                   <TabsTrigger 
                     value="wishlist"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white text-xs"
                   >
                     Wishlist
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="personal">
-                  <Card className="border-orange-200">
+                  <Card className="border-orange-200 rounded-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-orange-500" />
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <User className="h-4 w-4 text-orange-500" />
                         Personal Information
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm">
                         Update your personal details and contact information.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="full_name">Full Name</Label>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="full_name" className="text-sm">Full Name</Label>
                           <Input
                             id="full_name"
                             value={formData.full_name}
                             onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone Number</Label>
+                        <div className="space-y-1">
+                          <Label htmlFor="phone" className="text-sm">Phone Number</Label>
                           <Input
                             id="phone"
                             value={formData.phone}
                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="city">City</Label>
+                        <div className="space-y-1">
+                          <Label htmlFor="city" className="text-sm">City</Label>
                           <Input
                             id="city"
                             value={formData.city}
                             onChange={(e) => setFormData({...formData, city: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
                           />
                         </div>
-                        <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="address">Address</Label>
+                        <div className="space-y-1 md:col-span-2">
+                          <Label htmlFor="address" className="text-sm">Address</Label>
                           <Textarea
                             id="address"
                             value={formData.address}
                             onChange={(e) => setFormData({...formData, address: e.target.value})}
                             disabled={!isEditing}
-                            className="border-orange-200 focus:border-orange-500"
+                            className="border-orange-200 focus:border-orange-500 text-sm rounded-xl"
                           />
                         </div>
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex gap-2">
                         {!isEditing ? (
                           <Button 
                             onClick={() => setIsEditing(true)}
-                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                            size="sm"
+                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-xl"
                           >
                             Edit Profile
                           </Button>
@@ -224,14 +225,16 @@ const Profile = () => {
                             <Button 
                               onClick={handleSave}
                               disabled={updateProfile.isPending}
-                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                              size="sm"
+                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-sm px-4 py-2 rounded-xl"
                             >
                               {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
                             </Button>
                             <Button 
                               variant="outline" 
                               onClick={() => setIsEditing(false)}
-                              className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                              size="sm"
+                              className="border-orange-200 text-orange-600 hover:bg-orange-50 text-sm px-4 py-2 rounded-xl"
                             >
                               Cancel
                             </Button>
@@ -243,51 +246,51 @@ const Profile = () => {
                 </TabsContent>
 
                 <TabsContent value="orders">
-                  <Card className="border-orange-200">
+                  <Card className="border-orange-200 rounded-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5 text-orange-500" />
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Package className="h-4 w-4 text-orange-500" />
                         Order History
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-12">
-                        <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600">No orders found</p>
+                      <div className="text-center py-8">
+                        <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600">No orders found</p>
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
 
                 <TabsContent value="reviews">
-                  <Card className="border-orange-200">
+                  <Card className="border-orange-200 rounded-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-orange-500" />
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Star className="h-4 w-4 text-orange-500" />
                         My Reviews
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-12">
-                        <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600">No reviews yet</p>
+                      <div className="text-center py-8">
+                        <Star className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600">No reviews yet</p>
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
 
                 <TabsContent value="wishlist">
-                  <Card className="border-orange-200">
+                  <Card className="border-orange-200 rounded-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Heart className="h-5 w-5 text-orange-500" />
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Heart className="h-4 w-4 text-orange-500" />
                         My Wishlist
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-12">
-                        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600">No items in wishlist</p>
+                      <div className="text-center py-8">
+                        <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600">No items in wishlist</p>
                       </div>
                     </CardContent>
                   </Card>

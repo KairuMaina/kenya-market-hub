@@ -223,7 +223,7 @@ const Index = () => {
     <FrontendLayout>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Hero Section with Slideshow */}
-        <div className="relative h-[80vh] min-h-[600px] overflow-hidden rounded-b-2xl">
+        <div className="relative h-[70vh] min-h-[500px] overflow-hidden rounded-b-3xl">
           {/* Background Image with Overlay */}
           <div 
             className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out"
@@ -236,60 +236,60 @@ const Index = () => {
           {/* Navigation Controls */}
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
           
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5" />
           </button>
 
           {/* Play/Pause Button */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="absolute top-4 right-4 z-20 p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
+            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-200"
           >
-            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </button>
 
           {/* Hero Content */}
           <div className="relative z-10 flex items-center justify-center h-full px-4">
             <div className="text-center text-white max-w-4xl mx-auto">
               {/* Brand Name */}
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+              <h1 className="text-3xl md:text-5xl font-bold mb-3 animate-fade-in">
                 Sokko Smart
               </h1>
 
               {/* Slide Content */}
               <div className="animate-fade-in" key={currentSlide}>
-                <p className="text-orange-200 text-base font-medium mb-2">
+                <p className="text-orange-200 text-sm font-medium mb-2">
                   {currentSlideData.subtitle}
                 </p>
-                <h2 className="text-2xl md:text-4xl font-bold mb-4">
+                <h2 className="text-xl md:text-3xl font-bold mb-3">
                   {currentSlideData.title}
                 </h2>
-                <p className="text-lg md:text-xl text-orange-100 mb-8 max-w-3xl mx-auto">
+                <p className="text-base md:text-lg text-orange-100 mb-6 max-w-3xl mx-auto">
                   {currentSlideData.description}
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                   <Button
-                    size="lg"
+                    size="sm"
                     onClick={currentSlideData.ctaAction}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 text-sm rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                   >
                     {currentSlideData.cta}
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
-                    size="lg"
+                    size="sm"
                     variant="outline"
                     onClick={() => navigate('/service-hub')}
-                    className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-8 py-4 text-lg rounded-xl backdrop-blur-sm bg-white/10"
+                    className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-6 py-2 text-sm rounded-xl backdrop-blur-sm bg-white/10"
                   >
                     Become a Partner
                   </Button>
@@ -299,12 +299,12 @@ const Index = () => {
           </div>
 
           {/* Slide Indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
             {heroSlides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
                   index === currentSlide 
                     ? 'bg-white shadow-lg scale-125' 
                     : 'bg-white/50 hover:bg-white/75'
@@ -314,22 +314,22 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Mini Apps Grid */}
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               All Services in One Platform
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm text-gray-600 max-w-2xl mx-auto">
               From shopping to services, we've got everything you need to live, work, and thrive in Kenya
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {miniApps.map((app) => (
               <Card 
                 key={app.id} 
-                className="group hover:shadow-xl transition-all duration-300 border hover:border-orange-200 cursor-pointer rounded-2xl overflow-hidden transform hover:scale-105"
+                className="group hover:shadow-lg transition-all duration-300 border hover:border-orange-200 cursor-pointer rounded-2xl overflow-hidden transform hover:scale-105"
                 onClick={() => navigate(app.route)}
               >
                 <div className="relative overflow-hidden aspect-square">
@@ -340,31 +340,32 @@ const Index = () => {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-2 right-2">
                     <Badge className="bg-white/90 text-gray-800 text-xs rounded-lg">
                       {app.stats}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-3 left-3">
+                  <div className="absolute bottom-2 left-2">
                     <div className={`p-2 rounded-xl bg-gradient-to-r ${app.color} text-white`}>
-                      <app.icon className="h-5 w-5" />
+                      <app.icon className="h-4 w-4" />
                     </div>
                   </div>
                 </div>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg group-hover:text-orange-600 transition-colors">
+                  <CardTitle className="text-sm group-hover:text-orange-600 transition-colors">
                     {app.title}
                   </CardTitle>
-                  <CardDescription className="text-sm">
+                  <CardDescription className="text-xs">
                     {app.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white text-sm rounded-xl`}
+                    size="sm"
+                    className={`w-full bg-gradient-to-r ${app.color} hover:opacity-90 text-white text-xs rounded-xl`}
                   >
                     Explore
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
                 </CardContent>
               </Card>
