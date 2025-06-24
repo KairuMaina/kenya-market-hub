@@ -1,137 +1,225 @@
 
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-} from '@/components/ui/sidebar';
-import {
-  LayoutDashboard,
-  Users,
-  ShoppingBag,
-  ClipboardList,
-  Store,
-  Car,
-  Wrench,
-  Building,
-  Route,
-  Stethoscope,
-  BarChart3,
-  Settings,
-  UserCheck,
-  Building2,
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  Users, 
+  ShoppingBag, 
+  ClipboardList, 
+  Store, 
+  Car, 
+  Briefcase, 
+  Building2, 
+  UserCheck, 
+  Route, 
+  Wrench, 
+  Building, 
+  Stethoscope, 
+  Shield, 
+  UtensilsCrossed, 
+  Calendar, 
+  Briefcase as JobIcon, 
+  BarChart3, 
+  FileText, 
   Bell,
-  Briefcase,
-  Shield,
-  UtensilsCrossed,
-  Calendar,
-  FileText
+  Settings
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminSidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  // Fetch notification count
+  const { data: notificationCount } = useQuery({
+    queryKey: ['admin-notification-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false);
+      return count || 0;
+    }
+  });
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
+  // Fetch pending vendor applications count
+  const { data: pendingVendorCount } = useQuery({
+    queryKey: ['admin-pending-vendor-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('vendors')
+        .select('*', { count: 'exact', head: true })
+        .eq('verification_status', 'pending');
+      return count || 0;
+    }
+  });
 
-  const mainItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: Users, label: 'Users', path: '/admin/users' },
-    { icon: ShoppingBag, label: 'Products', path: '/admin/products' },
-    { icon: ClipboardList, label: 'Orders', path: '/admin/orders' }
+  // Fetch orders count
+  const { data: ordersCount } = useQuery({
+    queryKey: ['admin-orders-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    }
+  });
+
+  const navigationItems = [
+    { 
+      name: 'Dashboard', 
+      href: '/admin', 
+      icon: Home,
+      exact: true
+    },
+    { 
+      name: 'Users', 
+      href: '/admin/users', 
+      icon: Users 
+    },
+    { 
+      name: 'Products', 
+      href: '/admin/products', 
+      icon: ShoppingBag 
+    },
+    { 
+      name: 'Orders', 
+      href: '/admin/orders', 
+      icon: ClipboardList,
+      badge: ordersCount
+    },
+    { 
+      name: 'Vendors', 
+      href: '/admin/vendors', 
+      icon: Store,
+      badge: pendingVendorCount
+    },
+    { 
+      name: 'Drivers', 
+      href: '/admin/drivers', 
+      icon: Car 
+    },
+    { 
+      name: 'Service Providers', 
+      href: '/admin/service-providers', 
+      icon: Briefcase 
+    },
+    { 
+      name: 'Employers', 
+      href: '/admin/employers', 
+      icon: Building2 
+    },
+    { 
+      name: 'Agents', 
+      href: '/admin/agents', 
+      icon: UserCheck 
+    },
+    { 
+      name: 'Rides', 
+      href: '/admin/rides', 
+      icon: Route 
+    },
+    { 
+      name: 'Service Bookings', 
+      href: '/admin/service-bookings', 
+      icon: Wrench 
+    },
+    { 
+      name: 'Properties', 
+      href: '/admin/properties', 
+      icon: Building 
+    },
+    { 
+      name: 'Medical', 
+      href: '/admin/medical', 
+      icon: Stethoscope 
+    },
+    { 
+      name: 'Insurance', 
+      href: '/admin/insurance', 
+      icon: Shield 
+    },
+    { 
+      name: 'Food Delivery', 
+      href: '/admin/food-delivery', 
+      icon: UtensilsCrossed 
+    },
+    { 
+      name: 'Events', 
+      href: '/admin/events', 
+      icon: Calendar 
+    },
+    { 
+      name: 'Jobs', 
+      href: '/admin/jobs', 
+      icon: JobIcon 
+    },
+    { 
+      name: 'Analytics', 
+      href: '/admin/analytics', 
+      icon: BarChart3 
+    },
+    { 
+      name: 'Reports', 
+      href: '/admin/reports', 
+      icon: FileText 
+    },
+    { 
+      name: 'Notifications', 
+      href: '/admin/notifications', 
+      icon: Bell,
+      badge: notificationCount
+    },
+    { 
+      name: 'Settings', 
+      href: '/admin/settings', 
+      icon: Settings 
+    }
   ];
-
-  const businessItems = [
-    { icon: Store, label: 'Vendors', path: '/admin/vendors' },
-    { icon: Car, label: 'Drivers', path: '/admin/drivers' },
-    { icon: Wrench, label: 'Service Providers', path: '/admin/service-providers' },
-    { icon: Building2, label: 'Employers', path: '/admin/employers' },
-    { icon: UserCheck, label: 'Agents', path: '/admin/agents' }
-  ];
-
-  const servicesItems = [
-    { icon: Route, label: 'Rides', path: '/admin/rides' },
-    { icon: Wrench, label: 'Service Bookings', path: '/admin/service-bookings' },
-    { icon: Building, label: 'Properties', path: '/admin/properties' },
-    { icon: Stethoscope, label: 'Medical', path: '/admin/medical' },
-    { icon: Shield, label: 'Insurance', path: '/admin/insurance' },
-    { icon: UtensilsCrossed, label: 'Food Delivery', path: '/admin/food-delivery' },
-    { icon: Calendar, label: 'Events', path: '/admin/events' },
-    { icon: Briefcase, label: 'Job Board', path: '/admin/jobs' }
-  ];
-
-  const systemItems = [
-    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-    { icon: FileText, label: 'Reports', path: '/admin/reports' },
-    { icon: Bell, label: 'Notifications', path: '/admin/notifications' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' }
-  ];
-
-  const SidebarSection = ({ title, items }: { title: string; items: any[] }) => (
-    <SidebarGroup>
-      <SidebarGroupLabel className="text-orange-600 font-semibold">{title}</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.path}>
-              <SidebarMenuButton
-                onClick={() => handleNavigation(item.path)}
-                isActive={isActive(item.path)}
-                className={`hover:bg-orange-50 hover:text-orange-700 ${
-                  isActive(item.path) ? 'bg-orange-100 text-orange-700 border-r-2 border-orange-500' : ''
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
 
   return (
-    <Sidebar variant="inset" className="border-r border-orange-200 bg-white">
-      <SidebarHeader className="border-b border-orange-200 p-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
-            <LayoutDashboard className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-sm text-gray-600">Soko Smart</p>
-          </div>
-        </div>
-      </SidebarHeader>
-
-      <SidebarContent className="py-4">
-        <SidebarSection title="Main" items={mainItems} />
-        <SidebarSection title="Business Partners" items={businessItems} />
-        <SidebarSection title="Services & Modules" items={servicesItems} />
-        <SidebarSection title="System" items={systemItems} />
-      </SidebarContent>
-
-      <SidebarFooter className="border-t border-orange-200 p-4">
-        <div className="text-xs text-gray-500 text-center">
-          © 2024 Soko Smart Admin
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    <div className="w-64 bg-white shadow-lg border-r border-gray-200 h-full overflow-y-auto">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
+        <p className="text-sm text-gray-600">Soko Smart Management</p>
+      </div>
+      
+      <nav className="px-4 pb-4">
+        <ul className="space-y-1">
+          {navigationItems.map((item) => {
+            const isActive = item.exact 
+              ? location.pathname === item.href 
+              : location.pathname.startsWith(item.href);
+            
+            return (
+              <li key={item.name}>
+                <Link
+                  to={item.href}
+                  className={cn(
+                    'flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200',
+                    isActive
+                      ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                  )}
+                >
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </div>
+                  {item.badge && item.badge > 0 && (
+                    <Badge variant="secondary" className="ml-2 bg-red-100 text-red-800">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 };
 
